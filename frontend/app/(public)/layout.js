@@ -5,15 +5,15 @@ import ClientFooter from "../components/frontend/ClientFooter";
 import { AuthProvider } from "../context/AuthContext";
 import FrontendAssets from "../components/frontend/FrontendAssets";
 
-export const metadata = { title: "Welcome to Vogexi Ecommarce" };
+export const metadata = { title: "Login..." };
 
 export default function PublicLayout({ children }) {
   return (
     <AuthProvider>
       <FrontendAssets />
-      <ClientNavbar />
+      {/* <ClientNavbar /> */}
       <main>{children}</main>
-      <ClientFooter />
+      {/* <ClientFooter /> */}
     </AuthProvider>
   );
 }

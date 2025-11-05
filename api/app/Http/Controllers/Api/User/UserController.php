@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\ModelHasRole;
 use App\Models\RuleModel;
 use App\Models\User;
 use DB;
@@ -25,28 +26,52 @@ class UserController extends Controller
                 'message' => 'Unauthorized: You do not have permission to view users',
             ], 403);
         }
-        $page = $request->input('page', 1);
-        $pageSize = $request->input('pageSize', 10);
-        $searchQuery    = $request->searchQuery;
-        $selectedFilter = (int) $request->selectedFilter;
+        $page            = $request->input('page', 1);
+        $pageSize        = $request->input('pageSize', 10);
+        $searchQuery     = $request->searchQuery;
+        $selectedFilter  = (int) $request->selectedFilter;
+        $selectRulesType = (int) $request->selectRulesType;
+
         $query = User::orderBy('users.id', 'desc')->select('users.*');
+
         if ($searchQuery !== null) {
             $query->where('users.name', 'like', '%' . $searchQuery . '%');
         }
+
         if ($selectedFilter !== null) {
             $query->where('users.status', $selectedFilter);
         }
+
+
+        if (!empty($selectRulesType) && $selectRulesType == 1) {
+             $query->whereNull('users.role_type');
+        }
+
+        if (!empty($selectRulesType) && $selectRulesType == 2) {
+            $query->where('users.role_type', $selectRulesType);
+        }
+
         // $query->where('users.role_id', 1);
         $paginator = $query->paginate($pageSize, ['*'], 'page', $page);
         $modifiedCollection = $paginator->getCollection()->map(function ($item) {
-            $status = $item->status == 1 ? 'Active' : 'None';
+            $status    = $item->status == 1 ? 'Active' : 'Inactive';
+            $createdBy = User::where('id',$item->entry_by)->select('name')->first();
+
+            $modelType = ModelHasRole::where('model_id', $item->id)->first();
+            $roleName = $modelType
+                ? ($modelType->role_id == 1
+                    ? 'Admin'
+                    : ($modelType->role_id == 2 ? 'Agent' : 'Admin'))
+                : 'None';
+
             return [
                 'id'            => $item->id,
                 'name'          => $item->name,
-                'rulename'      => 'N/A',
+                'rulename'      => $roleName,
                 'email'         => $item->email,
                 'phone_number'  => $item->phone_number,
                 'show_password' => $item->show_password,
+                'createdBy'     => $createdBy->name,
                 'status'        => $status,
             ];
         });
@@ -67,29 +92,36 @@ class UserController extends Controller
                 'message' => 'Unauthorized: You do not have permission to create users',
             ], 403);
         }
-        // dd($request->all());
+
+
         $validator = Validator::make($request->all(), [
-            'role_id'       => 'required',
+            'rules_type'    => 'required',
             'name'          => 'required',
             'phone'         => 'required',
             'email'         => 'required|email',
             // 'email' => 'required|email|unique:users',
             'password'      => 'min:2|required_with:password_confirmation|same:password_confirmation',
             'password_confirmation' => 'min:2',
+            // Conditional validation for Agent
+            'agentCode'     => $request->rules_type == 2 ? 'required|string' : 'nullable',
         ]);
+
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-
+        // Assign agentCode only if rules_type == 2
+        $agentCode = $request->rules_type == 2 ? $request->agentCode : null;
+        // Current user ID (who is creating this user)
         $user_id = $user->id;
+
         $data = [
-            'role_id'       => ! empty($request->role_id) ? $request->role_id : '',
-            'name'          => ! empty($request->name) ? $request->name : '',
-            'address'       => ! empty($request->address) ? $request->address : '',
-            'phone_number'  => ! empty($request->phone) ? $request->phone : '',
-            'email'         => ! empty($request->email) ? $request->email : '',
-            'password'      => ! empty($request->password) ? Hash::make($request->password) : '',
-            'show_password' => ! empty($request->password) ? $request->password : '',
+            'role_type'     => $request->rules_type,
+            'name'          => $request->name,
+            'address'       => $request->address ?? '',
+            'phone_number'  => $request->phone,
+            'email'         => $request->email,
+            'agentCode'     => $agentCode,
+            'password'      => !empty($request->password) ? Hash::make($request->password) : null,
             'status'        => $request->status,
             'entry_by'      => $user_id,
         ];
@@ -107,6 +139,12 @@ class UserController extends Controller
         }
         if (empty($request->id)) {
             $userId = User::insertGetId($data);
+
+            $rdata['role_id'] = $request->rules_type;
+            $rdata['model_type'] = 'App\Models\User';
+            $rdata['model_id'] = $userId;
+            ModelHasRole::insert([$rdata]); // ✅ wrap in array
+
         } else {
             $userId = $request->id;
             User::where('id', $request->id)->update($data);
@@ -120,7 +158,7 @@ class UserController extends Controller
 
     public function update(Request $request)
     {
-
+        //dd($request->all());
         $user = Auth::user();
         if (! $user->can('edit users')) {
             return response()->json([
@@ -129,25 +167,25 @@ class UserController extends Controller
         }
         // dd($request->all());
         $validator = Validator::make($request->all(), [
-            'name' => 'required|max:255',
+            'name'   => 'required|max:255',
+            'status' => 'required',
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user_id = $user->id;
+        $user_id = $request->id;
         $user = User::find($user_id);
-        if ($request->email === $user->email) {
-            // $unqie=uniqid();
-            //  $email= $request->email.$unqie;
-        } else {
-            $email = $request->email;
-        }
-        $data['name'] = $request->name;
+
+        $data['name']      = $request->name;
+        $data['agentCode'] = $request->agentCode;
+        $data['status']    = $request->status;
+
+
         if (! empty($request->phone_number)) {
             $data['phone_number'] = $request->phone_number;
         }
-        $data['nationality_id'] = $request->nationality_id;
+
         // dd($data);
         if (! empty($request->file('file'))) {
             $files = $request->file('file');
@@ -159,6 +197,35 @@ class UserController extends Controller
             $files->move(public_path('/backend/files/'), $upload_url);
             $file_url = $uploadPath . $path;
             $data['image'] = $file_url;
+        }
+
+
+        if (!empty($request->agentCode) && $request->agentCode !== $user->agentCode) {
+            $agentExists = User::where('agentCode', $request->agentCode)
+                ->where('id', '!=', $user_id)
+                ->exists();
+
+            if (!$agentExists) {
+                $data['agentCode'] = $request->agentCode;
+            } else {
+                $data['agentCode'] = $user->agentCode;
+            }
+        } else {
+            $data['agentCode'] = $user->agentCode;
+        }
+
+
+        if (!empty($request->email) && $request->email !== $user->email) {
+            $emailExists = User::where('email', $request->email)
+                ->where('id', '!=', $user_id)
+                ->exists();
+            if (!$emailExists) {
+                $data['email'] = $request->email;
+            } else {
+                $data['email'] = $user->email;
+            }
+        } else {
+            $data['email'] = $user->email;
         }
         User::where('id', $user_id)->update($data);
         $response = [
@@ -191,9 +258,9 @@ class UserController extends Controller
 
     public function checkUserrow($id)
     {
-        $data = User::find($id);
+        $userData = User::find($id);
         $response = [
-            'data' => $data,
+            'data' => $userData,
             'message' => 'success',
         ];
         return response()->json($response, 200);

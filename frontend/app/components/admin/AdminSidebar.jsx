@@ -55,13 +55,27 @@ export default function AdminSidebar() {
     ...(roles.includes("admin")
       ? [
           {
+            label: "Transaction Setting",
+            href: "#",
+            icon: "bi-clipboard-fill",
+            children: [
+              { label: "Limits List", href: "/setting", icon: "bi-circle" },
+              { label: "Setup Fee List", href: "/setting", icon: "bi-circle" },
+              { label: "Setup Rate List", href: "/setting", icon: "bi-circle" },
+            ],
+          },
+          {
             label: "System Management",
             href: "#",
             icon: "bi-clipboard-fill",
             children: [
               { label: "Roles Manage", href: "/roles", icon: "bi-circle" },
-              { label: "Permission Manage", href: "/permission", icon: "bi-circle" },
-              { label: "Website Setting", href: "/setting", icon: "bi-circle" },
+              {
+                label: "Permission Manage",
+                href: "/permission",
+                icon: "bi-circle",
+              },
+              { label: "Company Setting", href: "/setting", icon: "bi-circle" },
             ],
           },
         ]

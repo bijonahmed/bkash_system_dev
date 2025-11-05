@@ -1,6 +1,6 @@
 // app/(public)/login/layout.jsx
 export const metadata = {
-  title: "Login | My Website", // specific title for login page
+  title: "Login", // specific title for login page
 };
 
 export default function LoginLayout({ children }) {

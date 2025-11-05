@@ -1,53 +1,18 @@
-"use client"; // required for client components
+"use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../../context/AuthContext"; // Adjust the path as necessary
+import { useAuth } from "../../../context/AuthContext";
 import { useState } from "react";
+import "./login.css"; // 👈 create this CSS file next to your component
 
 export default function LoginPage() {
-  const router = useRouter(); // ✅ Next.js Router
+  const router = useRouter();
   const [email, setemail] = useState("mdbijon@gmail.com");
   const [password, setPassword] = useState("mdbijon@gmail.com");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const { login } = useAuth();
-
-  /*
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError("");
-        setSuccess("");
-
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                setSuccess("Login successful!");
-                login(data.access_token, data.user.name);
-                if (data.access_token) {
-                    localStorage.setItem("token", data.access_token);
-                }
-                router.replace("/dashboard");
-            } else {
-                setError(data.message || "Invalid login credentials");
-            }
-        } catch (err) {
-            setError("Something went wrong. Please try again.");
-        }
-
-        setLoading(false);
-    };
-    */
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,46 +23,26 @@ export default function LoginPage() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        // Save token
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-        }
-
-        // Save user info
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-        }
-
-        // Save roles
-        if (data.roles) {
-          localStorage.setItem("roles", JSON.stringify(data.roles));
-        }
-
-        // Save permissions
-        if (data.permissions) {
+        if (data.token) localStorage.setItem("token", data.token);
+        if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+        if (data.roles) localStorage.setItem("roles", JSON.stringify(data.roles));
+        if (data.permissions)
           localStorage.setItem("permissions", JSON.stringify(data.permissions));
-        }
 
         setSuccess("Login successful!");
-
-        // Optionally, you can also set a global state or context
         login(data.token, data.user.name, data.roles, data.permissions);
-
-        // Redirect to dashboard
         router.replace("/dashboard");
       } else {
-        setError(data.message || "Invalid login credentials");
+        setError(data.error || "Invalid login credentials");
       }
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please try again.");
     }
 
@@ -105,61 +50,53 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container py-5">
-      <div className="row justify-content-center">
-        <div className="col-md-6 col-lg-4">
-          <div className="card shadow-sm">
-            <div className="card-body">
-         
-              <form onSubmit={handleSubmit}>
-                {/* email */}
-                <div className="mb-3">
-                  <label htmlFor="email" className="form-label">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setemail(e.target.value)}
-                    placeholder="Enter your email"
-                  />
-                </div>
+    <div className="login-bg d-flex align-items-center justify-content-center vh-100">
+      <div className="col-md-6 col-lg-4">
+        <div className="card shadow-lg border-0 rounded-4">
+          <div className="card-body">
+            <h4 className="text-center mb-4">Welcome Back 👋</h4>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label htmlFor="email" className="form-label fw-bold">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  className="form-control"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setemail(e.target.value)}
+                  placeholder="Enter your email"
+                />
+              </div>
 
-                {/* Password */}
-                <div className="mb-3">
-                  <label htmlFor="password" className="form-label">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                  />
-                </div>
+              <div className="mb-3">
+                <label htmlFor="password" className="form-label fw-bold">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  className="form-control"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                />
+              </div>
 
-                {/* Submit */}
-                <div className="d-grid">
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={loading}
-                  >
-                    {loading ? "Logging in..." : "Login"}
-                  </button>
-                </div>
+              <div className="d-grid">
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={loading}
+                >
+                  {loading ? "Logging in..." : "Login"}
+                </button>
+              </div>
 
-                {/* Status Messages */}
-                {error && <p className="text-danger mt-3">{error}</p>}
-                {success && <p className="text-success mt-3">{success}</p>}
-
-                {/* Forgot Password */}
-              </form>
-            </div>
+              {error && <p className="text-danger mt-3  text-center">{error}</p>}
+              {success && <p className="text-success mt-3  text-center">{success}</p>}
+            </form>
           </div>
         </div>
       </div>

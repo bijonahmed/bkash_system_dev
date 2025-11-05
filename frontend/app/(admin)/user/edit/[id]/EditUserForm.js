@@ -7,13 +7,15 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import useRoles from "../../../../hooks/useRoles"; // adjust import path
 
 export default function EditUserForm({ id }) {
   const { token, permissions } = useAuth();
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
+  const [loadingS, setLoading] = useState(false);
   const router = useRouter();
+  const { rolesData, loading, fetchRoles } = useRoles();
 
   const [formData, setFormData] = useState({
     id: id || "",
@@ -21,8 +23,10 @@ export default function EditUserForm({ id }) {
     name: user?.name || "",
     phone: user?.phone || "",
     address: user?.address || "",
-    facebook: user?.facebook || "",
+    address: user?.address || "",
+    agentCode: user?.agentCode || "",
     status: user?.status || "",
+    rules_type: user?.role_type || 1,
   });
 
   const handleChange = (e) => {
@@ -77,8 +81,9 @@ export default function EditUserForm({ id }) {
           email: user.email ?? "", // ensure string, not undefined
           phone: user.phone_number ?? "",
           address: user.address ?? "",
-          facebook: user.facebook ?? "",
+          agentCode: user.agentCode ?? "",
           status: user.status ?? "",
+          rules_type: user.role_type ?? 1,
         });
         setLoading(false);
       })
@@ -164,7 +169,6 @@ export default function EditUserForm({ id }) {
                         <div className="invalid-feedback">{errors.name[0]}</div>
                       )}
                     </div>
-
                     <div className="mb-3">
                       <label className="form-label">Email address</label>
                       <input
@@ -175,7 +179,6 @@ export default function EditUserForm({ id }) {
                         onChange={handleChange}
                       />
                     </div>
-
                     <div className="mb-3">
                       <label className="form-label">Phone</label>
                       <input
@@ -193,7 +196,6 @@ export default function EditUserForm({ id }) {
                         </div>
                       )}
                     </div>
-
                     <div className="mb-3">
                       <label className="form-label">Address</label>
                       <input
@@ -205,18 +207,55 @@ export default function EditUserForm({ id }) {
                       />
                     </div>
 
-                    <div className="mb-3">
-                      <label className="form-label">
-                        Facebook profile link
-                      </label>
-                      <input
-                        type="text"
-                        name="facebook"
-                        className="form-control"
-                        value={formData.facebook}
-                        onChange={handleChange}
-                      />
-                    </div>
+                    {parseInt(formData.rules_type) === 2 && (
+                      <div className="mb-3">
+                        <label className="form-label">Role Type</label>
+                        <select
+                          className={`form-control ${
+                            errors.rules_type ? "is-invalid" : ""
+                          }`}
+                          name="rules_type"
+                          value={formData.rules_type}
+                          onChange={handleChange}
+                        >
+                          <option value="">-- Select Role --</option>
+                          {rolesData.map((role) => (
+                            <option key={role.id} value={role.id}>
+                              {role.name}
+                            </option>
+                          ))}
+                        </select>
+
+                        {errors.rules_type && errors.rules_type.length > 0 && (
+                          <div className="invalid-feedback">
+                            {errors.rules_type[0]}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {parseInt(formData.rules_type) === 2 && (
+                      <div className="mb-3 mt-3">
+                        <label htmlFor="agentCode" className="form-label">
+                          Agent Code
+                        </label>
+                        <input
+                          type="text"
+                          className={`form-control ${
+                            errors.agentCode ? "is-invalid" : ""
+                          }`}
+                          id="agentCode"
+                          name="agentCode"
+                          value={formData.agentCode || ""}
+                          onChange={handleChange}
+                          placeholder="Enter Agent Code"
+                        />
+                        {errors.agentCode && errors.agentCode.length > 0 && (
+                          <div className="invalid-feedback">
+                            {errors.agentCode[0]}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="mb-3">
                       <label className="form-label">Status</label>
@@ -247,7 +286,6 @@ export default function EditUserForm({ id }) {
                     </button>
                   </div>
                 </form>
-
                 {/*end::Form*/}
               </div>
               {/*end::Quick Example*/}

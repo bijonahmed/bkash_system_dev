@@ -5,16 +5,16 @@ import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext"; // adjust path
 import toast, { Toaster } from "react-hot-toast";
+import useRoles from "../../../hooks/useRoles"; // adjust import path
 
 import Link from "next/link";
 
 export default function UserAddPage() {
   const { token, permissions } = useAuth();
   const [user, setUser] = useState(null);
-  const [rules, setRole] = useState(null);
+  const { rolesData, loading, fetchRoles } = useRoles();
   const pathname = usePathname();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const title = "User Add"; //pathname ? pathname.replace("/", "").charAt(0).toUpperCase() + pathname.slice(2) : "";
   // update document title
@@ -27,10 +27,10 @@ export default function UserAddPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role_id: "",
+    rules_type: "",
     phone: "",
     address: "",
-    facebook: "",
+    agentCode: "",
     password: "",
     password_confirmation: "",
     status: 1,
@@ -42,6 +42,14 @@ export default function UserAddPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Conditional validation
+    if (parseInt(formData.rules_type) === 2 && !formData.agentCode) {
+      setErrors({ agentCode: ["Agent Code is required for Agent role"] });
+      toast.error("Agent Code is required for Agent role");
+      return; // stop submission
+    }
+
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/users/create`,
@@ -74,6 +82,10 @@ export default function UserAddPage() {
       toast.error("Network or server error!");
     }
   };
+
+  useEffect(() => {
+    fetchRoles();
+  }, []);
 
   if (!permissions.includes("create users")) {
     router.replace("/dashboard");
@@ -163,7 +175,6 @@ export default function UserAddPage() {
                         </div>
                       )}
                     </div>
-
                     <div className="mb-3">
                       <label className="form-label">Phone</label>
                       <input
@@ -181,7 +192,6 @@ export default function UserAddPage() {
                         </div>
                       )}
                     </div>
-
                     <div className="mb-3">
                       <label className="form-label">Address</label>
                       <input
@@ -192,20 +202,6 @@ export default function UserAddPage() {
                         onChange={handleChange}
                       />
                     </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">
-                        Facebook profile link
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="facebook"
-                        value={formData.facebook}
-                        onChange={handleChange}
-                      />
-                    </div>
-
                     <div className="mb-3">
                       <label className="form-label">Password</label>
                       <input
@@ -223,7 +219,6 @@ export default function UserAddPage() {
                         </div>
                       )}
                     </div>
-
                     <div className="mb-3">
                       <label className="form-label">Confirm Password</label>
                       <input
@@ -242,6 +237,54 @@ export default function UserAddPage() {
                           </div>
                         )}
                     </div>
+                    <div className="mb-3">
+                      <label className="form-label">Role Type</label>
+                      <select
+                        className={`form-control ${
+                          errors.rules_type ? "is-invalid" : ""
+                        }`}
+                        name="rules_type"
+                        value={formData.rules_type}
+                        onChange={handleChange}
+                      >
+                        <option value="">-- Select Role --</option>
+                        {rolesData.map((role) => (
+                          <option key={role.id} value={role.id}>
+                            {role.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      {errors.rules_type && errors.rules_type.length > 0 && (
+                        <div className="invalid-feedback">
+                          {errors.rules_type[0]}
+                        </div>
+                      )}
+                    </div>
+
+                    {parseInt(formData.rules_type) === 2 && (
+                      <div className="mb-3 mt-3">
+                        <label htmlFor="agentCode" className="form-label">
+                          Agent Code
+                        </label>
+                        <input
+                          type="text"
+                          className={`form-control ${
+                            errors.agentCode ? "is-invalid" : ""
+                          }`}
+                          id="agentCode"
+                          name="agentCode"
+                          value={formData.agentCode || ""}
+                          onChange={handleChange}
+                          placeholder="Enter Agent Code"
+                        />
+                        {errors.agentCode && errors.agentCode.length > 0 && (
+                          <div className="invalid-feedback">
+                            {errors.agentCode[0]}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                   {/*end::Body*/}
                   {/*begin::Footer*/}

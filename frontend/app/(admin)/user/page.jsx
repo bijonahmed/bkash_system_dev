@@ -7,15 +7,26 @@ import Link from "next/link";
 import { customStyles } from "../../components/styles/customDataTable";
 import { useAuth } from "../../context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
+import useRoles from "../../hooks/useRoles"; // adjust import path
 
 export default function UserPage() {
   const router = useRouter();
   const { token, permissions } = useAuth();
+  const { rolesData, fetchRoles } = useRoles();
   const perms = Array.isArray(permissions)
     ? permissions
     : permissions?.split(",") || [];
   const pathname = usePathname();
   const title = "User List";
+  const [statusFilter, setStatusFilter] = useState("");
+  const [rules_type, setRulesType] = useState("");
+  const [data, setData] = useState([]);
+  const [totalRows, setTotalRows] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [search, setSearch] = useState("");
+
   //const title = pathname ? pathname.replace("/", "").charAt(0).toUpperCase() + pathname.slice(2) : "";
   // update document title
   useEffect(() => {
@@ -23,13 +34,6 @@ export default function UserPage() {
       document.title = title;
     }
   }, [title]);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [data, setData] = useState([]);
-  const [totalRows, setTotalRows] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-  const [search, setSearch] = useState("");
 
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete?")) return;
@@ -65,12 +69,13 @@ export default function UserPage() {
     page = 1,
     pageSize = 10,
     searchQuery = "",
-    selectedFilter = statusFilter !== "" ? statusFilter : 1
+    selectedFilter = statusFilter !== "" ? statusFilter : 1,
+    selectRulesType = rules_type !== "" ? rules_type : ""
   ) => {
     setLoading(true);
 
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/users/index?page=${page}&pageSize=${pageSize}&searchQuery=${searchQuery}&selectedFilter=${selectedFilter}`;
+      const url = `${process.env.NEXT_PUBLIC_API_BASE}/users/index?page=${page}&pageSize=${pageSize}&searchQuery=${searchQuery}&selectedFilter=${selectedFilter}&selectRulesType=${selectRulesType}`;
       const res = await fetch(url, {
         method: "GET",
         headers: {
@@ -109,31 +114,126 @@ export default function UserPage() {
   }, [page, perPage, search]);
 
   const columns = [
-    { name: "Name", selector: (row) => row.name, sortable: true },
-    { name: "Email", selector: (row) => row.email, sortable: true },
-    { name: "Phone", selector: (row) => row.phone_number, sortable: true },
-    { name: "Role", selector: (row) => row.rulename, sortable: true },
-    { name: "Status", selector: (row) => row.status, sortable: true },
+    {
+      name: "Name",
+      selector: (row) => row.name,
+      sortable: true,
+      conditionalCellStyles: [
+        {
+          when: () => true, // always applies
+          style: {
+            backgroundColor: "#e6f7ff",
+            color: "#000",
+          },
+        },
+      ],
+    },
+    {
+      name: "Email",
+      selector: (row) => row.email,
+      sortable: true,
+      conditionalCellStyles: [
+        {
+          when: () => true,
+          style: {
+            backgroundColor: "#fff0f6",
+            color: "#000",
+          },
+        },
+      ],
+    },
+    {
+      name: "Phone",
+      selector: (row) => row.phone_number,
+      sortable: true,
+      conditionalCellStyles: [
+        {
+          when: () => true,
+          style: {
+            backgroundColor: "#f0fff0",
+            color: "#000",
+          },
+        },
+      ],
+    },
+    {
+      name: "Role",
+      selector: (row) => row.rulename,
+      sortable: true,
+      conditionalCellStyles: [
+        {
+          when: () => true,
+          style: {
+            backgroundColor: "#fffbe6",
+            color: "#000",
+          },
+        },
+      ],
+    },
+
+    {
+      name: "Created By",
+      selector: (row) => row.createdBy,
+      sortable: true,
+      conditionalCellStyles: [
+        {
+          when: () => true,
+          style: {
+            backgroundColor: "#fffbe6",
+            color: "#000",
+          },
+        },
+      ],
+    },
+
+    {
+      name: "Status",
+      selector: (row) => row.status,
+      sortable: true,
+      conditionalCellStyles: [
+        {
+          when: (row) => row.status === "Active",
+          style: {
+            backgroundColor: "lightgreen",
+            color: "#000",
+          },
+        },
+        {
+          when: (row) => row.status === "Inactive",
+          style: {
+            backgroundColor: "lightcoral",
+            color: "#fff",
+          },
+        },
+        {
+          when: () => true, // default for other status
+          style: {
+            backgroundColor: "#f5f5f5",
+            color: "#000",
+          },
+        },
+      ],
+    },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          {perms.includes("edit users") ? (
+          {perms.includes("edit users") && (
             <button
               className="btn btn-sm btn-primary"
               onClick={() => router.push(`/user/edit/${row.id}`)}
             >
               <i className="bi bi-pencil"></i> Edit
             </button>
-          ) : null}
-          {perms.includes("delete users") ? (
+          )}
+          {perms.includes("delete users") && (
             <button
               className="btn btn-sm btn-danger"
               onClick={() => handleDelete(row.id)}
             >
               <i className="bi bi-trash"></i> Delete
             </button>
-          ) : null}
+          )}
         </div>
       ),
       ignoreRowClick: true,
@@ -190,7 +290,7 @@ export default function UserPage() {
               <div className="card-title w-100">
                 <div className="row g-2 align-items-center">
                   {/* Column 1: Search input */}
-                  <div className="col-12 col-md-6 col-lg-6">
+                  <div className="col-12 col-md-4 col-lg-4">
                     <input
                       type="text"
                       placeholder="Search users..."
@@ -199,8 +299,23 @@ export default function UserPage() {
                       onChange={(e) => setSearch(e.target.value)}
                     />
                   </div>
+                  <div className="col-12 col-md-2 col-lg-2">
+                    <select
+                      className="form-control"
+                      name="rules_type"
+                      value={rules_type}
+                      onChange={(e) => setRulesType(e.target.value)}
+                    >
+                      <option value="">-- All Role --</option>
+                      {rolesData.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   {/* Status Filter */}
-                  <div className="col-4 col-md-4 col-lg-3">
+                  <div className="col-4 col-md-3 col-lg-3">
                     <select
                       className="form-control"
                       value={statusFilter}

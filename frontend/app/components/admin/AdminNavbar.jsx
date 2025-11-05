@@ -7,17 +7,19 @@ export default function AdminNavbar() {
   const { logout, username, roles } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false); // track dropdown
+
+  
   const handleLogout = (e) => {
     e.preventDefault();
     logout();
-    router.push("/login");
+    window.location.href = "/login";
   };
-  
-const capitalizeFirst = (value) => {
-  if (!value) return "";           // null, undefined, or empty
-  const str = String(value);       // convert to string if not already
-  return str.charAt(0).toUpperCase() + str.slice(1);
-};
+
+  const capitalizeFirst = (value) => {
+    if (!value) return ""; // null, undefined, or empty
+    const str = String(value); // convert to string if not already
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
 
   return (
     <nav className="app-header navbar navbar-expand bg-body">

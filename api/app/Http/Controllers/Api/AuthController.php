@@ -25,19 +25,32 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
-        if (! $token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Invalid Credentials'], 401);
-        }
-        $user = Auth::user();
 
-        return response()->json([
-            'token' => $token,
-            'user' => $user,
-            'roles' => $user->getRoleNames(),
-            'permissions' => $user->getAllPermissions()->pluck('name'),
-        ]);
+        try {
+            // Include 'status' in the credentials
+            $credentials = $request->only('email', 'password');
+            $credentials['status'] = 1; // ✅ only allow active users
+
+            if (!$token = auth()->attempt($credentials)) {
+                return response()->json(['error' => 'Invalid Credentials or Inactive Account'], 401);
+            }
+
+            $user = Auth::user();
+
+            return response()->json([
+                'token' => $token,
+                'user' => $user,
+                'roles' => $user->getRoleNames(),
+                'permissions' => $user->getAllPermissions()->pluck('name'),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
     }
+
 
     public function profile()
     {
@@ -97,6 +110,4 @@ class AuthController extends Controller
 
         return response()->json($response);
     }
-
-    
 }

@@ -60,6 +60,7 @@ class RolesController extends Controller
 
     public function store(Request $request)
     {
+      
         $user = Auth::user();
         if (! $user->can('create role')) {
             return response()->json([
