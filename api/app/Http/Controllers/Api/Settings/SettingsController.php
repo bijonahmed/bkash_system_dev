@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers\Api\Settings;
+
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\Fees;
@@ -13,8 +15,11 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Contracts\Permission;
 use Validator;
 use App\Helpers\PermissionHelper;
+use App\Models\FeesLog;
 use App\Models\Limit;
+use App\Models\LimitLog;
 use App\Models\Wallet;
+
 class SettingsController extends Controller
 {
     public function settingrow()
@@ -42,6 +47,7 @@ class SettingsController extends Controller
             $data = array(
                 'exchange_rate_wallet'   => !empty($request->exchange_rate_wallet) ? $request->exchange_rate_wallet : "",
                 'exchange_rate_bank'     => !empty($request->exchange_rate_bank) ? $request->exchange_rate_bank : "",
+                'update_by'              => $user->id,
             );
             //dd($data);
             Setting::where('id', 1)->update($data);
@@ -105,13 +111,25 @@ class SettingsController extends Controller
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
-            Fees::create([
+            $newFee = Fees::create([
                 'paymentMethod' => $request->paymentMethod,
                 'from_bdt'      => $request->from_bdt,
                 'to_bdt'        => $request->to_bdt,
                 'fee_gbp'       => $request->fee_gbp,
                 'created_by'    => $user->id, // optional audit
             ]);
+
+
+            FeesLog::create([
+                'fees_id'       => $newFee->id,
+                'type'          => 'create',
+                'paymentMethod' => $request->paymentMethod,
+                'from_bdt'      => $request->from_bdt,
+                'to_bdt'        => $request->to_bdt,
+                'fee_gbp'       => $request->fee_gbp,
+                'created_by'    => $user->name,
+            ]);
+
             return response()->json([
                 'message' => 'Successfully added!',
             ], 201);
@@ -148,6 +166,7 @@ class SettingsController extends Controller
                     'message' => 'Duplicate entry: this Payment Method and Wallet Type already exist.',
                 ], 409); // 409 = Conflict
             }
+
             $limit = Limit::create([
                 'paymentMethod' => $request->paymentMethod,
                 'walletTypeId'  => $request->walletType,
@@ -155,8 +174,17 @@ class SettingsController extends Controller
                 'created_by'    => $user->id, // optional audit
             ]);
 
-            
+            $walletCheck = Wallet::find($request->walletType);
+            //  dd($walletCheck->name);
 
+            LimitLog::create([
+                'limit_id'      => $limit->id,
+                'type'          => 'create',
+                'paymentMethod' => $request->paymentMethod,
+                'walletTypeId'  => $walletCheck->name ?? "",
+                'maxLimit'      => $request->maxLimit,
+                'created_by'    => $user->name,
+            ]);
 
 
             return response()->json([
@@ -172,6 +200,7 @@ class SettingsController extends Controller
     }
     public function updateFees(Request $request, $id)
     {
+        $user = Auth::user();
         $chkedData = Fees::findOrFail($id);
         $rules = [
             'paymentMethod' => 'required|string',
@@ -188,11 +217,27 @@ class SettingsController extends Controller
             'from_bdt'       => $request->from_bdt,
             'to_bdt'         => $request->to_bdt,
             'fee_gbp'        => $request->fee_gbp,
+            'update_by'      => $user->id, // optional audit
         ]);
+
+        FeesLog::create([
+            'fees_id'       => $chkedData->id,
+            'type'          => 'update',
+            'paymentMethod' => $chkedData->paymentMethod,
+            'from_bdt'      => $chkedData->from_bdt,
+            'to_bdt'        => $chkedData->to_bdt,
+            'fee_gbp'       => $chkedData->fee_gbp,
+            'update_by'     => $user->name,
+        ]);
+
+
+
+
         return response()->json(['message' => 'Fees updated successfully']);
     }
     public function updateLimit(Request $request, $id)
     {
+        $user  = Auth::user();
         $limit = Limit::findOrFail($id);
         $rules = [
             'paymentMethod' => 'required',
@@ -214,6 +259,18 @@ class SettingsController extends Controller
             'walletTypeId'   => $request->walletType,
             'maxLimit'       => $request->maxLimit,
         ]);
+
+        $walletCheck = Wallet::find($request->walletType);
+        LimitLog::create([
+            'limit_id'      => $id,
+            'type'          => 'update',
+            'paymentMethod' => $request->paymentMethod,
+            'walletTypeId'  => $walletCheck->name ?? "",
+            'maxLimit'      => $request->maxLimit,
+            'update_by'     => $user->name,
+        ]);
+
+
         return response()->json(['message' => 'Limit updated successfully']);
     }
     public function getLimits()

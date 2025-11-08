@@ -244,10 +244,10 @@ export default function UserPage() {
                               return (
                                 <tr key={limit.id} className={rowBgClass}>
                                   <td className="text-center">{index + 1}</td>
-                                  <td className="fw-semibold text-end">
+                                  <td className="text-end">
                                     {limit.from_bdt}
                                   </td>
-                                  <td className="fw-semibold text-end">
+                                  <td className="text-end">
                                     {limit.to_bdt}
                                   </td>
                                   <td className="text-end">
@@ -268,10 +268,10 @@ export default function UserPage() {
                                       : ""}
                                   </td>
 
-                                  <td className="fw-semibold text-end">
+                                  <td className="text-end">
                                     {limit.fee_gbp}
                                   </td>
-                                  <td className="fw-semibold text-center">
+                                  <td className="text-center">
                                     {limit.created_by_name}
                                   </td>
                                   <td className="text-center text-secondary">

@@ -70,6 +70,31 @@ export default function AdminSidebar() {
               },
             ],
           },
+
+          {
+            label: "Report Management",
+            href: "#",
+            icon: "bi-clipboard-fill",
+            children: [
+              { label: "Rate", href: "/report/rate", icon: "bi-circle" },
+              { label: "Fee", href: "/report/fee", icon: "bi-circle" },
+              {
+                label: "Limit",
+                href: "/report/limit",
+                icon: "bi-circle",
+              },
+              {
+                label: "User",
+                href: "/report/users",
+                icon: "bi-circle",
+              },
+              {
+                label: "Transaction",
+                href: "#",
+                icon: "bi-circle",
+              },
+            ],
+          },
           {
             label: "System Management",
             href: "#",

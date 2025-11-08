@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Post\PostController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\Roles\RolesController;
 use App\Http\Controllers\Api\Permissions\PermissionsController;
+use App\Http\Controllers\Api\Report\ReportController;
 use App\Http\Controllers\Api\Settings\SettingsController;
 
 
@@ -35,6 +36,12 @@ Route::middleware(['auth:api'])->group(function () {
     });
 
 
+    Route::prefix('report')->group(function () {
+        Route::get('/getByReportRate', [ReportController::class, 'getByReportRate']);
+        Route::get('/getByReportFee', [ReportController::class, 'getByReportFee']);
+        Route::get('/getByReportLimit', [ReportController::class, 'getByReportLimit']);
+        Route::get('/getByReportUser', [ReportController::class, 'getByReportUser']);
+    });
 
     Route::prefix('roles')->group(function () {
         Route::get('/index', [RolesController::class, 'index']);

@@ -4,8 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import DataTable from "react-data-table-component";
 import Link from "next/link";
-import useWallets from "../../../hooks/getWallet";
-import useLimits from "../../../hooks/getLimits";
 import { useAuth } from "../../../context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -16,16 +14,15 @@ export default function UserPage() {
     ? permissions
     : permissions?.split(",") || [];
   const pathname = usePathname();
-  const title = "Limit";
+  const title = "Log Report Limit";
   useEffect(() => {
     if (title) {
       document.title = title;
     }
   }, [title]);
 
-  const { walletData } = useWallets();
-  const { limitData, loading, refetch } = useLimits();
-
+  const [report, setReportData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -40,6 +37,39 @@ export default function UserPage() {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleFilter = async () => {
+    const query = new URLSearchParams(formData).toString();
+    const url = `${process.env.NEXT_PUBLIC_API_BASE}/report/getByReportLimit?${query}`;
+
+    try {
+      setLoading(true);
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Loading...");
+        setReportData(data.data);
+      } else if (data.errors) {
+        toast.error(Object.values(data.errors).flat().join("\n"), {
+          style: { whiteSpace: "pre-line" },
+        });
+      } else {
+        toast.error(data.message || "Something went wrong!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network or server error!");
+    } finally {
+      setLoading(false);
+    }
+
+    // your filter logic here
   };
 
   const handleEdit = async (limit) => {
@@ -57,52 +87,6 @@ export default function UserPage() {
 
   const handleDelete = async () => {
     toast.error("This system not allowed delete.");
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const url = formData.id
-      ? `${process.env.NEXT_PUBLIC_API_BASE}/setting/updateLimit/${formData.id}`
-      : `${process.env.NEXT_PUBLIC_API_BASE}/setting/createLimit`;
-
-    try {
-      const res = await fetch(url, {
-        method: formData.id ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success(
-          formData.id ? "Updated successfully" : "Added successfully"
-        );
-        setShowModal(false);
-        setFormData({
-          paymentMethod: "",
-          walletType: "",
-          maxLimit: "",
-          id: null,
-        });
-        refetch();
-        // Refresh your limitData here
-        // useLimits();
-      } else if (data.errors) {
-        toast.error(Object.values(data.errors).flat().join("\n"), {
-          style: { whiteSpace: "pre-line" },
-        });
-      } else {
-        toast.error(data.message || "Something went wrong!");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Network or server error!");
-    }
   };
 
   if (!permissions.includes("view limit")) {
@@ -156,17 +140,60 @@ export default function UserPage() {
             {/* Header */}
             <div className="card-header">
               <div className="card-title w-100">
+                <form className="row g-3 align-items-end mt-3">
+                  <div className="col-md-4">
+                    <label
+                      htmlFor="fromDate"
+                      className="form-label fw-semibold"
+                    >
+                      From Date
+                    </label>
+                    <input
+                      type="date"
+                      id="fromDate"
+                      name="fromDate"
+                      className="form-control"
+                      value={formData.fromDate}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div className="col-md-4">
+                    <label htmlFor="toDate" className="form-label fw-semibold">
+                      To Date
+                    </label>
+                    <input
+                      type="date"
+                      id="toDate"
+                      name="toDate"
+                      className="form-control"
+                      value={formData.toDate}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div className="col-md-4 d-flex align-items-end">
+                    <button
+                      type="button"
+                      className="btn btn-primary w-100"
+                      onClick={handleFilter}
+                    >
+                      <i className="fa-solid fa-filter me-2"></i> Filter
+                    </button>
+                  </div>
+                </form>
+
                 <div className="row g-2 align-items-center">
                   {/* Column 3: Add User button */}
                   <div className="col-6 col-md-3 col-lg-1 ms-auto">
-                    {perms.includes("create limit") ? (
+                    {/* {perms.includes("create limit") ? (
                       <button
                         className="btn btn-primary w-100"
                         onClick={() => setShowModal(true)}
                       >
                         Add New
                       </button>
-                    ) : null}{" "}
+                    ) : null}{" "} */}
                   </div>
                 </div>
               </div>
@@ -193,7 +220,7 @@ export default function UserPage() {
                       <thead className="table-primary text-center">
                         <tr>
                           <th style={{ width: "5%" }}>#</th>
-                          <th style={{ width: "40%" }}>
+                          <th style={{ width: "20%" }}>
                             <i className="fa-solid fa-credit-card me-1" />
                             Payment Method
                           </th>
@@ -206,15 +233,19 @@ export default function UserPage() {
                             Created By
                           </th>
                           <th style={{ width: "15%" }}>
-                            <i className="fa-solid fa-calendar-days me-1" />
-                            Created At
+                            <i className="fa-solid fa-user-tie me-1" />
+                            Update By
                           </th>
-                          <th style={{ width: "5%" }}>Action</th>
+                          <th style={{ width: "15%" }}>
+                            <i className="fa-solid fa-calendar-days me-1" />
+                            Update At
+                          </th>
+                          <th style={{ width: "5%" }}>Type</th>
                         </tr>
                       </thead>
 
                       <tbody>
-                        {limitData.length === 0 ? (
+                        {report.length === 0 ? (
                           <tr>
                             <td
                               colSpan="6"
@@ -224,7 +255,7 @@ export default function UserPage() {
                             </td>
                           </tr>
                         ) : (
-                          limitData.map((limit, index) => {
+                          report.map((limit, index) => {
                             const rowBgClass =
                               index % 3 === 0
                                 ? "bg-light"
@@ -233,21 +264,20 @@ export default function UserPage() {
                                 : "bg-secondary bg-opacity-10";
 
                             return (
-                              <tr key={limit.id} className={rowBgClass}>
+                              <tr  key={index+1} className={rowBgClass}>
                                 <td className="text-center">{index + 1}</td>
 
                                 <td>
-                                  <span
-                                    className={`badge me-1 ${
+                                  <center><span className={`badge me-1 ${
                                       limit.paymentMethod === "Bank"
                                         ? "bg-success"
                                         : limit.paymentMethod === "Wallet"
                                         ? "bg-info text-dark"
                                         : "bg-warning text-dark"
-                                    }`}
+                                    }  text-center`}
                                   >
                                     {limit.paymentMethod}
-                                  </span>
+                                  </span></center>
                                   {limit.paymentMethod === "Wallet" &&
                                   limit.walletTypeName
                                     ? limit.walletTypeName
@@ -266,8 +296,11 @@ export default function UserPage() {
                                   {Number(limit.maxLimit).toLocaleString()}
                                 </td>
 
-                                <td className="fw-semibold">
-                                  {limit.created_by_name}
+                                <td className="fw-semibold text-center">
+                                  {limit.created_by}
+                                </td>
+                                <td className="fw-semibold text-center">
+                                  {limit.update_by}
                                 </td>
 
                                 <td className="text-center text-secondary">
@@ -280,31 +313,7 @@ export default function UserPage() {
                                   })}
                                 </td>
 
-                                <td className="text-center">
-                                  <div className="d-flex gap-1 justify-content-center">
-                                    {perms.includes("edit limit") && (
-                                      <button
-                                        type="button"
-                                        className="btn btn-info btn-sm"
-                                        title="Edit"
-                                        onClick={() => handleEdit(limit)}
-                                      >
-                                        <i className="bi bi-pencil"></i>
-                                      </button>
-                                    )}
-
-                                    {perms.includes("delete limit") && (
-                                      <button
-                                        type="button"
-                                        className="btn btn-danger btn-sm"
-                                        title="Delete"
-                                        onClick={() => handleDelete(limit.id)}
-                                      >
-                                        <i className="bi bi-trash"></i>
-                                      </button>
-                                    )}
-                                  </div>
-                                </td>
+                                <td className="text-center">{limit.type}</td>
                               </tr>
                             );
                           })

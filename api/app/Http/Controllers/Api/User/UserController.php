@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\ModelHasRole;
+use App\Models\RolesType;
 use App\Models\RuleModel;
 use App\Models\User;
+use App\Models\UserLog;
 use DB;
 use File;
 use Helper;
@@ -44,7 +46,7 @@ class UserController extends Controller
 
 
         if (!empty($selectRulesType) && $selectRulesType == 1) {
-             $query->whereNull('users.role_type');
+            $query->whereNull('users.role_type');
         }
 
         if (!empty($selectRulesType) && $selectRulesType == 2) {
@@ -55,7 +57,7 @@ class UserController extends Controller
         $paginator = $query->paginate($pageSize, ['*'], 'page', $page);
         $modifiedCollection = $paginator->getCollection()->map(function ($item) {
             $status    = $item->status == 1 ? 'Active' : 'Inactive';
-            $createdBy = User::where('id',$item->entry_by)->select('name')->first();
+            $createdBy = User::where('id', $item->entry_by)->select('name')->first();
 
             $modelType = ModelHasRole::where('model_id', $item->id)->first();
             $roleName = $modelType
@@ -145,6 +147,23 @@ class UserController extends Controller
             $rdata['model_id'] = $userId;
             ModelHasRole::insert([$rdata]); // ✅ wrap in array
 
+
+            $rulestype = RolesType::find($request->rules_type);
+            // $walletCheck = Wallet::find($request->walletType);
+            UserLog::create([
+                'user_id'       => $userId,
+                'type'          => 'create',
+                'role_type'     => $rulestype->name,
+                'name'          => $request->name,
+                'address'       => $request->address ?? '',
+                'phone_number'  => $request->phone,
+                'email'         => $request->email,
+                'agentCode'     => $agentCode,
+                'password'      => !empty($request->password) ? Hash::make($request->password) : null,
+                'status'        => $request->status,
+                'created_by'    => $user->name,
+                // 'update_by'     => $user->name,
+            ]);
         } else {
             $userId = $request->id;
             User::where('id', $request->id)->update($data);
@@ -158,6 +177,7 @@ class UserController extends Controller
 
     public function update(Request $request)
     {
+      
         //dd($request->all());
         $user = Auth::user();
         if (! $user->can('edit users')) {
@@ -227,6 +247,27 @@ class UserController extends Controller
         } else {
             $data['email'] = $user->email;
         }
+
+
+
+        $rulestype = RolesType::find($request->rules_type);
+          $userUpdate = Auth::user();
+        // $walletCheck = Wallet::find($request->walletType);
+        UserLog::create([
+            'user_id'       => $user_id,
+            'type'          => 'udpate',
+            'role_type'     => $rulestype->name,
+            'name'          => $request->name,
+            'address'       => $request->address ?? '',
+            'phone_number'  => $request->phone,
+            'email'         => $request->email,
+            'agentCode'     => $data['agentCode'],
+            'status'        => $request->status,
+            // 'created_by'    => $user->name,
+            'update_by'     => $userUpdate->name,
+        ]);
+
+
         User::where('id', $user_id)->update($data);
         $response = [
             'message' => 'User successfully update:',

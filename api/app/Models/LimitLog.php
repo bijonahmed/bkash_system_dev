@@ -9,18 +9,20 @@ use Laravel\Sanctum\HasApiTokens;
 use AuthorizesRequests;
 use DB;
 
-class Setting extends Authenticatable
+class LimitLog extends Authenticatable
 {
     use HasFactory, Notifiable;
 
 
-    public $table = "setting";
+    public $table = "limits_log";
 
     protected $fillable = [
-        'id',
-        'name',
-        'exchange_rate_wallet',
-        'exchange_rate_bank',
+        'limit_id',
+        'paymentMethod',
+        'walletTypeId',
+        'maxLimit',
+        'type',
+        'created_by',
         'update_by'
 
     ];
