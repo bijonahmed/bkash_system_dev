@@ -41,6 +41,7 @@ export default function AdminSidebar() {
       icon: "bi-box-seam-fill",
       children: [{ label: "User List", href: "/user", icon: "bi-circle" }],
     },
+    /*
     {
       label: "Post Management",
       href: "#",
@@ -50,6 +51,7 @@ export default function AdminSidebar() {
         { label: "Post", href: "/post", icon: "bi-circle" },
       ],
     },
+    */
 
     // ✅ SHOW ONLY IF ADMIN
     ...(roles.includes("admin")
@@ -59,9 +61,13 @@ export default function AdminSidebar() {
             href: "#",
             icon: "bi-clipboard-fill",
             children: [
-              { label: "Limits List", href: "/setting", icon: "bi-circle" },
-              { label: "Setup Fee List", href: "/setting", icon: "bi-circle" },
-              { label: "Setup Rate List", href: "/setting", icon: "bi-circle" },
+              { label: "Rate", href: "/transaction/rate", icon: "bi-circle" },
+              { label: "Fee", href: "/transaction/fee", icon: "bi-circle" },
+              {
+                label: "Limit",
+                href: "/transaction/limit",
+                icon: "bi-circle",
+              },
             ],
           },
           {

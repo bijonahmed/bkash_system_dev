@@ -9,18 +9,22 @@ use Laravel\Sanctum\HasApiTokens;
 use AuthorizesRequests;
 use DB;
 
-class Setting extends Authenticatable
+class Wallet extends Authenticatable
 {
     use HasFactory, Notifiable;
 
 
-    public $table = "setting";
-
+    public $table = "wallet";
+ 
     protected $fillable = [
         'id',
         'name',
-        'exchange_rate_wallet',
-        'exchange_rate_bank',
+        'status'
 
+    ];
+
+     protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 }

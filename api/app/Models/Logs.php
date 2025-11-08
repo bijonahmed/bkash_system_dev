@@ -9,18 +9,18 @@ use Laravel\Sanctum\HasApiTokens;
 use AuthorizesRequests;
 use DB;
 
-class Setting extends Authenticatable
+class Logs extends Authenticatable
 {
     use HasFactory, Notifiable;
 
 
-    public $table = "setting";
+    public $table = "log";
 
     protected $fillable = [
         'id',
-        'name',
-        'exchange_rate_wallet',
-        'exchange_rate_bank',
-
+        'log_name',
+        'type',
+        'module_name',
+        'update_by',
     ];
 }

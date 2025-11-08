@@ -3,21 +3,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import { useAuth } from "../../context/AuthContext"; // adjust path
+import { useAuth } from "../../../context/AuthContext"; // adjust path
 import toast, { Toaster } from "react-hot-toast";
 
 import Link from "next/link";
 
 export default function SettingPage() {
-  const { token } = useAuth();
+  const { token, permissions } = useAuth();
   const [user, setUser] = useState(null);
   const pathname = usePathname();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
-  const title = pathname
-    ? pathname.replace("/", "").charAt(0).toUpperCase() + pathname.slice(2)
-    : "";
+  const title = "Rate";
   // update document title
   useEffect(() => {
     if (title) {
@@ -26,15 +24,10 @@ export default function SettingPage() {
   }, [title]);
 
   const [formData, setFormData] = useState({
-    name: user?.user?.name || "",
-    email: user?.email || "",
-    address: user?.address || "",
-    whatsApp: user?.whatsApp || "",
-    fblink: user?.fblink || "",
-    description: user?.description || "",
-    website: user?.website || "",
-    telegram: user?.telegram || "",
-    copyright: user?.copyright || "",
+    sending_currency: user?.sending_currency || "",
+    receiving_currency: user?.receiving_currency || "",
+    exchange_rate_wallet: user?.exchange_rate_wallet || "",
+    exchange_rate_bank: user?.exchange_rate_bank || "",
   });
 
   const handleChange = (e) => {
@@ -45,7 +38,7 @@ export default function SettingPage() {
     e.preventDefault();
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/setting/upateSetting`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/setting/updateRate`,
         {
           method: "POST",
           headers: {
@@ -59,7 +52,7 @@ export default function SettingPage() {
       const data = await res.json();
       if (res.ok) {
         setUser(data);
-        toast.success("User updated successfully ✅"); // ✅ success toast
+        toast.success("updated successfully ✅"); // ✅ success toast
       } else if (data.errors) {
         toast.error(Object.values(data.errors).flat().join(" "));
         setErrors(data.errors);
@@ -102,15 +95,6 @@ export default function SettingPage() {
 
       setUser(info); // ✅ Store only the data part, not wrapper
       setFormData({
-        name: info.name || "",
-        email: info.email || "",
-        address: info.address || "",
-        whatsApp: info.whatsApp || "",
-        fblink: info.fblink || "",
-        description: info.description || "",
-        website: info.website || "",
-        telegram: info.telegram || "",
-        copyright: info.copyright || "",
         sending_currency: info.sending_currency || "",
         receiving_currency: info.receiving_currency || "",
         exchange_rate_wallet: info.exchange_rate_wallet || "",
@@ -129,6 +113,11 @@ export default function SettingPage() {
 
   if (loading) {
     return <p className="text-center py-5"></p>;
+  }
+
+  if (!permissions.includes("create rate")) {
+    router.replace("/dashboard");
+    return false;
   }
 
   return (
@@ -182,113 +171,64 @@ export default function SettingPage() {
                 <form onSubmit={handleSubmit}>
                   {/*begin::Body*/}
                   <div className="card-body">
-                    <div className="mb-3">
-                      <label className="form-label">Name</label>
-                      <input
-                        type="text"
-                        className={`form-control ${
-                          errors.name ? "is-invalid" : ""
-                        }`}
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                      />
-                      {errors.name && errors.name.length > 0 && (
-                        <div className="invalid-feedback">{errors.name[0]}</div>
-                      )}
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">Email address</label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                      />
-                      {errors.email && errors.email.length > 0 && (
-                        <div className="invalid-feedback">
-                          {errors.email[0]}
+                    <div className="row">
+                      {/* Left Column */}
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Sending Currency</label>
+                          <input
+                            type="text"
+                            disabled
+                            className="form-control"
+                            name="sending_currency"
+                            value={formData.sending_currency}
+                            onChange={handleChange}
+                          />
                         </div>
-                      )}
-                    </div>
 
-                    <div className="mb-3">
-                      <label className="form-label">Address</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleChange}
-                      />
-                    </div>
+                        <div className="mb-3">
+                          <label className="form-label">
+                            Exchange Rate (Wallet)
+                          </label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            name="exchange_rate_wallet"
+                            value={formData.exchange_rate_wallet}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
 
-                    <div className="mb-3">
-                      <label className="form-label">Business Description</label>
-                      <textarea
-                        type="text"
-                        className="form-control"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                      />
-                    </div>
+                      {/* Right Column */}
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">
+                            Receiving Currency
+                          </label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            disabled
+                            name="receiving_currency"
+                            value={formData.receiving_currency}
+                            onChange={handleChange}
+                          />
+                        </div>
 
-                    <div className="mb-3">
-                      <label className="form-label">WhatsApp</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="whatsApp"
-                        value={formData.whatsApp}
-                        onChange={handleChange}
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">Facebook Page Link</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="fblink"
-                        value={formData.fblink}
-                        onChange={handleChange}
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">Website</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="website"
-                        value={formData.website}
-                        onChange={handleChange}
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">Telegram</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="telegram"
-                        value={formData.telegram}
-                        onChange={handleChange}
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">Copyright</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="copyright"
-                        value={formData.copyright}
-                        onChange={handleChange}
-                      />
+                        <div className="mb-3">
+                          <label className="form-label">
+                            Exchange Rate (Bank)
+                          </label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            name="exchange_rate_bank"
+                            value={formData.exchange_rate_bank}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
 

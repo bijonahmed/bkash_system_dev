@@ -24,7 +24,16 @@ Route::middleware(['auth:api'])->group(function () {
     Route::prefix('setting')->group(function () {
         Route::get('/settingrow', [SettingsController::class, 'settingrow']);
         Route::post('/upateSetting', [SettingsController::class, 'upateSetting']);
+        Route::post('/updateRate', [SettingsController::class, 'updateRate']);
+        Route::get('/getwallet', [SettingsController::class, 'getwallet']);
+        Route::post('/createLimit', [SettingsController::class, 'createLimit']);
+        Route::post('/createFee', [SettingsController::class, 'createFee']);
+        Route::get('/getLimits', [SettingsController::class, 'getLimits']);
+        Route::get('/getFees', [SettingsController::class, 'getFees']);
+        Route::put('/updateLimit/{id}', [SettingsController::class, 'updateLimit']);
+        Route::put('/updateFees/{id}', [SettingsController::class, 'updateFees']);
     });
+
 
 
     Route::prefix('roles')->group(function () {
@@ -43,8 +52,6 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/create', [PermissionsController::class, 'store']);
         Route::get('/check-permissions/{id}', [PermissionsController::class, 'checkpermissions']);
     });
-
-
 
 
     Route::prefix('users')->group(function () {
