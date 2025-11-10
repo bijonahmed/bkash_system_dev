@@ -34,13 +34,8 @@ export default function AdminSidebar() {
   // Sidebar links JSON
   const sidebarLinks = [
     { label: "My Dashboard", href: "/dashboard", icon: "bi-speedometer" },
-    { label: "Profile", href: "/profile", icon: "bi-palette" },
-    {
-      label: "Users",
-      href: "#",
-      icon: "bi-box-seam-fill",
-      children: [{ label: "User List", href: "/user", icon: "bi-circle" }],
-    },
+    // { label: "Profile", href: "/profile", icon: "bi-palette" },
+
     /*
     {
       label: "Post Management",
@@ -52,10 +47,35 @@ export default function AdminSidebar() {
       ],
     },
     */
+    // show only agent
+
+    ...(roles.includes("agent")
+      ? [
+          {
+            label: "My Trnsaction List",
+            href: "/transaction/list",
+            icon: "bi-arrow-left-right",
+          },
+        ]
+      : []),
 
     // ✅ SHOW ONLY IF ADMIN
     ...(roles.includes("admin")
       ? [
+          {
+            label: "My Trnsaction List",
+            href: "/transaction/list",
+            icon: "bi-arrow-left-right",
+          },
+          {
+            label: "Users",
+            href: "#",
+            icon: "bi-box-seam-fill",
+            children: [
+              { label: "User List", href: "/user", icon: "bi-circle" },
+            ],
+          },
+
           {
             label: "Transaction Setting",
             href: "#",

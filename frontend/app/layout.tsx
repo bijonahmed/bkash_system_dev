@@ -39,6 +39,8 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css"
         />
+      
+
       </head>
       <body className="layout-fixed sidebar-expand-lg sidebar-open bg-body-tertiary">
         {children}

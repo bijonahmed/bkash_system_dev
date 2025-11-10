@@ -32,19 +32,19 @@ export default function permissionAddPage() {
         }
       );
       const result = await res.json();
-    console.log("API Response:", result); // Check actual structure
+      console.log("API Response:", result); // Check actual structure
 
-    // Try for both possible structures: result.data or result.permissions
-    const permsData = result.data || result.permissions || [];
+      // Try for both possible structures: result.data or result.permissions
+      const permsData = result.data || result.permissions || [];
 
-    const perms = permsData
-      .filter((p) => p && (p.id || p.permission_id))
-      .map((p) => ({
-        id: p.id || p.permission_id,
-        name: p.name || p.permission_name,
-      }));
+      const perms = permsData
+        .filter((p) => p && (p.id || p.permission_id))
+        .map((p) => ({
+          id: p.id || p.permission_id,
+          name: p.name || p.permission_name,
+        }));
 
-    setSelectedPermissions(perms);
+      setSelectedPermissions(perms);
     } catch (error) {
       console.error("❌ Error checking permissions", error);
     }
@@ -280,11 +280,22 @@ export default function permissionAddPage() {
                       <tr>
                         <th>Permission Group</th>
                         {data.length > 0 &&
-                          data[0].permissions.map((perm, idx) => (
-                            <th key={idx} className="text-center">
-                              {capitalizeFirstLetter(perm.name)}
-                            </th>
-                          ))}
+                          data[0].permissions.map((perm, idx) => {
+                            // Extract only View, Create, Edit, or Delete (case-insensitive)
+                            const match = perm.name.match(
+                              /view|create|edit|delete/i
+                            );
+                            const cleanName = match
+                              ? match[0].charAt(0).toUpperCase() +
+                                match[0].slice(1).toLowerCase()
+                              : "";
+
+                            return (
+                              <th key={idx} className="text-center">
+                                {cleanName}
+                              </th>
+                            );
+                          })}
                       </tr>
                     </thead>
                     <tbody>
@@ -298,7 +309,6 @@ export default function permissionAddPage() {
                             >
                               <input
                                 type="checkbox"
-                                  
                                 checked={selectedPermissions.some(
                                   (p) => p.id === perm.id
                                 )}

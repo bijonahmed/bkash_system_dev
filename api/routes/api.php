@@ -8,8 +8,7 @@ use App\Http\Controllers\Api\Roles\RolesController;
 use App\Http\Controllers\Api\Permissions\PermissionsController;
 use App\Http\Controllers\Api\Report\ReportController;
 use App\Http\Controllers\Api\Settings\SettingsController;
-
-
+use App\Http\Controllers\Api\Transaction\TransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('api')->group(function () {
@@ -42,6 +41,12 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/getByReportLimit', [ReportController::class, 'getByReportLimit']);
         Route::get('/getByReportUser', [ReportController::class, 'getByReportUser']);
     });
+
+       Route::prefix('transaction')->group(function () {
+        Route::post('/create', [TransactionController::class, 'store']);
+      
+    });
+
 
     Route::prefix('roles')->group(function () {
         Route::get('/index', [RolesController::class, 'index']);

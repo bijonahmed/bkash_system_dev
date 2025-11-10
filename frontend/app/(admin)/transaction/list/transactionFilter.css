@@ -1,0 +1,78 @@
+.custom-label {
+  font-weight: 600;
+  color: #333;
+}
+
+.card {
+  border-radius: 10px !important;
+}
+
+.card-header {
+  border-bottom: none !important;
+}
+
+.btn-tool {
+  border: none;
+  background: transparent;
+}
+
+/* Responsive table */
+/* Colorful interactive table */
+
+/* Header gradient */
+.table-gradient th {
+  background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+  color: white;
+  text-align: center;
+}
+
+/* Alternate row colors */
+.table-colorful tbody tr:nth-child(odd) {
+  background-color: #f0f8ff;
+}
+.table-colorful tbody tr:nth-child(even) {
+  background-color: #e6f7ff;
+}
+
+/* Balance row */
+.balance-row {
+  background-color: #ffd6d6;
+}
+
+/* Badges */
+.badge.bg-primary {
+  background-color: #007bff !important;
+}
+.badge.bg-warning {
+  background-color: #ffc107 !important;
+}
+
+/* Tooltips */
+.tooltip-inner {
+  background-color: #333 !important;
+  color: #fff !important;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+/* Responsive scroll */
+.overflow-auto {
+  max-height: 300px;
+}
+
+
+/* initial hidden state */
+.card-collapse {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease, opacity 0.5s ease;
+}
+
+/* expanded state */
+.card-collapse.show {
+  max-height: 1000px; /* large enough to fit content */
+  opacity: 1;
+}
+
+
