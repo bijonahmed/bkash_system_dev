@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Transaction;
 
 use App\Http\Controllers\Controller;
+use App\Models\Fees;
 use App\Models\Post as PostModel;
 use App\Models\PostCategory;
 use Helper;
@@ -62,7 +63,7 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
-          dd($request->all());
+        dd($request->all());
 
         $user = Auth::user();
         if (! $user->can('create posts')) {
@@ -71,7 +72,7 @@ class TransactionController extends Controller
             ], 403);
         }
 
-       
+
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'categoryId' => 'required',
@@ -112,12 +113,23 @@ class TransactionController extends Controller
         return response()->json($resdata);
     }
 
-    public function serviceImgDelete(Request $request)
+    public function walletcalculate(Request $request)
     {
-        $id = $request->id;
-        ServiceImages::where('id', $id)->delete();
+        $receiving_money = $request->receiving_money ? $request->receiving_money : 0;
+        $paymentMethod   = $request->paymentMethod ? $request->paymentMethod : "";
+        $chkValues       = Fees::where('paymentMethod', $paymentMethod)->get();
 
-        return response()->json('Delete Images');
+
+        $fee_gbp = 0; // default
+        foreach ($chkValues as $v) {
+            if ($receiving_money >= $v->from_bdt && $receiving_money <= $v->to_bdt) {
+                $fee_gbp = $v->fee_gbp;
+                break;
+            }
+        }
+        return response()->json([
+            'fee' => $fee_gbp
+        ]);
     }
 
     public function postrow($id)
@@ -210,12 +222,5 @@ class TransactionController extends Controller
         $resdata['product_id'] = $post->id;
 
         return response()->json($resdata);
-    }
-
-    public function postCategorysearch()
-    {
-        $data = PostCategory::where('status', 1)->get();
-
-        return response()->json($data);
     }
 }

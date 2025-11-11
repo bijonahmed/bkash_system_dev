@@ -7,7 +7,6 @@ import toast, { Toaster } from "react-hot-toast";
 const AddNewModal = ({ show, onClose }) => {
   const { token, permissions } = useAuth();
 
-  /*
   // ✅ Form data state
   const [formData, setFormData] = useState({
     beneficiaryName: "",
@@ -28,37 +27,9 @@ const AddNewModal = ({ show, onClose }) => {
     totalAmount: "",
     senderName: "",
     receiving_money: "",
+
     description: "",
   });
-  */
-
-  const initialFormData = {
-    beneficiaryName: "",
-    beneficiaryPhone: "",
-    status: "",
-    paymentMethod: "",
-    wallet: "",
-    bank: "",
-    branch: "",
-    branchCode: "",
-    accountNo: "",
-    sendingMoney: 0,
-    walletrate: 157,
-    bankRate: 1,
-    receivingMoney: "",
-    charges: "",
-    fee: "",
-    totalAmount: "",
-    senderName: "",
-    receiving_money: "",
-    description: "",
-  };
-
-  // 2️⃣ Create state
-  const [formData, setFormData] = useState(initialFormData);
-
-  // 3️⃣ Reset function
-  const resetForm = () => setFormData(initialFormData);
 
   // ✅ Conditional visibility states
   const [showWallet, setShowWallet] = useState(false);
@@ -80,7 +51,7 @@ const AddNewModal = ({ show, onClose }) => {
 
   const allowOnlyNumbers = (value) => value.replace(/[^0-9]/g, "");
 
-  const handleChange = async (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
 
     const numericFields = [
@@ -91,122 +62,65 @@ const AddNewModal = ({ show, onClose }) => {
       "beneficiaryPhone",
     ];
 
-    // ✅ allow only numbers for specific inputs
+    // check if current field is numeric-only
     const updatedValue = numericFields.includes(name)
       ? allowOnlyNumbers(value)
       : value;
 
-    // ✅ update basic field first
+    setFormData((prev) => {
+      let newFormData = { ...prev, [name]: updatedValue };
+
+      // Auto-calculate receiving_money
+      if (
+        name === "sendingMoney" ||
+        name === "bankRate" ||
+        name === "walletrate"
+      ) {
+        const sendingMoney = parseFloat(
+          name === "sendingMoney" ? updatedValue : newFormData.sendingMoney || 0
+        );
+        const bankRate = parseFloat(newFormData.bankRate || 0);
+        const walletRate = parseFloat(newFormData.walletrate || 0);
+
+        if (newFormData.paymentMethod === "bank") {
+          newFormData.receiving_money = (sendingMoney * bankRate).toString();
+        } else if (newFormData.paymentMethod === "wallet") {
+          newFormData.receiving_money = (sendingMoney * walletRate).toString();
+        }
+      }
+
+      return newFormData;
+    });
+    /*
     setFormData((prev) => ({
       ...prev,
       [name]: updatedValue,
     }));
+    */
+  };
 
-    // ✅ handle dynamic calculations and API calls
-    if (
-      name === "sendingMoney" ||
-      name === "bankRate" ||
-      name === "walletrate"
-    ) {
-      const sendingMoney = parseFloat(
-        name === "sendingMoney" ? updatedValue : formData.sendingMoney || 0
-      );
-      const bankRate = parseFloat(formData.bankRate || 0);
-      const walletRate = parseFloat(formData.walletrate || 0);
+  useEffect(() => {
+    const charges = parseFloat(formData.charges) || 0;
+    const sending = parseFloat(formData.sendingMoney) || 0;
+    const fee = sending * 0.02; // Example: 2% admin fee
+    const total = sending + charges + fee;
 
-      if (formData.paymentMethod === "bank" && updatedValue) {
-        console.log("sending request... by bank");
-
-        const receivingMoney = (sendingMoney * bankRate).toString();
-
-        setFormData((prev) => ({
-          ...prev,
-          receiving_money: receivingMoney,
-        }));
-
-        try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                paymentMethod: formData.paymentMethod,
-                receiving_money: receivingMoney,
-              }),
-            }
-          );
-
-          const data = await res.json();
-
-          setFormData((prev) => ({
-            ...prev,
-            fee: data.fee || 0,
-            totalAmount: parseInt(sendingMoney) + parseInt(data.fee || 0),
-          }));
-        } catch (error) {
-          console.error("Wallet request failed:", error);
-        }
-      } else if (formData.paymentMethod === "wallet" && updatedValue) {
-        console.log("sending request... by wallet");
-        const receivingMoney = (sendingMoney * walletRate).toString(); // keep full value
-
-        setFormData((prev) => ({
-          ...prev,
-          receiving_money: receivingMoney,
-        }));
-
-        try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                paymentMethod: formData.paymentMethod,
-                receiving_money: receivingMoney,
-              }),
-            }
-          );
-
-          const data = await res.json();
-
-          setFormData((prev) => ({
-            ...prev,
-            fee: data.fee || 0,
-            totalAmount: parseInt(sendingMoney) + parseInt(data.fee || 0),
-          }));
-        } catch (error) {
-          console.error("Wallet request failed:", error);
-        }
+    setFormData((prev) => {
+      if (
+        prev.fee === fee.toFixed(2) &&
+        prev.totalAmount === total.toFixed(2)
+      ) {
+        return prev;
       }
-    }
-  };
+      return {
+        ...prev,
+        fee: fee.toFixed(2),
+        totalAmount: total.toFixed(2),
+      };
+    });
+  }, [formData.sendingMoney, formData.charges]);
 
-  const resetInfo = (prev) => {
-    return {
-      ...prev,
-      sendingMoney: "",
-      receiving_money: "",
-      fee: "",
-      totalAmount: "",
-      bankRate: "",
-      walletrate: "",
-      // keep other important fields intact
-      beneficiaryName: prev.beneficiaryName,
-      beneficiaryPhone: prev.beneficiaryPhone,
-      status: prev.status,
-      senderName: prev.senderName,
-    };
-  };
-
-  // Handle form submit
+  // ✅ Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -539,19 +453,11 @@ const AddNewModal = ({ show, onClose }) => {
             <div className="modal-footer">
               <button
                 type="button"
-                className="btn btn-danger"
-                onClick={resetForm}
-              >
-                Reset
-              </button>
-              <button
-                type="button"
                 className="btn btn-secondary"
                 onClick={onClose}
               >
                 Close
               </button>
-
               <button type="submit" className="btn btn-primary">
                 Submit
               </button>
