@@ -30,6 +30,8 @@ class Transactionlog extends Model
         'senderName',
         'receiving_money',
         'description',
+        'created_at',
+        'updated_at',
         'entry_by'
     ];
 }

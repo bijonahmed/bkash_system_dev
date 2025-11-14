@@ -45,6 +45,7 @@ Route::middleware(['auth:api'])->group(function () {
     });
 
        Route::prefix('transaction')->group(function () {
+          Route::get('/index', [TransactionController::class, 'index']);
         Route::post('/create', [TransactionController::class, 'store']);
         Route::post('/walletcalculate', [TransactionController::class, 'walletcalculate']);
       

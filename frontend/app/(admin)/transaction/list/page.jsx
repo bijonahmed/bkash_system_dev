@@ -8,18 +8,18 @@ import toast, { Toaster } from "react-hot-toast";
 import Link from "next/link";
 import "../list/transactionFilter.css";
 import AddNewModal from "./AddNewModal.jsx";
+import getTransactions from "../../../hooks/getTransactions";
+import "../../../../app/style/loader.css";
 
-export default function SettingPage() {
+export default function listPage() {
   const { token, permissions } = useAuth();
-  const [user, setUser] = useState(null);
-  const pathname = usePathname();
+
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [errors, setErrors] = useState({});
   const [showFilters, setShowFilters] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const title = "Transaction List";
   const contentRef = useRef(null);
+
   // update document title
   useEffect(() => {
     if (title) {
@@ -31,68 +31,48 @@ export default function SettingPage() {
   const [createdTo, setCreatedTo] = useState("");
 
   useEffect(() => {
-    const today = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
-    setCreatedFrom(today);
-    setCreatedTo(today);
+    const today = new Date();
+
+    // Get yesterday's date
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    // Format to YYYY-MM-DD
+    const formatDate = (date) => date.toISOString().split("T")[0];
+
+    setCreatedFrom(formatDate(yesterday));
+    setCreatedTo(formatDate(today));
   }, []);
-
-  useEffect(() => {
-    const tooltipTriggerList = [].slice.call(
-      document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    );
-    tooltipTriggerList.map(
-      (tooltipTriggerEl) => new window.bootstrap.Tooltip(tooltipTriggerEl)
-    );
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true); // Always start loader before fetch
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/setting/settingrow`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { Authorization: `Bearer ${token}` }), // add only if token exists
-          },
-        }
-      );
-
-      const data = await res.json();
-      console.log("Fetched Setting Data:", data);
-
-      if (!res.ok) {
-        console.error(
-          "Server responded with error:",
-          data?.message || "Unknown error"
-        );
-        return;
-      }
-
-      const info = data?.data || {}; // safe fallback
-
-      setUser(info); // ✅ Store only the data part, not wrapper
-    } catch (err) {
-      console.error("Fetch failed:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return <p className="text-center py-5"></p>;
-  }
 
   if (!permissions.includes("create rate")) {
     router.replace("/dashboard");
     return false;
   }
+
+  const filterByTransaction = () => {
+    refetch();
+  };
+
+  const [filters, setFilters] = useState({
+    beneficiaryName: "",
+    beneficiaryPhone: "",
+    senderName: "",
+    accountNo: "",
+    createdFrom: "",
+    createdTo: "",
+    paymentMethod: "",
+    wallet: "",
+    status: "",
+    agent: "",
+  });
+  const { transactionData, refetch, loading } = getTransactions(filters);
+
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
   return (
     <main className="app-main" id="main" tabIndex={-1}>
@@ -103,7 +83,7 @@ export default function SettingPage() {
           {/*begin::Row*/}
           <div className="row">
             <div className="col-sm-6">
-              <h3 className="mb-0">{title}</h3>
+              <h4 className="mb-0">{title}</h4>
             </div>
             <div className="col-sm-6">
               <nav aria-label="breadcrumb">
@@ -149,7 +129,11 @@ export default function SettingPage() {
             </div>
           </div>
           {/* Modal rendered outside <span>/<li> */}
-          <AddNewModal show={showModal} onClose={() => setShowModal(false)} />
+          <AddNewModal
+            show={showModal}
+            onClose={() => setShowModal(false)}
+            onSuccess={refetch}
+          />
           {/*end::Row*/}
         </div>
         {/*end::Container*/}
@@ -163,9 +147,13 @@ export default function SettingPage() {
           <Toaster position="top-right" />
           <div className="row g-4">
             {/*begin::Col*/}
-            {/*begin::Form*/}
-            {/* Optional CSS for smooth slide */}
-
+            {loading && (
+              <div className="loader-overlay">
+                <div className="spinner-border text-light" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            )}
             <div className="col-lg-12">
               {showFilters && (
                 <div
@@ -195,7 +183,7 @@ export default function SettingPage() {
                     <div className="card-body">
                       <div className="row">
                         {/* Input Fields */}
-                        <div className="col-md-3 mb-3">
+                        <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
                             Beneficiary Name
                           </label>
@@ -203,10 +191,17 @@ export default function SettingPage() {
                             type="text"
                             className="form-control"
                             placeholder="Beneficiary Name"
+                            value={filters.beneficiaryName}
+                            onChange={(e) =>
+                              handleFilterChange(
+                                "beneficiaryName",
+                                e.target.value
+                              )
+                            }
                           />
                         </div>
 
-                        <div className="col-md-3 mb-3">
+                        <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
                             Beneficiary Phone #
                           </label>
@@ -214,10 +209,17 @@ export default function SettingPage() {
                             type="text"
                             className="form-control"
                             placeholder="Phone #"
+                            value={filters.beneficiaryPhone}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                beneficiaryPhone: e.target.value,
+                              })
+                            }
                           />
                         </div>
 
-                        <div className="col-md-3 mb-3">
+                        <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
                             Sender Name
                           </label>
@@ -228,7 +230,7 @@ export default function SettingPage() {
                           />
                         </div>
 
-                        <div className="col-md-3 mb-3">
+                        <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">Account #</label>
                           <input
                             type="text"
@@ -237,19 +239,24 @@ export default function SettingPage() {
                           />
                         </div>
 
-                        <div className="col-md-3 mb-3">
+                        <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
                             Created From
                           </label>
                           <input
                             type="date"
                             className="form-control"
-                            value={createdFrom}
-                            onChange={(e) => setCreatedFrom(e.target.value)}
+                            value={filters.createdFrom}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                createdFrom: e.target.value,
+                              })
+                            }
                           />
                         </div>
 
-                        <div className="col-md-3 mb-3">
+                        <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">Created To</label>
                           <input
                             type="date"
@@ -259,18 +266,27 @@ export default function SettingPage() {
                           />
                         </div>
 
-                        <div className="col-md-3 mb-3">
+                        <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
                             Payment Method
                           </label>
-                          <select className="form-control">
+                          <select
+                            className="form-control"
+                            value={filters.paymentMethod}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                paymentMethod: e.target.value,
+                              })
+                            }
+                          >
                             <option value="">Choose Payment Method</option>
                             <option value="wallet">Wallet</option>
                             <option value="bank">Bank</option>
                           </select>
                         </div>
 
-                        <div className="col-md-3 mb-3">
+                        <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">Wallet</label>
                           <select className="form-control">
                             <option value="">Choose Wallet</option>
@@ -280,7 +296,7 @@ export default function SettingPage() {
                           </select>
                         </div>
 
-                        <div className="col-md-3 mb-3">
+                        <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">Status</label>
                           <select className="form-control">
                             <option value="">Choose Status</option>
@@ -290,7 +306,7 @@ export default function SettingPage() {
                           </select>
                         </div>
 
-                        <div className="col-md-3 mb-3">
+                        <div className="col-md-3 mb-1">
                           <label className="mb-0 fw-semibold">Agent</label>
                           <select className="form-control">
                             <option value="">Select Agent</option>
@@ -303,11 +319,11 @@ export default function SettingPage() {
                           </select>
                         </div>
 
-                        <div className="col-md-3 mb-3 d-flex align-items-end">
-                          <button className="btn btn-sm btn-secondary me-2">
-                            Reset
-                          </button>
-                          <button className="btn btn-sm btn-primary">
+                        <div className="col-md-3 mb-1 d-flex align-items-end">
+                          <button
+                            className="btn btn-sm btn-primary btn-lg"
+                            onClick={filterByTransaction}
+                          >
                             Search
                           </button>
                         </div>
@@ -319,7 +335,7 @@ export default function SettingPage() {
 
               {/* 🔹 Transactions Card */}
               <div className="card-body p-0 mt-2">
-                <div className="overflow-auto">
+                <div className="overflow-auto-">
                   <table className="table table-sm table-hover table-bordered table-colorful">
                     <thead>
                       <tr className="table-gradient">
@@ -345,63 +361,114 @@ export default function SettingPage() {
                           colSpan="12"
                           className="text-end fw-bold text-danger"
                         >
-                          Balance: -610.00
+                          Balance: 0000.00
                         </td>
                       </tr>
 
                       {/* Example row */}
-                      <tr className="table-row bg-light">
-                        {/* or bg-info, bg-warning, bg-success, etc. */}
-                        <td>1</td>
-                        <td>
-                          SHAHPORAN BUSINESS CENTER LTD <br />
-                          (SHAHUKLNO21) <br />
-                          <small className="text-muted">
-                            Nov 10, 2025 03:16 PM
-                          </small>
-                        </td>
-                        <td>
-                          parul akter <br /> 01779832879
-                        </td>
-                        <td>
-                          akter <br />
-                          <span className="badge bg-primary">Wallet</span>
-                        </td>
-                        <td>
-                          <span className="badge bg-warning">UnPaid</span>
-                        </td>
-                        <td>
-                          Name: Bkash <br />
-                          Phone #: 01779832879
-                        </td>
-                        <td
-                          data-bs-toggle="tooltip"
-                          data-bs-html="true"
-                          title={`Sending Amount: GBP 123.42\nCompany Rate: GBP 1 = BDT 158.00\nAgent Rate: GBP 1 = BDT 158.00`}
-                        >
-                          GBP 123.42 <br /> GBP 1 = BDT 158.00 (PR) <br /> GBP 1
-                          = BDT 158.00 (CR)
-                        </td>
-                        <td>GBP 0.00</td>
-                        <td>GBP 2.50</td>
-                        <td
-                          data-bs-toggle="tooltip"
-                          data-bs-html="true"
-                          title={`Sending Amount: GBP 123.42\nCharges: GBP 0.00\nAdmin Fee: GBP 2.50\nTotal Pay Amount: GBP 125.92\nReceiving Amount: BDT 19,500.00`}
-                        >
-                          GBP 125.92 <br /> BDT 19,500.00
-                        </td>
-                        <td>GBP 125.92</td>
-                        <td></td>
-                        <td>
-                          <a
-                            href="/transactions/3022/edit"
-                            className="btn btn-warning btn-sm"
-                          >
-                            <i className="bi bi-pencil-fill"></i> Edit
-                          </a>
-                        </td>
-                      </tr>
+
+                      {transactionData && transactionData.length > 0 ? (
+                        transactionData.map((item, index) => (
+                          <tr key={item.id} className="table-row bg-light">
+                            {/* or bg-info, bg-warning, bg-success, etc. */}
+                            <td>{index + 1}</td>
+                            <td>
+                              {item.createdBy}
+                              <br />
+                              <small className="text-muted">
+                                {item.created_at}
+                              </small>
+                            </td>
+                            <td>
+                              {item.beneficiaryName} <br />{" "}
+                              {item.beneficiaryPhone}
+                            </td>
+                            <td>
+                              {item.senderName} <br />
+                              <span
+                                className={`badge ${
+                                  item.paymentMethod.toLowerCase() === "bank"
+                                    ? "bg-primary"
+                                    : "bg-danger"
+                                }`}
+                              >
+                                {item.paymentMethod.charAt(0).toUpperCase() +
+                                  item.paymentMethod.slice(1)}
+                              </span>
+                            </td>
+                            <td>
+                              <span
+                                className={`badge ${
+                                  item.status.toLowerCase() === "paid"
+                                    ? "bg-success"
+                                    : item.status.toLowerCase() === "unpaid"
+                                    ? "bg-warning"
+                                    : "bg-danger"
+                                }`}
+                              >
+                                {item.status.charAt(0).toUpperCase() +
+                                  item.status.slice(1)}
+                              </span>
+                            </td>
+                            <td>
+                              {item.paytMethod === "wallet" ? (
+                                <>
+                                  Name: {item.walletName} <br />
+                                  Phone #: {item.beneficiaryPhone}
+                                </>
+                              ) : (
+                                <>
+                                  Bank Name: {item.bankName} <br />
+                                  Branch Name: {item.branchName} <br />
+                                  Branch Code: {item.branchCode} <br />
+                                  Account #: {item.accountNo}
+                                </>
+                              )}
+                            </td>
+                            <td>
+                              GBP&nbsp;{item.sendingMoney}
+                              <br />
+                              {item.paytMethod === "wallet" ? (
+                                <>
+                                  GBP 1 = BDT {item.walletrate} (PR)
+                                  <br />
+                                  GBP 1 = BDT {item.walletrate} (CR) <br />
+                                </>
+                              ) : (
+                                <>
+                                  GBP 1 = BDT {item.bankRate} (PR)
+                                  <br />
+                                  GBP 1 = BDT {item.bankRate} (CR) <br />
+                                </>
+                              )}
+                            </td>
+                            <td>GBP&nbsp;{item.charges}</td>
+                            <td>GBP&nbsp;{item.fee}</td>
+                            <td>
+                              GBP {item.totalAmount} <br /> BDT{" "}
+                              {item.receiving_money}
+                            </td>
+                            <td className="text-center">
+                              {item.agentsettlement}
+                            </td>
+                            <td>{item.description}</td>
+                            <td>
+                              <a
+                                href="/transactions/3022/edit"
+                                className="btn btn-warning btn-sm"
+                              >
+                                <i className="bi bi-pencil-fill"></i> Edit
+                              </a>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="13" className="text-center text-muted">
+                            No transactions found
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>

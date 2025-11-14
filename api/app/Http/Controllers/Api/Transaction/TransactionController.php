@@ -3,63 +3,97 @@
 namespace App\Http\Controllers\Api\Transaction;
 
 use App\Http\Controllers\Controller;
+use App\Models\Banks;
+use App\Models\Branch;
 use App\Models\Fees;
 use App\Models\Post as PostModel;
 use App\Models\PostCategory;
 use App\Models\Transaction;
 use App\Models\Transactionlog;
+use App\Models\User;
+use App\Models\Wallet;
 use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Validator;
+use Carbon\Carbon;
 
 class TransactionController extends Controller
 {
     public function index(Request $request)
     {
         $user = Auth::user();
-        if (! $user->can('view posts')) {
+        if (! $user->can('view users')) {
             return response()->json([
                 'message' => 'Unauthorized: You do not have permission to view posts',
             ], 403);
         }
 
-        $page = $request->input('page', 1);
-        $pageSize = $request->input('pageSize', 10);
-        // Get search query from the request
         $searchQuery = $request->searchQuery;
-        // dd($selectedFilter);
-        $status = $request->selectedFilter;
-        $query = PostModel::select('posts.*', 'post_category.name')
-            ->join('post_category', 'posts.categoryId', '=', 'post_category.id');
-        if ($searchQuery !== null) {
-            $query->where('posts.name', 'like', '%' . $searchQuery . '%');
-        }
-        if ($status !== null) {
-            // If the status is '1', we consider it 'active'; if '0', it is 'inactive'
-            if ($status == 1) {
-                $query->where('posts.status', 1); // Active
-            } elseif ($status == 0) {
-                $query->where('posts.status', 0); // Inactive
-            }
-        }
-        $paginator = $query->paginate($pageSize, ['*'], 'page', $page);
-        $modifiedCollection = $paginator->getCollection()->map(function ($item) {
+        $status      = $request->selectedFilter;
+
+        $query = Transaction::select('transactions.*');
+
+        // ⭐ Search by: beneficiaryName, phone, senderName, accountNo
+        $query->when($searchQuery, function ($q) use ($searchQuery) {
+            $q->where(function ($q) use ($searchQuery) {
+                $q->where('beneficiaryName', 'like', "%$searchQuery%")
+                    ->orWhere('beneficiaryPhone', 'like', "%$searchQuery%")
+                    ->orWhere('senderName', 'like', "%$searchQuery%")
+                    ->orWhere('accountNo', 'like', "%$searchQuery%");
+            });
+        });
+
+        // ⭐ Filter by status
+        $query->when($status, function ($q) use ($status) {
+            $q->where('status', $status);
+        });
+
+        $results =  $query->orderBy('id', 'desc')->get();
+
+        // Format output
+        $modifiedCollection = $results->map(function ($item) {
+            $chkuser   = User::find($item->entry_by);
+            $chkwallet = Wallet::find($item->wallet_id);
+            $chkbank   = Banks::find($item->bank_id);
+            $chkBranch = Branch::find($item->branch_id);
+
             return [
-                'id' => $item->id,
-                'category_name' => $item->name,
-                'name' => substr($item->name, 0, 250),
-                'status' => $item->status,
+                'id'               => $item->id,
+                'beneficiaryName'  => $item->beneficiaryName,
+                'beneficiaryPhone' => $item->beneficiaryPhone,
+
+                'charges'          => $item->charges,
+                'fee'              => $item->fee,
+                'totalAmount'      => $item->totalAmount,
+                'receiving_money'  => $item->receiving_money,
+                'sendingMoney'     => $item->sendingMoney,
+                'walletName'       => $chkwallet->name ?? '',
+
+                'walletrate'       => $item->walletrate,
+                'bankRate'         => $item->bankRate,
+
+                'bankName'         => $chkbank->bank_name ?? '',
+                'branchName'       => $chkBranch->branch_name ?? '',
+                'branchCode'       => $chkBranch->branch_code ?? '',
+                'accountNo'        => $item->accountNo ?? '',
+                'description'      => $item->description ?? '',
+                'agentsettlement'  => number_format((float)($item->sendingMoney ?? 0) + (float)($item->fee ?? 0), 2),
+                'status'           => ucfirst($item->status),
+                'paytMethod'       => $item->paymentMethod,
+                'senderName'       => ucfirst($item->senderName),
+                'paymentMethod'    => ucfirst($item->paymentMethod),
+                'createdBy'        => $chkuser->name ?? 'N/A',
+                'created_at'       =>  Carbon::parse($item->created_at)
+                    ->timezone('Asia/Dhaka') // set Bangladesh timezone
+                    ->format('M d, Y h:i A'), // 12-hour format
             ];
         });
 
-        // Return the modified collection along with pagination metadata
+        // Return response
         return response()->json([
             'data' => $modifiedCollection,
-            'current_page' => $paginator->currentPage(),
-            'total_pages' => $paginator->lastPage(),
-            'total_records' => $paginator->total(),
         ], 200);
     }
 
@@ -116,8 +150,9 @@ class TransactionController extends Controller
             'receiving_money',
             'description',
         ]);
-
         $data['entry_by'] = $user->entry_by;
+
+        // dd($data);
 
         $transaction      = Transaction::create($data);
 

@@ -4,13 +4,15 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import useBanks from "../../../hooks/getWallet";
 import useWallets from "../../../hooks/getBanks";
+import getTransactions from "../../../hooks/getTransactions";
 import toast, { Toaster } from "react-hot-toast";
-import '../../../../app/style/loader.css';
+import "../../../../app/style/loader.css";
 
-const AddNewModal = ({ show, onClose }) => {
+const AddNewModal = ({ show, onClose, onSuccess }) => {
   const { token, permissions } = useAuth();
-  const [loading, setLoading] = useState(true);
-
+  const [loading, setLoading] = useState(false);
+  // const { feesData, loading, refetch } = getFees();
+  const { transactionData, refetch } = getTransactions();
   const initialFormData = {
     beneficiaryName: "",
     beneficiaryPhone: "",
@@ -95,27 +97,26 @@ const AddNewModal = ({ show, onClose }) => {
     }
 
     if (name === "bank_id") {
-      console.log("Selected bank ID:", updatedValue);
-    }
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/setting/bankUnderBranch`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            bank_id: updatedValue,
-          }),
-        }
-      );
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE}/setting/bankUnderBranch`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              bank_id: updatedValue,
+            }),
+          }
+        );
 
-      const data = await res.json();
-      setBranchData(data.data || []);
-    } catch (error) {
-      console.error("Wallet request failed:", error);
+        const data = await res.json();
+        setBranchData(data.data || []);
+      } catch (error) {
+        console.error("Wallet request failed:", error);
+      }
     }
 
     //  handle dynamic calculations and API calls
@@ -208,10 +209,10 @@ const AddNewModal = ({ show, onClose }) => {
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting form data:", formData);
     // return false; // for testing
-    setLoading(true);
+
     try {
+      setLoading(true);
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/transaction/create`,
         {
@@ -228,9 +229,10 @@ const AddNewModal = ({ show, onClose }) => {
 
       if (res.ok) {
         toast.success("Transaction added successfully ✅");
-
+        refetch();
         setFormData(initialFormData); // this rest
         onClose();
+        onSuccess(); // ← IMPORTANT: this triggers refetch in parent
       } else {
         if (data.errors) {
           // Laravel validation errors
@@ -268,6 +270,7 @@ const AddNewModal = ({ show, onClose }) => {
         >
           <div className="modal-header bg-primary text-white">
             <h5 className="modal-title">Add New Entry</h5>
+
             <button
               type="button"
               className="btn-close"
@@ -410,7 +413,7 @@ const AddNewModal = ({ show, onClose }) => {
                     </div>
 
                     <div className="col-md-3 mb-2">
-                      <label className="mb-0 custom-label">Branch Code</label>
+                      <label className="mb-0 custom-label">Routing No.</label>
                       <input
                         type="text"
                         name="branchCode"
@@ -426,7 +429,12 @@ const AddNewModal = ({ show, onClose }) => {
                         type="text"
                         name="accountNo"
                         value={formData.accountNo}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          setFormData({
+                            ...formData,
+                            accountNo: e.target.value,
+                          });
+                        }}
                         className="form-control"
                       />
                     </div>
