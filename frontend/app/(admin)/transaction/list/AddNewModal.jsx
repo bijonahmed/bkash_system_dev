@@ -2,44 +2,23 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
+import useBanks from "../../../hooks/getWallet";
+import useWallets from "../../../hooks/getBanks";
 import toast, { Toaster } from "react-hot-toast";
+import '../../../../app/style/loader.css';
 
 const AddNewModal = ({ show, onClose }) => {
   const { token, permissions } = useAuth();
-
-  /*
-  // ✅ Form data state
-  const [formData, setFormData] = useState({
-    beneficiaryName: "",
-    beneficiaryPhone: "",
-    status: "",
-    paymentMethod: "",
-    wallet: "",
-    bank: "",
-    branch: "",
-    branchCode: "",
-    accountNo: "",
-    sendingMoney: 0,
-    walletrate: 157,
-    bankRate: 1,
-    receivingMoney: "",
-    charges: "",
-    fee: "",
-    totalAmount: "",
-    senderName: "",
-    receiving_money: "",
-    description: "",
-  });
-  */
+  const [loading, setLoading] = useState(true);
 
   const initialFormData = {
     beneficiaryName: "",
     beneficiaryPhone: "",
     status: "",
     paymentMethod: "",
-    wallet: "",
-    bank: "",
-    branch: "",
+    wallet_id: "",
+    bank_id: "",
+    branch_id: "",
     branchCode: "",
     accountNo: "",
     sendingMoney: 0,
@@ -54,15 +33,13 @@ const AddNewModal = ({ show, onClose }) => {
     description: "",
   };
 
-  // 2️⃣ Create state
   const [formData, setFormData] = useState(initialFormData);
-
-  // 3️⃣ Reset function
   const resetForm = () => setFormData(initialFormData);
-
-  // ✅ Conditional visibility states
+  const { walletData } = useWallets();
+  const { bankData } = useBanks();
   const [showWallet, setShowWallet] = useState(false);
   const [showBank, setShowBank] = useState(false);
+  const [branchData, setBranchData] = useState([]);
 
   // ✅ Automatically toggle Wallet/Bank inputs
   useEffect(() => {
@@ -95,14 +72,53 @@ const AddNewModal = ({ show, onClose }) => {
     const updatedValue = numericFields.includes(name)
       ? allowOnlyNumbers(value)
       : value;
-
-    // ✅ update basic field first
+    // update basic field first
     setFormData((prev) => ({
       ...prev,
       [name]: updatedValue,
     }));
 
-    // ✅ handle dynamic calculations and API calls
+    if (name === "charges") {
+      const charges = parseFloat(updatedValue || 0);
+      const sendingMoney = parseFloat(formData.sendingMoney || 0);
+      const fee = parseFloat(formData.fee || 0);
+
+      const total = sendingMoney + fee + charges;
+
+      setFormData((prev) => ({
+        ...prev,
+        charges: updatedValue,
+        totalAmount: total.toString(),
+      }));
+
+      return; // prevent API call
+    }
+
+    if (name === "bank_id") {
+      console.log("Selected bank ID:", updatedValue);
+    }
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/setting/bankUnderBranch`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            bank_id: updatedValue,
+          }),
+        }
+      );
+
+      const data = await res.json();
+      setBranchData(data.data || []);
+    } catch (error) {
+      console.error("Wallet request failed:", error);
+    }
+
+    //  handle dynamic calculations and API calls
     if (
       name === "sendingMoney" ||
       name === "bankRate" ||
@@ -189,26 +205,12 @@ const AddNewModal = ({ show, onClose }) => {
     }
   };
 
-  const resetInfo = (prev) => {
-    return {
-      ...prev,
-      sendingMoney: "",
-      receiving_money: "",
-      fee: "",
-      totalAmount: "",
-      bankRate: "",
-      walletrate: "",
-      // keep other important fields intact
-      beneficiaryName: prev.beneficiaryName,
-      beneficiaryPhone: prev.beneficiaryPhone,
-      status: prev.status,
-      senderName: prev.senderName,
-    };
-  };
-
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting form data:", formData);
+    // return false; // for testing
+    setLoading(true);
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/transaction/create`,
@@ -226,38 +228,24 @@ const AddNewModal = ({ show, onClose }) => {
 
       if (res.ok) {
         toast.success("Transaction added successfully ✅");
-        // Optionally clear form
-        setFormData({
-          beneficiaryName: "",
-          beneficiaryPhone: "",
-          status: "",
-          paymentMethod: "",
-          wallet: "",
-          bank: "",
-          branch: "",
-          branchCode: "",
-          accountNo: "",
-          sendingMoney: "",
-          walletRate: "",
-          bankRate: "",
-          receivingMoney: "",
-          charges: "",
-          fee: "",
-          totalAmount: "",
-          senderName: "",
-          bankRate: "",
-          walletrate: "",
-          receiving_money: "",
 
-          description: "",
-        });
+        setFormData(initialFormData); // this rest
         onClose();
       } else {
-        toast.error(data.message || "Something went wrong!");
+        if (data.errors) {
+          // Laravel validation errors
+          Object.values(data.errors).forEach((errorArray) => {
+            errorArray.forEach((msg) => toast.error(msg));
+          });
+        } else {
+          toast.error(data.message || "Something went wrong!");
+        }
       }
     } catch (err) {
       console.error(err);
       toast.error("Network or server error!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -269,7 +257,6 @@ const AddNewModal = ({ show, onClose }) => {
       tabIndex="-1"
       role="dialog"
     >
-      <Toaster />
       <div
         className="modal-dialog modal-dialog-centered"
         role="document"
@@ -287,6 +274,14 @@ const AddNewModal = ({ show, onClose }) => {
               onClick={onClose}
             ></button>
           </div>
+
+          {loading && (
+            <div className="loader-overlay">
+              <div className="spinner-border text-light" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
@@ -350,15 +345,17 @@ const AddNewModal = ({ show, onClose }) => {
                   <div className="col-md-3 mb-2">
                     <label className="mb-0 custom-label">Wallet</label>
                     <select
-                      name="wallet"
-                      value={formData.wallet}
+                      name="wallet_id"
+                      className="form-select"
+                      value={formData.wallet_id}
                       onChange={handleChange}
-                      className="form-control"
                     >
                       <option value="">Select Wallet</option>
-                      <option value="Bkash">Bkash</option>
-                      <option value="Nagad">Nagad</option>
-                      <option value="Rocket">Rocket</option>
+                      {walletData.map((wallet) => (
+                        <option key={wallet.id} value={wallet.id}>
+                          {wallet.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 )}
@@ -369,31 +366,47 @@ const AddNewModal = ({ show, onClose }) => {
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Bank</label>
                       <select
-                        name="bank"
-                        value={formData.bank}
+                        name="bank_id"
+                        className="form-select"
+                        value={formData.bank_id}
                         onChange={handleChange}
-                        className="form-control"
                       >
-                        <option value="">Select Bank</option>
-                        <option value="UNITED COMMERCIAL BANK LIMITED">
-                          UNITED COMMERCIAL BANK LIMITED
-                        </option>
-                        <option value="UTTARA BANK LIMITED">
-                          UTTARA BANK LIMITED
-                        </option>
-                        <option value="WOORI BANK">WOORI BANK</option>
+                        <option value="">Select bank</option>
+                        {bankData.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.bank_name}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Branch</label>
-                      <input
-                        type="text"
-                        name="branch"
-                        value={formData.branch}
-                        onChange={handleChange}
-                        className="form-control"
-                      />
+                      <select
+                        name="branch_id"
+                        className="form-select"
+                        value={formData.branch_id}
+                        onChange={(e) => {
+                          const id = Number(e.target.value);
+                          const selectedBranch = branchData.find(
+                            (b) => b.id === id
+                          );
+                          setFormData({
+                            ...formData,
+                            branch_id: id,
+                            branchCode: selectedBranch
+                              ? selectedBranch.branch_code
+                              : "",
+                          });
+                        }}
+                      >
+                        <option value="">Select Branch</option>
+                        {branchData.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.branch_name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div className="col-md-3 mb-2">
@@ -419,9 +432,7 @@ const AddNewModal = ({ show, onClose }) => {
                     </div>
 
                     <div className="col-md-3 mb-2">
-                      <label className="mb-0 custom-label">
-                        Bank Rate-------
-                      </label>
+                      <label className="mb-0 custom-label">Bank Rate</label>
                       <input
                         type="number"
                         name="bankRate"
@@ -448,9 +459,7 @@ const AddNewModal = ({ show, onClose }) => {
 
                 {showWallet && (
                   <div className="col-md-3 mb-2">
-                    <label className="mb-0 custom-label">
-                      Wallet Rate-------
-                    </label>
+                    <label className="mb-0 custom-label">Wallet Rate</label>
                     <input
                       type="text"
                       name="walletrate"

@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Contracts\Permission;
 use Validator;
 use App\Helpers\PermissionHelper;
+use App\Models\Banks;
+use App\Models\Branch;
 use App\Models\FeesLog;
 use App\Models\Limit;
 use App\Models\LimitLog;
@@ -302,6 +304,27 @@ class SettingsController extends Controller
     public function getwallet()
     {
         $data = Wallet::where('status', 1)->get();
+        return response()->json([
+            'data' => $data,
+            'message' => 'success',
+        ]);
+    }
+
+
+    public function getBanks()
+    {
+        $data = Banks::where('status', 1)->get();
+        return response()->json([
+            'data' => $data,
+            'message' => 'success',
+        ]);
+    }
+
+
+    public function bankUnderBranch(Request $request)
+    {
+
+        $data = Branch::where('bank_id', $request->bank_id)->where('status', 1)->get();
         return response()->json([
             'data' => $data,
             'message' => 'success',

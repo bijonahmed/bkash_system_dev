@@ -26,6 +26,8 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/upateSetting', [SettingsController::class, 'upateSetting']);
         Route::post('/updateRate', [SettingsController::class, 'updateRate']);
         Route::get('/getwallet', [SettingsController::class, 'getwallet']);
+        Route::get('/getBanks', [SettingsController::class, 'getBanks']);
+        Route::POST('/bankUnderBranch', [SettingsController::class, 'bankUnderBranch']);
         Route::post('/createLimit', [SettingsController::class, 'createLimit']);
         Route::post('/createFee', [SettingsController::class, 'createFee']);
         Route::get('/getLimits', [SettingsController::class, 'getLimits']);

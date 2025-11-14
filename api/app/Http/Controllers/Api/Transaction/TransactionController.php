@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Fees;
 use App\Models\Post as PostModel;
 use App\Models\PostCategory;
+use App\Models\Transaction;
+use App\Models\Transactionlog;
 use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -63,54 +65,72 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
-        dd($request->all());
+        // dd($request->all());
 
         $user = Auth::user();
-        if (! $user->can('create posts')) {
+        if (! $user->can('create users')) {
             return response()->json([
-                'message' => 'Unauthorized: You do not have permission to create posts',
+                'message' => 'Unauthorized: You do not have permission to create transactions',
             ], 403);
         }
 
-
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'categoryId' => 'required',
+            'beneficiaryName'       => 'required',
+            'beneficiaryPhone'      => 'required',
+            'status'                => 'required',
+            'paymentMethod'         => 'required',
+            // Conditional validations
+            'wallet_id'             => 'required_if:paymentMethod,wallet',
+            'walletrate'            => 'required_if:paymentMethod,wallet',
+            'bank_id'               => 'required_if:paymentMethod,bank',
+            'branchCode'            => 'required_if:paymentMethod,bank',
+            'accountNo'             => 'required_if:paymentMethod,bank',
+            'bankRate'              => 'required_if:paymentMethod,bank',
+
+            'receiving_money'       => 'required',
+            'fee'                   => 'required',
+            'totalAmount'           => 'required',
+            'senderName'            => 'required',
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-        $userData = Helper::UserData();
-        $user_id = $userData['userId'];
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $request->input('name'))));
-        $data = [
-            'name' => $request->name,
-            'slug' => $slug,
-            'description_short' => ! empty($request->description_short) ? $request->description_short : '',
-            'description_full' => ! empty($request->description_full) ? $request->description_full : '',
-            'meta_title' => ! empty($request->meta_title) ? $request->meta_title : '',
-            'meta_description' => ! empty($request->meta_description) ? $request->meta_description : '',
-            'meta_keyword' => ! empty($request->meta_keyword) ? $request->meta_keyword : '',
-            'categoryId' => ! empty($request->categoryId) ? $request->categoryId : '',
-            'status' => 1, // !empty($request->status) ? $request->status : "",
-            'entry_by' => $user_id,
-        ];
-        // dd($data);
-        if (! empty($request->file('files'))) {
-            $files = $request->file('files');
-            $fileName = Str::random(20);
-            $ext = strtolower($files->getClientOriginalExtension());
-            $path = $fileName . '.' . $ext;
-            $uploadPath = '/backend/files/';
-            $upload_url = $uploadPath . $path;
-            $files->move(public_path('/backend/files/'), $upload_url);
-            $file_url = $uploadPath . $path;
-            $data['thumnail_img'] = $file_url;
-        }
-        // Post::create($data);
-        $resdata['product_id'] = Post::insertGetId($data);
 
-        return response()->json($resdata);
+        $data = $request->only([
+            'beneficiaryName',
+            'beneficiaryPhone',
+            'status',
+            'paymentMethod',
+            'wallet_id',
+            'bank_id',
+            'branch_id',
+            'branchCode',
+            'accountNo',
+            'sendingMoney',
+            'walletrate',
+            'bankRate',
+            'charges',
+            'fee',
+            'totalAmount',
+            'senderName',
+            'receiving_money',
+            'description',
+        ]);
+
+        $data['entry_by'] = $user->entry_by;
+
+        $transaction      = Transaction::create($data);
+
+        Transactionlog::create(array_merge($data, [
+            'transaction_id' => $transaction->id,
+        ]));
+
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction created successfully',
+            'data' => $transaction
+        ]);
     }
 
     public function walletcalculate(Request $request)
