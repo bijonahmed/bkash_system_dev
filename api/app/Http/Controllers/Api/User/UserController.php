@@ -177,7 +177,7 @@ class UserController extends Controller
 
     public function update(Request $request)
     {
-      
+
         //dd($request->all());
         $user = Auth::user();
         if (! $user->can('edit users')) {
@@ -251,7 +251,7 @@ class UserController extends Controller
 
 
         $rulestype = RolesType::find($request->rules_type);
-          $userUpdate = Auth::user();
+        $userUpdate = Auth::user();
         // $walletCheck = Wallet::find($request->walletType);
         UserLog::create([
             'user_id'       => $user_id,
@@ -302,6 +302,16 @@ class UserController extends Controller
         $userData = User::find($id);
         $response = [
             'data' => $userData,
+            'message' => 'success',
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function getOnlyAgentList()
+    {
+        $data = User::where('role_type', 2)->select('id','name')->where('status', 1)->get();
+        $response = [
+            'data' => $data,
             'message' => 'success',
         ];
         return response()->json($response, 200);
@@ -367,12 +377,6 @@ class UserController extends Controller
         }
         return response()->json($response);
     }
-
-
-
-
-
-
 
 
     public function changePassword(Request $request)

@@ -3,15 +3,15 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext"; // adjust path
 
-export default function getWallet() {
-  const [bankData, setResponseData] = useState([]);
+export default function getMethod() {
+  const [settingData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
   const { token, permissions } = useAuth();
   // useCallback ensures the function is memoized (won’t re-create unnecessarily)
-  const getwallet = useCallback(async () => {
+  const getMethod = useCallback(async () => {
     setLoading(true);
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/setting/getBanks`;
+      const url = `${process.env.NEXT_PUBLIC_API_BASE}/setting/settingrow`;
       const res = await fetch(url, {
         method: "GET",
         headers: {
@@ -30,8 +30,9 @@ export default function getWallet() {
       if (!res.ok) {
         throw new Error(result?.message || `HTTP Error: ${res.status}`);
       }
-
-      setResponseData(result?.data || []);
+      console.log("fetch result:", result?.data?.exchange_rate_wallet ?? null);
+    
+      setResponseData(result?.data ?? null);
     } catch (err) {
       toast.error(err.message || "Something went wrong!");
     } finally {
@@ -40,8 +41,8 @@ export default function getWallet() {
   }, []);
 
   useEffect(() => {
-    getwallet();
+    getMethod();
   }, []);
 
-  return { bankData, loading, getwallet };
+  return { settingData, loading, getMethod };
 }

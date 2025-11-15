@@ -22,6 +22,7 @@ class Transaction extends Model
         'sendingMoney',
         'walletrate',
         'bankRate',
+        'agent_id',
         'receivingMoney',
         'charges',
         'fee',

@@ -8,17 +8,22 @@ import toast, { Toaster } from "react-hot-toast";
 import Link from "next/link";
 import "../list/transactionFilter.css";
 import AddNewModal from "./AddNewModal.jsx";
-import getTransactions from "../../../hooks/getTransactions";
+import useTransactions from "../../../hooks/getTransactions";
+import useWallets from "../../../hooks/getWallet";
+import useAgents from "../../../hooks/getAgents.js";
+import BootstrapPagination from "../../../components/pagination.jsx";
 import "../../../../app/style/loader.css";
 
 export default function listPage() {
   const { token, permissions } = useAuth();
-
+  const searchBtnRef = useRef(null);
   const router = useRouter();
   const [showFilters, setShowFilters] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const title = "Transaction List";
   const contentRef = useRef(null);
+  const { walletData } = useWallets();
+  const { agentData } = useAgents();
 
   // update document title
   useEffect(() => {
@@ -32,26 +37,24 @@ export default function listPage() {
 
   useEffect(() => {
     const today = new Date();
-
-    // Get yesterday's date
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
 
-    // Format to YYYY-MM-DD
-    const formatDate = (date) => date.toISOString().split("T")[0];
+    const pad = (n) => String(n).padStart(2, "0");
 
-    setCreatedFrom(formatDate(yesterday));
-    setCreatedTo(formatDate(today));
+    const toISODate = (date) =>
+      `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+        date.getDate()
+      )}`;
+
+    setCreatedFrom(toISODate(yesterday)); // always yesterday
+    setCreatedTo(toISODate(today)); // today
   }, []);
 
   if (!permissions.includes("create rate")) {
     router.replace("/dashboard");
     return false;
   }
-
-  const filterByTransaction = () => {
-    refetch();
-  };
 
   const [filters, setFilters] = useState({
     beneficiaryName: "",
@@ -63,9 +66,35 @@ export default function listPage() {
     paymentMethod: "",
     wallet: "",
     status: "",
+    wallet_id: "",
+    agent_id: "",
     agent: "",
+    limit: 50, // 50 records per page
   });
-  const { transactionData, refetch, loading } = getTransactions(filters);
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const { transactionData, loading, totalPages, refetch } = useTransactions();
+
+  // Fetch transactions on page load or filter change
+  useEffect(() => {
+    refetch({ filters, page: currentPage });
+  }, [filters, currentPage, refetch]);
+
+  const filterByTransaction = () => {
+    setCurrentPage(1); // reset to first page when filtering
+    refetch({ filters, page: 1 });
+  };
+
+  const goToPage = (page) => {
+    setCurrentPage(page);
+  };
+
+  /*
+  const filterByTransaction = () => {
+    refetch(filters);
+  };
+  */
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
@@ -73,6 +102,12 @@ export default function listPage() {
       [key]: value,
     }));
   };
+
+  useEffect(() => {
+    if (searchBtnRef.current) {
+      searchBtnRef.current.click();
+    }
+  }, []);
 
   return (
     <main className="app-main" id="main" tabIndex={-1}>
@@ -227,6 +262,13 @@ export default function listPage() {
                             type="text"
                             className="form-control"
                             placeholder="Sender Name"
+                            value={filters.senderName}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                senderName: e.target.value,
+                              })
+                            }
                           />
                         </div>
 
@@ -236,6 +278,13 @@ export default function listPage() {
                             type="text"
                             className="form-control"
                             placeholder="Account #"
+                            value={filters.accountNo}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                accountNo: e.target.value,
+                              })
+                            }
                           />
                         </div>
 
@@ -261,8 +310,13 @@ export default function listPage() {
                           <input
                             type="date"
                             className="form-control"
-                            value={createdTo}
-                            onChange={(e) => setCreatedTo(e.target.value)}
+                            value={filters.createdTo}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                createdTo: e.target.value,
+                              })
+                            }
                           />
                         </div>
 
@@ -288,17 +342,37 @@ export default function listPage() {
 
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">Wallet</label>
-                          <select className="form-control">
+                          <select
+                            className="form-select"
+                            value={filters.wallet_id}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                wallet_id: e.target.value,
+                              })
+                            }
+                          >
                             <option value="">Choose Wallet</option>
-                            <option value="Bkash">Bkash</option>
-                            <option value="Nagad">Nagad</option>
-                            <option value="Rocket">Rocket</option>
+                            {walletData.map((wallet) => (
+                              <option key={wallet.id} value={wallet.id}>
+                                {wallet.name}
+                              </option>
+                            ))}
                           </select>
                         </div>
 
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">Status</label>
-                          <select className="form-control">
+                          <select
+                            className="form-control"
+                            value={filters.status}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                status: e.target.value,
+                              })
+                            }
+                          >
                             <option value="">Choose Status</option>
                             <option value="paid">Paid</option>
                             <option value="unpaid">Unpaid</option>
@@ -308,19 +382,29 @@ export default function listPage() {
 
                         <div className="col-md-3 mb-1">
                           <label className="mb-0 fw-semibold">Agent</label>
-                          <select className="form-control">
-                            <option value="">Select Agent</option>
-                            <option value="47">JAHER AND SONS LIMITED</option>
-                            <option value="46">
-                              SHAHPORAN BUSINESS CENTER LTD
-                            </option>
-                            <option value="45">EHAN SERVICE LIMITED</option>
-                            {/* add more agents dynamically if needed */}
+
+                          <select
+                            className="form-select"
+                            value={filters.agent_id}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                agent_id: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="">Choose Agent</option>
+                            {agentData.map((r) => (
+                              <option key={r.id} value={r.id}>
+                                {r.name}
+                              </option>
+                            ))}
                           </select>
                         </div>
 
                         <div className="col-md-3 mb-1 d-flex align-items-end">
                           <button
+                            ref={searchBtnRef}
                             className="btn btn-sm btn-primary btn-lg"
                             onClick={filterByTransaction}
                           >
@@ -371,7 +455,9 @@ export default function listPage() {
                         transactionData.map((item, index) => (
                           <tr key={item.id} className="table-row bg-light">
                             {/* or bg-info, bg-warning, bg-success, etc. */}
-                            <td>{index + 1}</td>
+                            <td>
+                              {index + 1 + (currentPage - 1) * filters.limit}
+                            </td>
                             <td>
                               {item.createdBy}
                               <br />
@@ -453,12 +539,12 @@ export default function listPage() {
                             </td>
                             <td>{item.description}</td>
                             <td>
-                              <a
-                                href="/transactions/3022/edit"
+                              <Link
+                                href={`/transaction/edit/${item.id}`}
                                 className="btn btn-warning btn-sm"
                               >
                                 <i className="bi bi-pencil-fill"></i> Edit
-                              </a>
+                              </Link>
                             </td>
                           </tr>
                         ))
@@ -471,6 +557,14 @@ export default function listPage() {
                       )}
                     </tbody>
                   </table>
+                  {/* Pagination Buttons */}
+                  <div className="mt-3">
+                    <BootstrapPagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      goToPage={goToPage}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

@@ -44,11 +44,11 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/getByReportUser', [ReportController::class, 'getByReportUser']);
     });
 
-       Route::prefix('transaction')->group(function () {
-          Route::get('/index', [TransactionController::class, 'index']);
+    Route::prefix('transaction')->group(function () {
+        Route::get('/index', [TransactionController::class, 'index']);
         Route::post('/create', [TransactionController::class, 'store']);
+        Route::get('/checkrow/{id}', [TransactionController::class, 'checkrow']);
         Route::post('/walletcalculate', [TransactionController::class, 'walletcalculate']);
-      
     });
 
 
@@ -76,6 +76,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/update', [UserController::class, 'update']);
         Route::DELETE('/delete/{id}', [UserController::class, 'destroy']);
         Route::get('/checkUserrow/{id}', [UserController::class, 'checkUserrow']);
+        Route::get('/getOnlyAgentList', [UserController::class, 'getOnlyAgentList']);
     });
 
     Route::prefix('posts-category')->group(function () {

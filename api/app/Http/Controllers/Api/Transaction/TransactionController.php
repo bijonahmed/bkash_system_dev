@@ -23,6 +23,8 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
+
+
         $user = Auth::user();
         if (! $user->can('view users')) {
             return response()->json([
@@ -30,29 +32,69 @@ class TransactionController extends Controller
             ], 403);
         }
 
-        $searchQuery = $request->searchQuery;
-        $status      = $request->selectedFilter;
+        // dd($request->all());
+        $beneficiaryName  = $request->input('beneficiaryName');
+        $beneficiaryPhone = $request->input('beneficiaryPhone');
+        $senderName       = $request->input('senderName');
+        $accountNo        = $request->input('accountNo');
+        $createdFrom      = $request->input('createdFrom');
+        $createdTo        = $request->input('createdTo');
+        $paymentMethod    = $request->input('paymentMethod');
+        $wallet_id        = $request->input('wallet_id');
+        $agent_id         = $request->input('agent_id');
 
-        $query = Transaction::select('transactions.*');
+        $status           = $request->input('status');
+        $limit            = $request->input('limit', 50);
+        $page             = $request->input('page', 1);
 
-        // ⭐ Search by: beneficiaryName, phone, senderName, accountNo
-        $query->when($searchQuery, function ($q) use ($searchQuery) {
-            $q->where(function ($q) use ($searchQuery) {
-                $q->where('beneficiaryName', 'like', "%$searchQuery%")
-                    ->orWhere('beneficiaryPhone', 'like', "%$searchQuery%")
-                    ->orWhere('senderName', 'like', "%$searchQuery%")
-                    ->orWhere('accountNo', 'like', "%$searchQuery%");
-            });
-        });
+        $offset = ($page - 1) * $limit;
 
-        // ⭐ Filter by status
-        $query->when($status, function ($q) use ($status) {
-            $q->where('status', $status);
-        });
+        $query = Transaction::query();
 
-        $results =  $query->orderBy('id', 'desc')->get();
 
-        // Format output
+        if ($beneficiaryPhone) {
+            $query->where('beneficiaryPhone', 'like', "%$beneficiaryPhone%");
+        }
+        if ($beneficiaryName) {
+            $query->where('beneficiaryName', 'like', "%$beneficiaryName%");
+        }
+        if ($senderName) {
+            $query->where('senderName', 'like', "%$senderName%");
+        }
+        if ($accountNo) {
+            $query->where('accountNo', 'like', "%$accountNo%");
+        }
+
+        if ($createdFrom) {
+            $query->whereDate('created_at', '>=', $createdFrom);
+        }
+
+        if ($createdTo) {
+            $query->whereDate('created_at', '<=', $createdTo);
+        }
+        if ($paymentMethod) {
+            $query->where('paymentMethod', $paymentMethod);
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        if ($wallet_id) {
+            $query->where('wallet_id', $wallet_id);
+        }
+
+          if ($agent_id) {
+            $query->where('agent_id', $agent_id);
+        }
+
+        $total = $query->count(); // total records
+
+        $results = $query->orderBy('id', 'desc')
+            ->skip($offset)
+            ->take($limit)
+            ->get();
+
         $modifiedCollection = $results->map(function ($item) {
             $chkuser   = User::find($item->entry_by);
             $chkwallet = Wallet::find($item->wallet_id);
@@ -63,17 +105,14 @@ class TransactionController extends Controller
                 'id'               => $item->id,
                 'beneficiaryName'  => $item->beneficiaryName,
                 'beneficiaryPhone' => $item->beneficiaryPhone,
-
                 'charges'          => $item->charges,
                 'fee'              => $item->fee,
                 'totalAmount'      => $item->totalAmount,
                 'receiving_money'  => $item->receiving_money,
                 'sendingMoney'     => $item->sendingMoney,
                 'walletName'       => $chkwallet->name ?? '',
-
                 'walletrate'       => $item->walletrate,
                 'bankRate'         => $item->bankRate,
-
                 'bankName'         => $chkbank->bank_name ?? '',
                 'branchName'       => $chkBranch->branch_name ?? '',
                 'branchCode'       => $chkBranch->branch_code ?? '',
@@ -85,16 +124,28 @@ class TransactionController extends Controller
                 'senderName'       => ucfirst($item->senderName),
                 'paymentMethod'    => ucfirst($item->paymentMethod),
                 'createdBy'        => $chkuser->name ?? 'N/A',
-                'created_at'       =>  Carbon::parse($item->created_at)
-                    ->timezone('Asia/Dhaka') // set Bangladesh timezone
-                    ->format('M d, Y h:i A'), // 12-hour format
+                'created_at'       => Carbon::parse($item->created_at)
+                    ->timezone('Asia/Dhaka')
+                    ->format('M d, Y h:i A'),
             ];
         });
 
-        // Return response
         return response()->json([
-            'data' => $modifiedCollection,
-        ], 200);
+            'data'       => $modifiedCollection,
+            'total'      => $total,
+            'page'       => $page,
+            'last_page'  => ceil($total / $limit),
+        ]);
+    }
+
+    public function checkrow($id)
+    {
+        $data = Transaction::find($id);
+        $response = [
+            'data' => $data,
+            'message' => 'success',
+        ];
+        return response()->json($response, 200);
     }
 
     public function store(Request $request)

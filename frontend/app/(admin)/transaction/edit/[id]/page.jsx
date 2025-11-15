@@ -1,23 +1,25 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../../context/AuthContext";
-import useWallets from "../../../hooks/getWallet";
-import useSetting from "../../../hooks/getSetting.js";
-import useBank from "../../../hooks/getBanks";
-import getTransactions from "../../../hooks/getTransactions";
+import { useAuth } from "../../../../context/AuthContext";
+import useWallets from "../../../../hooks/getWallet";
+import useBank from "../../../../hooks/getBanks";
+import getTransactions from "../../../../hooks/getTransactions";
 import toast, { Toaster } from "react-hot-toast";
-import "../../../../app/style/loader.css";
+import "../../../../../app/style/loader.css";
+import { useRouter, usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 
-const AddNewModal = ({ show, onClose, onSuccess }) => {
+const EditNewModal = () => {
+  const params = useParams();
+  const id = params.id;
+  console.log("Editing transaction ID:", params.id);
+
+  const router = useRouter();
   const { token, permissions } = useAuth();
   const [loading, setLoading] = useState(false);
+  // const { feesData, loading, refetch } = getFees();
   const { transactionData, refetch } = getTransactions();
-  const { settingData } = useSetting();
-
-  //console.log("exchange_rate_wallet :", settingData?.exchange_rate_wallet);
-  //console.log("bank rate :", settingData?.exchange_rate_bank);
-
   const initialFormData = {
     beneficiaryName: "",
     beneficiaryPhone: "",
@@ -29,8 +31,8 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     branchCode: "",
     accountNo: "",
     sendingMoney: 0,
-    walletrate: settingData?.exchange_rate_wallet || 1,
-    bankRate: settingData?.exchange_rate_bank || 1,
+    walletrate: 157,
+    bankRate: 1,
     receivingMoney: "",
     charges: "",
     fee: "",
@@ -43,11 +45,11 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   const [formData, setFormData] = useState(initialFormData);
   const resetForm = () => setFormData(initialFormData);
   const { walletData } = useWallets();
-
   const { bankData } = useBank();
   const [showWallet, setShowWallet] = useState(false);
   const [showBank, setShowBank] = useState(false);
   const [branchData, setBranchData] = useState([]);
+  const [transaction, setTransaction] = useState(null);
 
   // ✅ Automatically toggle Wallet/Bank inputs
   useEffect(() => {
@@ -212,6 +214,53 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     }
   };
 
+  useEffect(() => {
+    const fetchTransaction = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE}/transaction/checkrow/${id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await res.json();
+        setTransaction(data);
+        console.log("Fetched transaction data:", data.beneficiaryName);
+        setFormData({
+          beneficiaryName: data?.beneficiaryName || "",
+          beneficiaryPhone: data.beneficiaryPhone || "", 
+          status: data.status || "",
+          paymentMethod: data.payment_method || "", 
+          wallet_id: data.wallet_id || "",
+          bank_id: data.bank_id || "",
+          branch_id: data.branch_id || "",  
+          branchCode: data.branch_code || "",
+          accountNo: data.account_no || "",
+          sendingMoney: data.sending_money || 0,  
+          walletrate: data.walletrate || 157,
+          bankRate: data.bank_rate || 1,
+          receiving_money: data.receiving_money || "",  
+          charges: data.charges || "",
+          fee: data.fee || "",
+          totalAmount: data.total_amount || "", 
+          senderName: data.sender_name || "",
+          description: data.description || "",
+        }); 
+        // setDescription(data.description || "");
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransaction();
+  }, [id]);
+
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -260,10 +309,10 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   // ✅ Modal layout
   return (
     <div
-      className={`modal fade ${show ? "show d-block" : ""}`}
-      style={{ backgroundColor: show ? "rgba(0,0,0,0.5)" : "transparent" }}
+      className="modal show d-block"
       tabIndex="-1"
       role="dialog"
+      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
     >
       <div
         className="modal-dialog modal-dialog-centered"
@@ -277,13 +326,8 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
           <div className="modal-header bg-primary text-white">
             <h5 className="modal-title">Add New Entry</h5>
 
-            <button
-              type="button"
-              className="btn-close"
-              onClick={onClose}
-            ></button>
+            <button type="button" className="btn-close"></button>
           </div>
-
           {loading && (
             <div className="loader-overlay">
               <div className="spinner-border text-light" role="status">
@@ -291,7 +335,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
               </div>
             </div>
           )}
-
+          ===<pre>{JSON.stringify(transaction, null, 2)}</pre>==
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
               <div className="row">
@@ -571,7 +615,10 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={onClose}
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.back();
+                }}
               >
                 Close
               </button>
@@ -587,4 +634,4 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   );
 };
 
-export default AddNewModal;
+export default EditNewModal;

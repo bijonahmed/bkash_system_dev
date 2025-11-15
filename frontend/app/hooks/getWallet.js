@@ -4,14 +4,14 @@ import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext"; // adjust path
 
 export default function getMethod() {
-  const [bankData, setResponseData] = useState([]);
+  const [walletData, setResponseData] = useState([]);
   const [loading, setLoading] = useState(false);
   const { token, permissions } = useAuth();
   // useCallback ensures the function is memoized (won’t re-create unnecessarily)
   const getMethod = useCallback(async () => {
     setLoading(true);
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/setting/getBanks`;
+      const url = `${process.env.NEXT_PUBLIC_API_BASE}/setting/getwallet`;
       const res = await fetch(url, {
         method: "GET",
         headers: {
@@ -43,5 +43,5 @@ export default function getMethod() {
     getMethod();
   }, []);
 
-  return { bankData, loading, getMethod };
+  return { walletData, loading, getMethod };
 }

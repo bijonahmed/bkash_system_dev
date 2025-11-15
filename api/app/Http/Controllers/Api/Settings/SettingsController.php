@@ -27,8 +27,6 @@ class SettingsController extends Controller
     public function settingrow()
     {
         $data = Setting::find(1);
-        $data['qa_pages_meta_description'] = $data['q&a_pages_meta_description'];
-        $data['qa_pages_meta_keywords']    = $data['q&a_pages_meta_keywords'];
         $response = [
             'data' => $data,
             'message' => 'success'

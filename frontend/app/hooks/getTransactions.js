@@ -1,57 +1,52 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; // adjust path
+import { useAuth } from "../context/AuthContext";
 
-export default function getTransactions() {
-  const [transactionData, setResponseData] = useState([]);
+export default function useTransactions() {
+  const [transactionData, setTransactionData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { token, permissions } = useAuth();
-  // useCallback ensures the function is memoized (won’t re-create unnecessarily)
-  const getTransactions = useCallback(async (filters = {}) => {
+  const [totalPages, setTotalPages] = useState(0); // total pages from backend
+  const { token } = useAuth();
 
-    
-    const cleaned = Object.fromEntries(
-      Object.entries(filters).filter(([_, v]) => v)
-    );
+  const fetchTransactions = useCallback(
+    async ({ filters = {}, page = 1 } = {}) => {
+      const cleaned = Object.fromEntries(
+        Object.entries({ ...filters }).filter(
+          ([_, v]) => v !== "" && v !== null
+        )
+      );
 
-    const query = new URLSearchParams(cleaned).toString();
+      cleaned.limit = filters.limit || 50;
+      cleaned.page = page;
 
-    console.log("QUERY:", query);
+      const query = new URLSearchParams(cleaned).toString();
 
-    setLoading(true);
-    try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/transaction/index`;
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      let result;
+      setLoading(true);
       try {
-        result = await res.json();
-      } catch (e) {
-        result = null;
+        const url = `${process.env.NEXT_PUBLIC_API_BASE}/transaction/index?${query}`;
+        const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const result = await res.json();
+
+        if (!res.ok) throw new Error(result?.message || "API error");
+
+        setTransactionData(result.data);
+        setTotalPages(result.last_page || 1);
+      } catch (err) {
+        toast.error(err.message || "Something went wrong!");
+      } finally {
+        setLoading(false);
       }
+    },
+    [token]
+  );
 
-      if (!res.ok) {
-        throw new Error(result?.message || `HTTP Error: ${res.status}`);
-      }
-
-      setResponseData(result?.data || []);
-    } catch (err) {
-      toast.error(err.message || "Something went wrong!");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    getTransactions();
-  }, []);
-
-  return { transactionData, loading, refetch: getTransactions };
+  return { transactionData, loading, totalPages, refetch: fetchTransactions };
 }
