@@ -126,6 +126,11 @@ export default function AdminSidebar() {
                 href: "/permission",
                 icon: "bi-circle",
               },
+
+              { label: "Wallet", href: "/setting/wallet", icon: "bi-circle" },
+              { label: "Bank", href: "/setting/bank", icon: "bi-circle" },
+              { label: "Branch", href: "/setting/branch", icon: "bi-circle" },
+
               { label: "Company Setting", href: "/setting", icon: "bi-circle" },
             ],
           },

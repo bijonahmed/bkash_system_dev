@@ -13,7 +13,9 @@ import { useParams } from "next/navigation";
 const EditNewModal = () => {
   const params = useParams();
   const id = params.id;
-  console.log("Editing transaction ID:", params.id);
+  useEffect(() => {
+    document.title = `Transaction Update [${id}]`;
+  }, [id]);
 
   const router = useRouter();
   const { token, permissions } = useAuth();
@@ -31,7 +33,7 @@ const EditNewModal = () => {
     branchCode: "",
     accountNo: "",
     sendingMoney: 0,
-    walletrate: 157,
+    walletrate: "",
     bankRate: 1,
     receivingMoney: "",
     charges: "",
@@ -217,6 +219,7 @@ const EditNewModal = () => {
   useEffect(() => {
     const fetchTransaction = async () => {
       try {
+        setLoading(true);
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE}/transaction/checkrow/${id}`,
           {
@@ -227,30 +230,29 @@ const EditNewModal = () => {
             },
           }
         );
-        const data = await res.json();
-        setTransaction(data);
-        console.log("Fetched transaction data:", data.beneficiaryName);
+        const result = await res.json();
+
+        setBranchData(result.data.branch);
         setFormData({
-          beneficiaryName: data?.beneficiaryName || "",
-          beneficiaryPhone: data.beneficiaryPhone || "", 
-          status: data.status || "",
-          paymentMethod: data.payment_method || "", 
-          wallet_id: data.wallet_id || "",
-          bank_id: data.bank_id || "",
-          branch_id: data.branch_id || "",  
-          branchCode: data.branch_code || "",
-          accountNo: data.account_no || "",
-          sendingMoney: data.sending_money || 0,  
-          walletrate: data.walletrate || 157,
-          bankRate: data.bank_rate || 1,
-          receiving_money: data.receiving_money || "",  
-          charges: data.charges || "",
-          fee: data.fee || "",
-          totalAmount: data.total_amount || "", 
-          senderName: data.sender_name || "",
-          description: data.description || "",
-        }); 
-        // setDescription(data.description || "");
+          beneficiaryName: result.data.beneficiaryName || "",
+          beneficiaryPhone: result.data.beneficiaryPhone || "",
+          status: result.data.status || "",
+          paymentMethod: result.data.paymentMethod || "",
+          wallet_id: result.data.wallet_id || "",
+          bank_id: result.data.bank_id || "",
+          branch_id: result.data.branch_id || "",
+          branchCode: result.data.branch_code || "",
+          accountNo: result.data.accountNo || "",
+          sendingMoney: result.data.sendingMoney || 0,
+          walletrate: result.data.walletrate || 1,
+          bankRate: result.data.bankRate || 1,
+          receiving_money: result.data.receiving_money || "",
+          charges: result.data.charges || "",
+          fee: result.data.fee || "",
+          totalAmount: result.data.totalAmount || "",
+          senderName: result.data.senderName || "",
+          description: result.data.description || "",
+        });
       } catch (err) {
         console.error(err);
       } finally {
@@ -269,14 +271,17 @@ const EditNewModal = () => {
     try {
       setLoading(true);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/transaction/create`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/transaction/update`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            ...formData,
+            transaction_id: id,
+          }),
         }
       );
 
@@ -286,8 +291,8 @@ const EditNewModal = () => {
         toast.success("Transaction added successfully ✅");
         refetch();
         setFormData(initialFormData); // this rest
-        onClose();
-        onSuccess(); // ← IMPORTANT: this triggers refetch in parent
+
+        router.push("/transaction/list");
       } else {
         if (data.errors) {
           // Laravel validation errors
@@ -324,7 +329,7 @@ const EditNewModal = () => {
           style={{ maxHeight: "90vh", overflowY: "auto" }}
         >
           <div className="modal-header bg-primary text-white">
-            <h5 className="modal-title">Add New Entry</h5>
+            <h5 className="modal-title">Transaction Update [{id}]</h5>
 
             <button type="button" className="btn-close"></button>
           </div>
@@ -335,7 +340,7 @@ const EditNewModal = () => {
               </div>
             </div>
           )}
-          ===<pre>{JSON.stringify(transaction, null, 2)}</pre>==
+
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
               <div className="row">
@@ -386,6 +391,11 @@ const EditNewModal = () => {
                     value={formData.paymentMethod}
                     onChange={handleChange}
                     className="form-control"
+                    style={{
+                      pointerEvents: "none", // ← FULLY LOCKED
+                      backgroundColor: "#e9ecef", // optional to look disabled
+                      cursor: "not-allowed",
+                    }}
                   >
                     <option value="">Select Payment Method</option>
                     <option value="wallet">Wallet</option>
@@ -605,13 +615,6 @@ const EditNewModal = () => {
             </div>
 
             <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-danger"
-                onClick={resetForm}
-              >
-                Reset
-              </button>
               <button
                 type="button"
                 className="btn btn-secondary"

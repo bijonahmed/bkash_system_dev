@@ -32,6 +32,7 @@ class Transactionlog extends Model
         'description',
         'created_at',
         'updated_at',
+        'type',
         'entry_by'
     ];
 }

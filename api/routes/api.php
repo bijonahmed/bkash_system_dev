@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Bank\BankController;
+use App\Http\Controllers\Api\Branch\BranchController;
 use App\Http\Controllers\Api\Post\PostCategoryController;
 use App\Http\Controllers\Api\Post\PostController;
 use App\Http\Controllers\Api\User\UserController;
@@ -9,6 +11,7 @@ use App\Http\Controllers\Api\Permissions\PermissionsController;
 use App\Http\Controllers\Api\Report\ReportController;
 use App\Http\Controllers\Api\Settings\SettingsController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
+use App\Http\Controllers\Api\Wallet\WalletController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('api')->group(function () {
@@ -44,9 +47,37 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/getByReportUser', [ReportController::class, 'getByReportUser']);
     });
 
+
+    Route::prefix('wallet')->group(function () {
+        Route::get('/index', [WalletController::class, 'index']);
+        Route::post('/create', [WalletController::class, 'store']);
+        Route::post('/update', [WalletController::class, 'update']);
+        Route::get('/checkrow/{id}', [WalletController::class, 'checkrow']);
+        Route::DELETE('/delete/{id}', [WalletController::class, 'destroy']);
+    });
+
+    Route::prefix('bank')->group(function () {
+        Route::get('/index', [BankController::class, 'index']);
+        Route::post('/create', [BankController::class, 'store']);
+        Route::post('/update', [BankController::class, 'update']);
+        Route::get('/checkrow/{id}', [BankController::class, 'checkrow']);
+        Route::DELETE('/delete/{id}', [BankController::class, 'destroy']);
+    });
+
+    Route::prefix('branch')->group(function () {
+        Route::get('/index', [BranchController::class, 'index']);
+        Route::post('/create', [BranchController::class, 'store']);
+        Route::post('/update', [BranchController::class, 'update']);
+        Route::get('/checkrow/{id}', [BranchController::class, 'checkrow']);
+        Route::DELETE('/delete/{id}', [BranchController::class, 'destroy']);
+    });
+
+
+
     Route::prefix('transaction')->group(function () {
         Route::get('/index', [TransactionController::class, 'index']);
         Route::post('/create', [TransactionController::class, 'store']);
+        Route::post('/update', [TransactionController::class, 'update']);
         Route::get('/checkrow/{id}', [TransactionController::class, 'checkrow']);
         Route::post('/walletcalculate', [TransactionController::class, 'walletcalculate']);
     });

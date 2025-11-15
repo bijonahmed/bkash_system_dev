@@ -127,7 +127,7 @@ export default function permissionAddPage() {
       if (res.ok) {
         console.log("Data: " + data);
         setPermissions(data.data);
-        //toast.success("Add successfully ✅");
+        //toast.success("Add successfully ");
       } else if (data.errors) {
         toast.error(Object.values(data.errors).flat().join("\n"), {
           style: { whiteSpace: "pre-line" },
@@ -167,7 +167,7 @@ export default function permissionAddPage() {
 
       const data = await res.json();
       if (res.ok) {
-        toast.success("Permissions assigned successfully ✅");
+        toast.success("Permissions assigned successfully");
       } else if (data.errors) {
         toast.error(Object.values(data.errors).flat().join("\n"), {
           style: { whiteSpace: "pre-line" },

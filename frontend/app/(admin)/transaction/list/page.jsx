@@ -51,7 +51,7 @@ export default function listPage() {
     setCreatedTo(toISODate(today)); // today
   }, []);
 
-  if (!permissions.includes("create rate")) {
+  if (!permissions.includes("create transaction")) {
     router.replace("/dashboard");
     return false;
   }
@@ -199,22 +199,6 @@ export default function listPage() {
                     className="card shadow-sm"
                     style={{ backgroundColor: "#f8f9fa" }}
                   >
-                    <div
-                      className="card-header d-flex justify-content-between align-items-center"
-                      style={{ backgroundColor: "#007bff", color: "#fff" }}
-                    >
-                      <h5 className="card-title m-0">Search Filters</h5>
-                      <div className="card-tools">
-                        <button
-                          type="button"
-                          className="btn btn-tool text-white"
-                          title="Collapse"
-                        >
-                          <i className="fas fa-minus"></i>
-                        </button>
-                      </div>
-                    </div>
-
                     <div className="card-body">
                       <div className="row">
                         {/* Input Fields */}
@@ -512,19 +496,31 @@ export default function listPage() {
                               )}
                             </td>
                             <td>
-                              GBP&nbsp;{item.sendingMoney}
+                               <small>GBP&nbsp;{item.sendingMoney}</small>
                               <br />
                               {item.paytMethod === "wallet" ? (
                                 <>
-                                  GBP 1 = BDT {item.walletrate} (PR)
+                                  <small>
+                                    GBP 1 = BDT {item.walletrate} (PR)
+                                  </small>
                                   <br />
-                                  GBP 1 = BDT {item.walletrate} (CR) <br />
+                                  <small>
+                                    {" "}
+                                    GBP 1 = BDT {item.walletrate} (CR)
+                                  </small>{" "}
+                                  <br />
                                 </>
                               ) : (
                                 <>
-                                  GBP 1 = BDT {item.bankRate} (PR)
+                                  <small>
+                                    {" "}
+                                    GBP 1 = BDT {item.bankRate} (PR)
+                                  </small>
                                   <br />
-                                  GBP 1 = BDT {item.bankRate} (CR) <br />
+                                  <small>
+                                    GBP 1 = BDT {item.bankRate} (CR){" "}
+                                  </small>{" "}
+                                  <br />
                                 </>
                               )}
                             </td>

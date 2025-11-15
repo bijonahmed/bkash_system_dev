@@ -84,7 +84,7 @@ class TransactionController extends Controller
             $query->where('wallet_id', $wallet_id);
         }
 
-          if ($agent_id) {
+        if ($agent_id) {
             $query->where('agent_id', $agent_id);
         }
 
@@ -141,6 +141,19 @@ class TransactionController extends Controller
     public function checkrow($id)
     {
         $data = Transaction::find($id);
+
+
+        if ($data->paymentMethod === 'wallet') {
+            $data->branch = [];
+        } else {
+            $data->branch = Branch::where('bank_id', $data->bank_id)->get();
+
+            $branchCode = Branch::where('id', $data->branch_id)->first();
+            $data->branch_code = $branchCode ? $branchCode->branch_code : '';
+        }
+
+        //dd($data);
+
         $response = [
             'data' => $data,
             'message' => 'success',
@@ -151,7 +164,6 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         // dd($request->all());
-
         $user = Auth::user();
         if (! $user->can('create users')) {
             return response()->json([
@@ -203,14 +215,12 @@ class TransactionController extends Controller
         ]);
         $data['entry_by'] = $user->entry_by;
 
-        // dd($data);
-
         $transaction      = Transaction::create($data);
 
         Transactionlog::create(array_merge($data, [
+            'type' => 'create',
             'transaction_id' => $transaction->id,
         ]));
-
 
         return response()->json([
             'success' => true,
@@ -218,6 +228,8 @@ class TransactionController extends Controller
             'data' => $transaction
         ]);
     }
+
+
 
     public function walletcalculate(Request $request)
     {
@@ -276,57 +288,83 @@ class TransactionController extends Controller
     public function update(Request $request)
     {
 
+        // dd($request->all());
+
+
+
         $user = Auth::user();
-        if (! $user->can('edit posts')) {
+        // if (! $user->can('edit posts')) {
+        //     return response()->json([
+        //         'message' => 'Unauthorized: You do not have permission to create posts',
+        //     ], 403);
+        // }
+
+
+
+        $user = Auth::user();
+        if (! $user->can('create users')) {
             return response()->json([
-                'message' => 'Unauthorized: You do not have permission to create posts',
+                'message' => 'Unauthorized: You do not have permission to create transactions',
             ], 403);
         }
 
-        // dd($request->all());
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'categoryId' => 'required',
+            'beneficiaryName'       => 'required',
+            'beneficiaryPhone'      => 'required',
+            'status'                => 'required',
+            'paymentMethod'         => 'required',
+            // Conditional validations
+            'wallet_id'             => 'required_if:paymentMethod,wallet',
+            'walletrate'            => 'required_if:paymentMethod,wallet',
+            'bank_id'               => 'required_if:paymentMethod,bank',
+            'branchCode'            => 'required_if:paymentMethod,bank',
+            'accountNo'             => 'required_if:paymentMethod,bank',
+            'bankRate'              => 'required_if:paymentMethod,bank',
+
+            'receiving_money'       => 'required',
+            'fee'                   => 'required',
+            'totalAmount'           => 'required',
+            'senderName'            => 'required',
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user_id = $user->id;
-        // dd($user_id);
+        $data = $request->only([
+            'beneficiaryName',
+            'beneficiaryPhone',
+            'status',
+            'paymentMethod',
+            'wallet_id',
+            'bank_id',
+            'branch_id',
+            'branchCode',
+            'accountNo',
+            'sendingMoney',
+            'walletrate',
+            'bankRate',
+            'charges',
+            'fee',
+            'totalAmount',
+            'senderName',
+            'receiving_money',
+            'description',
+        ]);
+        $data['entry_by'] = $user->entry_by;
 
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $request->input('name'))));
-        $data = [
-            'name' => $request->name,
-            'slug' => $slug,
-            'description_short' => ! empty($request->description_short) ? $request->description_short : '',
-            'description_full' => ! empty($request->description_full) ? $request->description_full : '',
-            'meta_title' => ! empty($request->meta_title) ? $request->meta_title : '',
-            'meta_description' => ! empty($request->meta_description) ? $request->meta_description : '',
-            'meta_keyword' => ! empty($request->meta_keyword) ? $request->meta_keyword : '',
-            'categoryId' => ! empty($request->categoryId) ? $request->categoryId : '',
-            'status' => ! empty($request->status) ? $request->status : '',
-            'entry_by' => $user_id,
-        ];
-        // dd($data);
-        if (! empty($request->file('files'))) {
-            $files = $request->file('files');
-            $fileName = Str::random(20);
-            $ext = strtolower($files->getClientOriginalExtension());
-            $path = $fileName . '.' . $ext;
-            $uploadPath = '/backend/files/';
-            $upload_url = $uploadPath . $path;
-            $files->move(public_path('/backend/files/'), $upload_url);
-            $file_url = $uploadPath . $path;
-            $data['thumnail_img'] = $file_url;
-        }
+        $transaction_id = (int)$request->input('transaction_id');
+        //dd($transaction_id);
 
-        $data['id'] = $request->id;
+        Transaction::where('id', $transaction_id)->update($data);
 
-        $post = PostModel::find($request->id);
-        $post->update($data);
-        $resdata['product_id'] = $post->id;
+        Transactionlog::create(array_merge($data, [
+            'type' => 'update',
+            'transaction_id' => $transaction_id,
+        ]));
 
-        return response()->json($resdata);
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction update successfully',
+        ]);
     }
 }
