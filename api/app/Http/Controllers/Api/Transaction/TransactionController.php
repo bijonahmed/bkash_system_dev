@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Fees;
 use App\Models\Post as PostModel;
 use App\Models\PostCategory;
+use App\Models\Setting;
 use App\Models\Transaction;
 use App\Models\Transactionlog;
 use App\Models\User;
@@ -24,9 +25,8 @@ class TransactionController extends Controller
     public function index(Request $request)
     {
 
-
         $user = Auth::user();
-        if (! $user->can('view users')) {
+        if (! $user->can('view transaction')) {
             return response()->json([
                 'message' => 'Unauthorized: You do not have permission to view posts',
             ], 403);
@@ -49,7 +49,17 @@ class TransactionController extends Controller
 
         $offset = ($page - 1) * $limit;
 
-        $query = Transaction::query();
+
+        //dd($user->getRoleNames());
+
+        if ($user->getRoleNames()->contains('admin')) {
+            $query = Transaction::query();
+        } else if ($user->getRoleNames()->contains('agent')) {
+            $query = Transaction::where('agent_id', $user->id);
+        }
+
+        //exit;
+
 
 
         if ($beneficiaryPhone) {
@@ -163,9 +173,10 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all());
+       
         $user = Auth::user();
-        if (! $user->can('create users')) {
+
+        if (! $user->can('create transaction')) {
             return response()->json([
                 'message' => 'Unauthorized: You do not have permission to create transactions',
             ], 403);
@@ -213,7 +224,8 @@ class TransactionController extends Controller
             'receiving_money',
             'description',
         ]);
-        $data['entry_by'] = $user->entry_by;
+        $data['entry_by'] = $user->id;
+        $data['agent_id'] = $user->id;
 
         $transaction      = Transaction::create($data);
 
@@ -236,7 +248,6 @@ class TransactionController extends Controller
         $receiving_money = $request->receiving_money ? $request->receiving_money : 0;
         $paymentMethod   = $request->paymentMethod ? $request->paymentMethod : "";
         $chkValues       = Fees::where('paymentMethod', $paymentMethod)->get();
-
 
         $fee_gbp = 0; // default
         foreach ($chkValues as $v) {
@@ -288,21 +299,9 @@ class TransactionController extends Controller
     public function update(Request $request)
     {
 
-        // dd($request->all());
-
-
 
         $user = Auth::user();
-        // if (! $user->can('edit posts')) {
-        //     return response()->json([
-        //         'message' => 'Unauthorized: You do not have permission to create posts',
-        //     ], 403);
-        // }
-
-
-
-        $user = Auth::user();
-        if (! $user->can('create users')) {
+        if (! $user->can('create transaction')) {
             return response()->json([
                 'message' => 'Unauthorized: You do not have permission to create transactions',
             ], 403);

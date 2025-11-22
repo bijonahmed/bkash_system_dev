@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Bank\BankController;
 use App\Http\Controllers\Api\Branch\BranchController;
+use App\Http\Controllers\Api\Dashboard\DashboardController;
 use App\Http\Controllers\Api\Post\PostCategoryController;
 use App\Http\Controllers\Api\Post\PostController;
 use App\Http\Controllers\Api\User\UserController;
@@ -82,6 +83,9 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/walletcalculate', [TransactionController::class, 'walletcalculate']);
     });
 
+     Route::prefix('dashbaord')->group(function () {
+        Route::get('/getDashboardData', [DashboardController::class, 'getDashboardData']);
+    });
 
     Route::prefix('roles')->group(function () {
         Route::get('/index', [RolesController::class, 'index']);

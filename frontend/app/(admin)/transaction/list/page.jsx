@@ -15,7 +15,7 @@ import BootstrapPagination from "../../../components/pagination.jsx";
 import "../../../../app/style/loader.css";
 
 export default function listPage() {
-  const { token, permissions } = useAuth();
+  const { token, permissions, role } = useAuth();
   const searchBtnRef = useRef(null);
   const router = useRouter();
   const [showFilters, setShowFilters] = useState(true);
@@ -51,7 +51,7 @@ export default function listPage() {
     setCreatedTo(toISODate(today)); // today
   }, []);
 
-  if (!permissions.includes("create transaction")) {
+  if (!permissions.includes("view transaction")) {
     router.replace("/dashboard");
     return false;
   }
@@ -140,16 +140,17 @@ export default function listPage() {
                       ← Back
                     </span>
                   </li>
-
-                  <li className="breadcrumb-item">
-                    <span
-                      className="text-success fw-bold hover:underline cursor-pointer"
-                      onClick={() => setShowModal(true)}
-                    >
-                      Add New
-                      {/* Modal */}
-                    </span>
-                  </li>
+                  {permissions.includes("create transaction") && (
+                    <li className="breadcrumb-item">
+                      <span
+                        className="text-success fw-bold hover:underline cursor-pointer"
+                        onClick={() => setShowModal(true)}
+                      >
+                        Add New
+                        {/* Modal */}
+                      </span>
+                    </li>
+                  )}
 
                   <li className="breadcrumb-item">
                     <span
@@ -163,13 +164,12 @@ export default function listPage() {
               </nav>
             </div>
           </div>
-          {/* Modal rendered outside <span>/<li> */}
+
           <AddNewModal
             show={showModal}
             onClose={() => setShowModal(false)}
             onSuccess={refetch}
           />
-          {/*end::Row*/}
         </div>
         {/*end::Container*/}
       </div>
@@ -419,7 +419,7 @@ export default function listPage() {
                         <th className="text-white">Total Amount</th>
                         <th className="text-white">Agent Settlement</th>
                         <th className="text-white">Description</th>
-                        <th></th>
+                         <th></th>
                       </tr>
                     </thead>
 
@@ -496,7 +496,7 @@ export default function listPage() {
                               )}
                             </td>
                             <td>
-                               <small>GBP&nbsp;{item.sendingMoney}</small>
+                              <small>GBP&nbsp;{item.sendingMoney}</small>
                               <br />
                               {item.paytMethod === "wallet" ? (
                                 <>
@@ -534,14 +534,16 @@ export default function listPage() {
                               {item.agentsettlement}
                             </td>
                             <td>{item.description}</td>
-                            <td>
-                              <Link
-                                href={`/transaction/edit/${item.id}`}
-                                className="btn btn-warning btn-sm"
-                              >
-                                <i className="bi bi-pencil-fill"></i> Edit
-                              </Link>
-                            </td>
+                            {permissions.includes("edit transaction") && (
+                              <td>
+                                <Link
+                                  href={`/transaction/edit/${item.id}`}
+                                  className="btn btn-warning btn-sm"
+                                >
+                                  <i className="bi bi-pencil-fill"></i> Edit
+                                </Link>
+                              </td>
+                            )}
                           </tr>
                         ))
                       ) : (

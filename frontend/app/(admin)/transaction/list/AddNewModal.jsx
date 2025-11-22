@@ -29,8 +29,8 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     branchCode: "",
     accountNo: "",
     sendingMoney: 0,
-    walletrate: settingData?.exchange_rate_wallet || 1,
-    bankRate: settingData?.exchange_rate_bank || 1,
+    walletrate: 0,
+    bankRate: 0,
     receivingMoney: "",
     charges: "",
     fee: "",
@@ -52,6 +52,14 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   // ✅ Automatically toggle Wallet/Bank inputs
   useEffect(() => {
     if (formData.paymentMethod === "wallet") {
+
+      setFormData((prev) => ({
+            ...prev,
+            walletrate: settingData?.exchange_rate_wallet || 1,
+            bankRate: settingData?.exchange_rate_bank || 1,
+          }));
+
+
       setShowWallet(true);
       setShowBank(false);
     } else if (formData.paymentMethod === "bank") {
@@ -137,8 +145,9 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       const bankRate = parseFloat(formData.bankRate || 0);
       const walletRate = parseFloat(formData.walletrate || 0);
 
+
       if (formData.paymentMethod === "bank" && updatedValue) {
-        console.log("sending request... by bank");
+        //console.log("sending request... by bank");
 
         const receivingMoney = (sendingMoney * bankRate).toString();
 
@@ -174,7 +183,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
           console.error("Wallet request failed:", error);
         }
       } else if (formData.paymentMethod === "wallet" && updatedValue) {
-        console.log("sending request... by wallet");
+        //console.log("sending request... by wallet");
         const receivingMoney = (sendingMoney * walletRate).toString(); // keep full value
 
         setFormData((prev) => ({
@@ -204,6 +213,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
             ...prev,
             fee: data.fee || 0,
             totalAmount: parseInt(sendingMoney) + parseInt(data.fee || 0),
+
           }));
         } catch (error) {
           console.error("Wallet request failed:", error);
