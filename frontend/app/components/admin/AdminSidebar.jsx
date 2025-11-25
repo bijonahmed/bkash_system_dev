@@ -56,12 +56,18 @@ export default function AdminSidebar() {
             href: "/transaction/list",
             icon: "bi-arrow-left-right",
           },
+          {
+            label: "Deposit Request",
+            href: "/depositrequiest",
+            icon: "bi-arrow-left-right",
+          },
         ]
       : []),
 
     // ✅ SHOW ONLY IF ADMIN
     ...(roles.includes("admin")
       ? [
+       
           {
             label: "My Trnsaction List",
             href: "/transaction/list",

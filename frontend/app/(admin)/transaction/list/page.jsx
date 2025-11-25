@@ -56,13 +56,18 @@ export default function listPage() {
     return false;
   }
 
+  const today = new Date().toISOString().split("T")[0];
+const yesterday = new Date(Date.now() - 86400000)
+  .toISOString()
+  .split("T")[0];
+
   const [filters, setFilters] = useState({
     beneficiaryName: "",
     beneficiaryPhone: "",
     senderName: "",
     accountNo: "",
-    createdFrom: "",
-    createdTo: "",
+    createdFrom: yesterday,   // previous date
+  createdTo: today,         // current date
     paymentMethod: "",
     wallet: "",
     status: "",

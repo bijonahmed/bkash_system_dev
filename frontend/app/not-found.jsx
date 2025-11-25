@@ -35,18 +35,7 @@ export default function NotFound() {
                     Go Home
                 </Link>
 
-                <Link
-                    href="/shop"
-                    style={{
-                        textDecoration: "none",
-                        backgroundColor: "#28a745",
-                        color: "white",
-                        padding: "10px 20px",
-                        borderRadius: "8px",
-                    }}
-                >
-                    Visit Shop
-                </Link>
+            
             </div>
         </div>
     );
