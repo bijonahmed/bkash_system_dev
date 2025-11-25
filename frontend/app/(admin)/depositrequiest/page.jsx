@@ -10,7 +10,7 @@ import toast, { Toaster } from "react-hot-toast";
 
 export default function DepositRequestPage() {
   const router = useRouter();
-  const { token, permissions } = useAuth();
+  const { token, permissions, roles } = useAuth();
   //console.log("Permissions:", permissions);
   const perms = Array.isArray(permissions)
     ? permissions
@@ -207,6 +207,28 @@ export default function DepositRequestPage() {
           "No File"
         ),
     },
+
+    // Inside your columns array
+    ...(roles.includes("admin")
+      ? [
+          {
+            name: "Actions",
+            cell: (row) => (
+              <div className="d-flex gap-2">
+                {perms.includes("edit deposit") && (
+                  <button
+                    className="btn btn-sm btn-primary"
+                    onClick={() => router.push(`/post/edit/${row.id}`)}
+                  >
+                    <i className="bi bi-pencil"></i> Edit
+                  </button>
+                )}
+              </div>
+            ),
+            ignoreRowClick: true,
+          },
+        ]
+      : []),
   ];
 
   const handlePageChange = (newPage) => setPage(newPage);
