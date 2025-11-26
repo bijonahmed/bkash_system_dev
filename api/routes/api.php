@@ -46,6 +46,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::prefix('report')->group(function () {
         Route::get('/getByReportRate', [ReportController::class, 'getByReportRate']);
         Route::get('/getByReportFee', [ReportController::class, 'getByReportFee']);
+        Route::get('/getByReportDeposit', [ReportController::class, 'getByReportDeposit']);
         Route::get('/getByReportLimit', [ReportController::class, 'getByReportLimit']);
         Route::get('/getByReportUser', [ReportController::class, 'getByReportUser']);
     });
@@ -93,6 +94,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::prefix('deposit-request')->group(function () {
         Route::get('/index', [AgentRequestSendController::class, 'index']);
         Route::post('/sendDepositRequest', [AgentRequestSendController::class, 'store']);
+        Route::post('/depositRequestUpdate', [AgentRequestSendController::class, 'update']);
     });
 
     Route::prefix('roles')->group(function () {

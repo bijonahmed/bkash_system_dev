@@ -118,6 +118,11 @@ export default function AdminSidebar() {
                 href: "/report/users",
                 icon: "bi-circle",
               },
+                {
+                label: "Deposit",
+                href: "/report/deposit",
+                icon: "bi-circle",
+              },
               {
                 label: "Transaction",
                 href: "#",

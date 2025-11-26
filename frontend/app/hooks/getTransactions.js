@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function useTransactions() {
   const [transactionData, setTransactionData] = useState([]);
+  const [depositApproved, sumDepositApproved] = useState(0);
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(0); // total pages from backend
   const { token } = useAuth();
@@ -38,6 +39,7 @@ export default function useTransactions() {
         if (!res.ok) throw new Error(result?.message || "API error");
 
         setTransactionData(result.data);
+        sumDepositApproved(result.sumDepositApproved);
         setTotalPages(result.last_page || 1);
       } catch (err) {
         toast.error(err.message || "Something went wrong!");
@@ -48,5 +50,11 @@ export default function useTransactions() {
     [token]
   );
 
-  return { transactionData, loading, totalPages, refetch: fetchTransactions };
+  return {
+    transactionData,
+    depositApproved,
+    loading,
+    totalPages,
+    refetch: fetchTransactions,
+  };
 }

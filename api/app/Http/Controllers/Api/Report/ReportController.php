@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Contracts\Permission;
 use Validator;
 use App\Helpers\PermissionHelper;
+use App\Models\DepositLog;
 use App\Models\FeesLog;
 use App\Models\Limit;
 use App\Models\LimitLog;
@@ -42,7 +43,37 @@ class ReportController extends Controller
         ];
         return response()->json($response, 200);
     }
+    public function getByReportDeposit(Request $request)
+    {
 
+        $fromDate = $request->input('fromDate'); // e.g., "2025-11-01"
+        $toDate   = $request->input('toDate');   // e.g., "2025-11-18"
+
+        $logs = DB::table('deposit_log')
+            ->join('users', 'users.id', '=', 'deposit_log.agent_id')
+            ->whereBetween('deposit_log.created_at', [
+                $fromDate . ' 00:00:00',
+                $toDate . ' 23:59:59'
+            ])
+            ->select(
+                'deposit_log.*',
+                'users.name as agent_name',
+                'users.email as agent_email'
+            )
+            ->get();
+
+        if ($logs->isEmpty()) {
+            return response()->json([
+                'data'    => [],
+                'message' => 'No records found for the given date range.'
+            ], 404);
+        }
+
+        return response()->json([
+            'data'    => $logs,
+            'message' => 'Success'
+        ], 200);
+    }
     public function getByReportFee(Request $request)
     {
 

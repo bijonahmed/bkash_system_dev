@@ -27,12 +27,15 @@ export default function DepositRequestPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [data, setData] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
+  const [approvalAmount, setApprovalAmount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
 
-  const fetchUsers = async (
+  const fetchData = async (
     page = 1,
     pageSize = 10,
     searchQuery = "",
@@ -67,6 +70,7 @@ export default function DepositRequestPage() {
       }
 
       setData(result.data || []);
+      setApprovalAmount(result.total_approved_amount || 0);
     } catch (err) {
       console.error("Fetch users failed:", err.message);
       toast.error(err.message || "Something went wrong!");
@@ -76,10 +80,11 @@ export default function DepositRequestPage() {
   };
 
   useEffect(() => {
-    fetchUsers(page, perPage, search);
+    fetchData(page, perPage, search);
   }, [page, perPage, search]);
 
   const [formData, setFormData] = useState({
+    id: "",
     payment_method: "",
     payment_date: "",
     approval_status: "",
@@ -87,7 +92,18 @@ export default function DepositRequestPage() {
     attachment: null,
   });
 
-  const [message, setMessage] = useState("");
+  useEffect(() => {
+    if (selectedRow) {
+      setFormData({
+        payment_method: selectedRow.payment_method?.toLowerCase() || "",
+        payment_date: selectedRow.payment_date || "",
+        amount_gbp: selectedRow.amount_gbp || "",
+        approval_status: selectedRow.approval_status || "",
+        id: selectedRow.id || "",
+        attachment: null,
+      });
+    }
+  }, [selectedRow]);
 
   // Handle text / number / date / select change
   const handleChange = (e) => {
@@ -100,6 +116,39 @@ export default function DepositRequestPage() {
     setFormData((prev) => ({ ...prev, attachment: e.target.files[0] }));
   };
 
+  const handleSubmitUpdate = async (e) => {
+    e.preventDefault();
+
+    try {
+      const data = new FormData();
+      data.append("id", formData.id);
+      data.append("approval_status", formData.approval_status);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/deposit-request/depositRequestUpdate`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: data,
+        }
+      );
+      // Reset form
+      setFormData({
+        payment_method: "",
+        payment_date: "",
+        approval_status: "",
+        amount_gbp: "",
+        attachment: null,
+      });
+      fetchData();
+      setShowModal(false);
+    } catch (error) {
+      console.error("Error:", error.response || error.message);
+    }
+  };
+
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,7 +157,7 @@ export default function DepositRequestPage() {
       const data = new FormData();
       data.append("payment_method", formData.payment_method);
       data.append("payment_date", formData.payment_date);
-      data.append("approval_status", formData.approval_status);
+      data.append("approval_status", 0);
       data.append("amount_gbp", formData.amount_gbp);
       if (formData.attachment) {
         data.append("attachment", formData.attachment);
@@ -119,13 +168,11 @@ export default function DepositRequestPage() {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`, // <-- keep auth header
-            // Do NOT set Content-Type when using FormData
+            Authorization: `Bearer ${token}`,
           },
-          body: data, // data is your FormData
+          body: data,
         }
       );
-
       // Reset form
       setFormData({
         payment_method: "",
@@ -134,17 +181,21 @@ export default function DepositRequestPage() {
         amount_gbp: "",
         attachment: null,
       });
-
-      // Hide the modal after submit
       const modalEl = document.getElementById("addNewModal");
       const modal = window.bootstrap.Modal.getInstance(modalEl);
       if (modal) modal.hide();
+      fetchData();
     } catch (error) {
       console.error("Error:", error.response || error.message);
     }
   };
 
   const columns = [
+    {
+      name: "Agent Name",
+      selector: (row) => row.agent_name,
+      sortable: true,
+    },
     {
       name: "Payment Method",
       selector: (row) => row.payment_method,
@@ -218,7 +269,10 @@ export default function DepositRequestPage() {
                 {perms.includes("edit deposit") && (
                   <button
                     className="btn btn-sm btn-primary"
-                    onClick={() => router.push(`/post/edit/${row.id}`)}
+                    onClick={() => {
+                      setSelectedRow(row); // this triggers useEffect, which fills formData
+                      setShowModal(true);
+                    }}
                   >
                     <i className="bi bi-pencil"></i> Edit
                   </button>
@@ -265,6 +319,10 @@ export default function DepositRequestPage() {
       <div className="app-content">
         {/*begin::Container*/}
         <div className="container-fluid">
+          <center>
+            <h3>Approval Amount GBP {approvalAmount}</h3>
+          </center>
+
           {/*begin::Row*/}
           <div className="card card-primary card-outline mb-4">
             {/* Header */}
@@ -291,7 +349,7 @@ export default function DepositRequestPage() {
                     <button
                       type="button"
                       className="btn btn-outline-secondary w-100"
-                      onClick={() => fetchUsers()}
+                      onClick={() => fetchData()}
                     >
                       Fetch
                     </button>
@@ -335,15 +393,10 @@ export default function DepositRequestPage() {
 
                   <form onSubmit={handleSubmit}>
                     <div className="modal-body">
-                      {message && (
-                        <div className="alert alert-info">{message}</div>
-                      )}
-
                       <div className="mb-3">
                         <label className="form-label">Payment Method</label>
                         <select
                           name="payment_method"
-                          id="payment_method"
                           className="form-control form-control-sm"
                           value={formData.payment_method}
                           onChange={(e) =>
@@ -352,7 +405,6 @@ export default function DepositRequestPage() {
                               payment_method: e.target.value,
                             })
                           }
-                          required
                         >
                           <option value="">Select Method</option>
                           <option value="cash">Cash</option>
@@ -368,35 +420,28 @@ export default function DepositRequestPage() {
                           className="form-control"
                           name="payment_date"
                           value={formData.payment_date}
-                          onChange={handleChange}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              payment_date: e.target.value,
+                            })
+                          }
                         />
                       </div>
-
-                      {/* <div className="mb-3">
-                        <label className="form-label">Approval Status</label>
-                        <select
-                          className="form-select"
-                          name="approval_status"
-                          value={formData.approval_status}
-                          onChange={handleChange}
-                        >
-                          <option value="">Select Status</option>
-                          <option value="0">Pending</option>
-                          <option value="1">Approved</option>
-                          <option value="2">Rejected</option>
-                        </select>
-                      </div> */}
 
                       <div className="mb-3">
                         <label className="form-label">Amount (GBP)</label>
                         <input
                           type="number"
-                          step="0.01"
                           className="form-control"
-                          placeholder="0.00"
                           name="amount_gbp"
                           value={formData.amount_gbp}
-                          onChange={handleChange}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              amount_gbp: e.target.value,
+                            })
+                          }
                         />
                       </div>
 
@@ -406,7 +451,12 @@ export default function DepositRequestPage() {
                           type="file"
                           className="form-control"
                           name="attachment"
-                          onChange={handleFileChange}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              attachment: e.target.files[0],
+                            })
+                          }
                         />
                       </div>
                     </div>
@@ -415,16 +465,13 @@ export default function DepositRequestPage() {
                       <button
                         type="button"
                         className="btn btn-secondary"
-                        data-bs-dismiss="modal"
+                        onClick={() => setShowModal(false)}
                       >
                         Close
                       </button>
-                      <button
-                        type="submit"
-                        className="btn btn-primary"
-                        disabled={loading}
-                      >
-                        {loading ? "Saving..." : "Save"}
+
+                      <button className="btn btn-primary" type="submit">
+                        Save
                       </button>
                     </div>
                   </form>
@@ -454,7 +501,110 @@ export default function DepositRequestPage() {
         {/*end::Row*/}
       </div>
       {/*end::Container*/}
+      {showModal && (
+        <div
+          className="modal fade show"
+          style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
+        >
+          <form onSubmit={handleSubmitUpdate}>
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Edit</h5>
+                  <button
+                    className="btn-close"
+                    onClick={() => setShowModal(false)}
+                  />
+                </div>
 
+                <div className="modal-body">
+                  <div className="modal-body">
+                    <div className="mb-3">
+                      <label className="form-label">Payment Method</label>
+                      <select
+                        name="payment_method"
+                        className="form-control form-control-sm"
+                        disabled
+                        value={formData.payment_method}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            payment_method: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="">Select Method</option>
+                        <option value="cash">Cash</option>
+                        <option value="card">Card</option>
+                        <option value="cheque">Cheque</option>
+                      </select>
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label">Payment Date</label>
+                      <input
+                        type="date"
+                        disabled
+                        className="form-control"
+                        name="payment_date"
+                        value={formData.payment_date}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            payment_date: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label">Amount (GBP)</label>
+                      <input
+                        disabled
+                        type="number"
+                        step="0.01"
+                        className="form-control"
+                        name="amount_gbp"
+                        value={formData.amount_gbp}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            amount_gbp: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label">Approval Status</label>
+                      <select
+                        className="form-select"
+                        name="approval_status"
+                        value={formData.approval_status}
+                        onChange={handleChange}
+                      >
+                        <option value="0">Pending</option>
+                        <option value="1">Approved</option>
+                        <option value="2">Rejected</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="modal-footer">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Close
+                  </button>
+                  <button className="btn btn-primary">Save Changes</button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
       {/*end::App Content*/}
     </main>
   );

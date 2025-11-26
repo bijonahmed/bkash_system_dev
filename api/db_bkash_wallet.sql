@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 15, 2025 at 06:25 PM
+-- Generation Time: Nov 26, 2025 at 06:13 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -159,7 +159,7 @@ CREATE TABLE `cache` (
 --
 
 INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
-('laravel-cache-spatie.permission.cache', 'a:3:{s:5:\"alias\";a:6:{s:1:\"a\";s:2:\"id\";s:1:\"b\";s:4:\"name\";s:1:\"c\";s:10:\"guard_name\";s:1:\"d\";s:9:\"role_type\";s:1:\"e\";s:9:\"parent_id\";s:1:\"r\";s:5:\"roles\";}s:11:\"permissions\";a:53:{i:0;a:6:{s:1:\"a\";i:1;s:1:\"b\";s:9:\"view rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:1;a:6:{s:1:\"a\";i:2;s:1:\"b\";s:11:\"create rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:2;a:6:{s:1:\"a\";i:3;s:1:\"b\";s:9:\"edit rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:3;a:5:{s:1:\"a\";i:4;s:1:\"b\";s:11:\"delete rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:27;}i:4;a:6:{s:1:\"a\";i:5;s:1:\"b\";s:10:\"view users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:5;a:6:{s:1:\"a\";i:6;s:1:\"b\";s:12:\"create users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:6;a:6:{s:1:\"a\";i:7;s:1:\"b\";s:10:\"edit users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:7;a:5:{s:1:\"a\";i:8;s:1:\"b\";s:12:\"delete users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:28;}i:8;a:6:{s:1:\"a\";i:22;s:1:\"b\";s:9:\"view role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:31;s:1:\"r\";a:1:{i:0;i:1;}}i:9;a:5:{s:1:\"a\";i:23;s:1:\"b\";s:11:\"create role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:31;}i:10;a:6:{s:1:\"a\";i:24;s:1:\"b\";s:9:\"edit role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:31;s:1:\"r\";a:1:{i:0;i:1;}}i:11;a:5:{s:1:\"a\";i:25;s:1:\"b\";s:11:\"delete role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:31;}i:12;a:5:{s:1:\"a\";i:26;s:1:\"b\";s:22:\"Update website setting\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:13;a:5:{s:1:\"a\";i:27;s:1:\"b\";s:4:\"Rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:14;a:5:{s:1:\"a\";i:28;s:1:\"b\";s:15:\"User Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:15;a:5:{s:1:\"a\";i:31;s:1:\"b\";s:15:\"Role Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:16;a:5:{s:1:\"a\";i:32;s:1:\"b\";s:21:\"Permission Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:17;a:6:{s:1:\"a\";i:33;s:1:\"b\";s:15:\"view permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:18;a:6:{s:1:\"a\";i:34;s:1:\"b\";s:17:\"create permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:19;a:6:{s:1:\"a\";i:35;s:1:\"b\";s:15:\"edit permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:20;a:5:{s:1:\"a\";i:36;s:1:\"b\";s:17:\"delete permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;}i:21;a:5:{s:1:\"a\";i:57;s:1:\"b\";s:5:\"Limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:22;a:6:{s:1:\"a\";i:58;s:1:\"b\";s:10:\"view limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:23;a:6:{s:1:\"a\";i:59;s:1:\"b\";s:12:\"create limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:24;a:6:{s:1:\"a\";i:60;s:1:\"b\";s:10:\"edit limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:25;a:5:{s:1:\"a\";i:61;s:1:\"b\";s:12:\"delete limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;}i:26;a:5:{s:1:\"a\";i:62;s:1:\"b\";s:3:\"Fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:27;a:6:{s:1:\"a\";i:63;s:1:\"b\";s:8:\"view fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:28;a:6:{s:1:\"a\";i:64;s:1:\"b\";s:10:\"create fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:29;a:6:{s:1:\"a\";i:65;s:1:\"b\";s:8:\"edit fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:30;a:5:{s:1:\"a\";i:66;s:1:\"b\";s:10:\"delete fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;}i:31;a:5:{s:1:\"a\";i:74;s:1:\"b\";s:17:\"Report Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:32;a:6:{s:1:\"a\";i:75;s:1:\"b\";s:11:\"view report\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:74;s:1:\"r\";a:1:{i:0;i:1;}}i:33;a:5:{s:1:\"a\";i:76;s:1:\"b\";s:22:\"Transaction Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:34;a:6:{s:1:\"a\";i:77;s:1:\"b\";s:16:\"view transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:76;s:1:\"r\";a:1:{i:0;i:1;}}i:35;a:6:{s:1:\"a\";i:78;s:1:\"b\";s:18:\"create transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:76;s:1:\"r\";a:1:{i:0;i:1;}}i:36;a:6:{s:1:\"a\";i:79;s:1:\"b\";s:16:\"edit transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:76;s:1:\"r\";a:1:{i:0;i:1;}}i:37;a:5:{s:1:\"a\";i:80;s:1:\"b\";s:18:\"delete transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:76;}i:38;a:5:{s:1:\"a\";i:81;s:1:\"b\";s:17:\"Wallet Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:39;a:6:{s:1:\"a\";i:82;s:1:\"b\";s:11:\"view wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:40;a:6:{s:1:\"a\";i:83;s:1:\"b\";s:13:\"create wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:41;a:6:{s:1:\"a\";i:84;s:1:\"b\";s:11:\"edit wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:42;a:5:{s:1:\"a\";i:85;s:1:\"b\";s:13:\"delete wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;}i:43;a:5:{s:1:\"a\";i:86;s:1:\"b\";s:15:\"Bank Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:44;a:6:{s:1:\"a\";i:87;s:1:\"b\";s:9:\"view bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:45;a:6:{s:1:\"a\";i:88;s:1:\"b\";s:11:\"create bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:46;a:6:{s:1:\"a\";i:89;s:1:\"b\";s:9:\"edit bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:47;a:5:{s:1:\"a\";i:90;s:1:\"b\";s:11:\"delete bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;}i:48;a:5:{s:1:\"a\";i:91;s:1:\"b\";s:17:\"Branch Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:49;a:6:{s:1:\"a\";i:92;s:1:\"b\";s:11:\"view branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:50;a:6:{s:1:\"a\";i:93;s:1:\"b\";s:13:\"create branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:51;a:6:{s:1:\"a\";i:94;s:1:\"b\";s:11:\"edit branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:52;a:5:{s:1:\"a\";i:95;s:1:\"b\";s:13:\"delete branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;}}s:5:\"roles\";a:1:{i:0;a:4:{s:1:\"a\";i:1;s:1:\"b\";s:5:\"admin\";s:1:\"c\";s:3:\"api\";s:1:\"d\";i:1;}}}', 1763308792);
+('laravel-cache-spatie.permission.cache', 'a:3:{s:5:\"alias\";a:6:{s:1:\"a\";s:2:\"id\";s:1:\"b\";s:4:\"name\";s:1:\"c\";s:10:\"guard_name\";s:1:\"d\";s:9:\"role_type\";s:1:\"e\";s:9:\"parent_id\";s:1:\"r\";s:5:\"roles\";}s:11:\"permissions\";a:58:{i:0;a:6:{s:1:\"a\";i:1;s:1:\"b\";s:9:\"view rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:1;a:6:{s:1:\"a\";i:2;s:1:\"b\";s:11:\"create rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:2;a:6:{s:1:\"a\";i:3;s:1:\"b\";s:9:\"edit rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:3;a:5:{s:1:\"a\";i:4;s:1:\"b\";s:11:\"delete rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:27;}i:4;a:6:{s:1:\"a\";i:5;s:1:\"b\";s:10:\"view users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:5;a:6:{s:1:\"a\";i:6;s:1:\"b\";s:12:\"create users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:6;a:6:{s:1:\"a\";i:7;s:1:\"b\";s:10:\"edit users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:7;a:5:{s:1:\"a\";i:8;s:1:\"b\";s:12:\"delete users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:28;}i:8;a:6:{s:1:\"a\";i:22;s:1:\"b\";s:9:\"view role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:31;s:1:\"r\";a:1:{i:0;i:1;}}i:9;a:5:{s:1:\"a\";i:23;s:1:\"b\";s:11:\"create role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:31;}i:10;a:6:{s:1:\"a\";i:24;s:1:\"b\";s:9:\"edit role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:31;s:1:\"r\";a:1:{i:0;i:1;}}i:11;a:5:{s:1:\"a\";i:25;s:1:\"b\";s:11:\"delete role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:31;}i:12;a:5:{s:1:\"a\";i:26;s:1:\"b\";s:22:\"Update website setting\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:13;a:5:{s:1:\"a\";i:27;s:1:\"b\";s:4:\"Rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:14;a:5:{s:1:\"a\";i:28;s:1:\"b\";s:15:\"User Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:15;a:5:{s:1:\"a\";i:31;s:1:\"b\";s:15:\"Role Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:16;a:5:{s:1:\"a\";i:32;s:1:\"b\";s:21:\"Permission Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:17;a:6:{s:1:\"a\";i:33;s:1:\"b\";s:15:\"view permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:18;a:6:{s:1:\"a\";i:34;s:1:\"b\";s:17:\"create permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:19;a:6:{s:1:\"a\";i:35;s:1:\"b\";s:15:\"edit permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:20;a:5:{s:1:\"a\";i:36;s:1:\"b\";s:17:\"delete permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;}i:21;a:5:{s:1:\"a\";i:57;s:1:\"b\";s:5:\"Limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:22;a:6:{s:1:\"a\";i:58;s:1:\"b\";s:10:\"view limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:23;a:6:{s:1:\"a\";i:59;s:1:\"b\";s:12:\"create limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:24;a:6:{s:1:\"a\";i:60;s:1:\"b\";s:10:\"edit limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:25;a:5:{s:1:\"a\";i:61;s:1:\"b\";s:12:\"delete limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;}i:26;a:5:{s:1:\"a\";i:62;s:1:\"b\";s:3:\"Fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:27;a:6:{s:1:\"a\";i:63;s:1:\"b\";s:8:\"view fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:28;a:6:{s:1:\"a\";i:64;s:1:\"b\";s:10:\"create fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:29;a:6:{s:1:\"a\";i:65;s:1:\"b\";s:8:\"edit fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:30;a:5:{s:1:\"a\";i:66;s:1:\"b\";s:10:\"delete fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;}i:31;a:5:{s:1:\"a\";i:74;s:1:\"b\";s:17:\"Report Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:32;a:6:{s:1:\"a\";i:75;s:1:\"b\";s:11:\"view report\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:74;s:1:\"r\";a:1:{i:0;i:1;}}i:33;a:5:{s:1:\"a\";i:76;s:1:\"b\";s:22:\"Transaction Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:0;}i:34;a:6:{s:1:\"a\";i:77;s:1:\"b\";s:16:\"view transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;s:1:\"r\";a:2:{i:0;i:1;i:1;i:2;}}i:35;a:6:{s:1:\"a\";i:78;s:1:\"b\";s:18:\"create transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;s:1:\"r\";a:2:{i:0;i:1;i:1;i:2;}}i:36;a:6:{s:1:\"a\";i:79;s:1:\"b\";s:16:\"edit transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;s:1:\"r\";a:1:{i:0;i:1;}}i:37;a:5:{s:1:\"a\";i:80;s:1:\"b\";s:18:\"delete transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;}i:38;a:5:{s:1:\"a\";i:81;s:1:\"b\";s:17:\"Wallet Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:39;a:6:{s:1:\"a\";i:82;s:1:\"b\";s:11:\"view wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:40;a:6:{s:1:\"a\";i:83;s:1:\"b\";s:13:\"create wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:41;a:6:{s:1:\"a\";i:84;s:1:\"b\";s:11:\"edit wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:42;a:5:{s:1:\"a\";i:85;s:1:\"b\";s:13:\"delete wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;}i:43;a:5:{s:1:\"a\";i:86;s:1:\"b\";s:15:\"Bank Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:44;a:6:{s:1:\"a\";i:87;s:1:\"b\";s:9:\"view bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:45;a:6:{s:1:\"a\";i:88;s:1:\"b\";s:11:\"create bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:46;a:6:{s:1:\"a\";i:89;s:1:\"b\";s:9:\"edit bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:47;a:5:{s:1:\"a\";i:90;s:1:\"b\";s:11:\"delete bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;}i:48;a:5:{s:1:\"a\";i:91;s:1:\"b\";s:17:\"Branch Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:49;a:6:{s:1:\"a\";i:92;s:1:\"b\";s:11:\"view branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:50;a:6:{s:1:\"a\";i:93;s:1:\"b\";s:13:\"create branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:51;a:6:{s:1:\"a\";i:94;s:1:\"b\";s:11:\"edit branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:52;a:5:{s:1:\"a\";i:95;s:1:\"b\";s:13:\"delete branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;}i:53;a:5:{s:1:\"a\";i:96;s:1:\"b\";s:15:\"Deposit Request\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:0;}i:54;a:6:{s:1:\"a\";i:97;s:1:\"b\";s:12:\"view deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:96;s:1:\"r\";a:2:{i:0;i:1;i:1;i:2;}}i:55;a:6:{s:1:\"a\";i:98;s:1:\"b\";s:14:\"create deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:96;s:1:\"r\";a:1:{i:0;i:2;}}i:56;a:6:{s:1:\"a\";i:99;s:1:\"b\";s:12:\"edit deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:96;s:1:\"r\";a:1:{i:0;i:1;}}i:57;a:5:{s:1:\"a\";i:100;s:1:\"b\";s:14:\"delete deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"2\";s:1:\"e\";i:96;}}s:5:\"roles\";a:2:{i:0;a:4:{s:1:\"a\";i:1;s:1:\"b\";s:5:\"admin\";s:1:\"c\";s:3:\"api\";s:1:\"d\";i:1;}i:1;a:4:{s:1:\"a\";i:2;s:1:\"b\";s:5:\"agent\";s:1:\"c\";s:3:\"api\";s:1:\"d\";i:2;}}}', 1764180107);
 
 -- --------------------------------------------------------
 
@@ -257,6 +257,84 @@ INSERT INTO `categorys` (`id`, `name`, `slug`, `parent_id`, `sort_order`, `statu
 (80, 'Makita Power Tools', 'makita-power-tools', 0, 6, 1, 'uploads/categories/thumb_1761908999.gif', 'uploads/categories/thumb_1761968977.png', NULL, '2025-11-01 03:49:37'),
 (81, 'Spare Parts-Power Tools', 'spare-part-pwr-tools', 0, 7, 1, NULL, NULL, NULL, NULL),
 (82, 'Water Proofing', 'water-proofing-products', 0, 8, 1, NULL, NULL, NULL, '2025-10-31 11:04:58');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `deposit`
+--
+
+CREATE TABLE `deposit` (
+  `id` int(11) NOT NULL,
+  `agent_id` int(11) DEFAULT NULL,
+  `payment_method` varchar(100) DEFAULT NULL,
+  `payment_date` date DEFAULT NULL,
+  `approval_status` int(11) DEFAULT NULL,
+  `amount_gbp` decimal(10,2) DEFAULT NULL,
+  `attachment` varchar(255) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `entry_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `deposit`
+--
+
+INSERT INTO `deposit` (`id`, `agent_id`, `payment_method`, `payment_date`, `approval_status`, `amount_gbp`, `attachment`, `created_at`, `updated_at`, `entry_by`) VALUES
+(1, 18, 'cash', '2025-11-25', 2, 10.00, '', '2025-11-25 09:00:23', '2025-11-26 14:58:34', 1),
+(3, 18, 'cheque', '2025-11-20', 1, 100.00, '/backend/files/D5SdzKvI6EuL6sjaymQ8.pdf', '2025-11-25 23:31:41', '2025-11-26 15:12:49', 1),
+(4, 18, 'card', '2025-11-20', 1, 100.00, '/backend/files/gbXHiqsv4S2mNsehZwSe.pdf', '2025-11-25 23:33:14', '2025-11-26 15:15:13', 1),
+(5, 18, 'card', '2025-11-26', 0, 1500.00, NULL, '2025-11-26 21:22:52', '2025-11-26 15:22:52', NULL),
+(6, 18, 'card', '2025-11-26', 0, 1500.00, NULL, '2025-11-26 21:23:01', '2025-11-26 15:23:01', NULL),
+(7, 18, 'card', '2025-11-19', 0, 500.00, NULL, '2025-11-26 21:24:37', '2025-11-26 15:24:37', NULL),
+(8, 18, 'cheque', '2025-11-11', 0, 222.00, NULL, '2025-11-26 21:25:46', '2025-11-26 15:25:46', NULL),
+(9, 18, 'cheque', '2025-11-26', 0, 333.00, NULL, '2025-11-26 21:26:24', '2025-11-26 15:26:24', NULL),
+(10, 17, 'card', '2025-11-18', 0, 33333.00, NULL, '2025-11-26 21:27:05', '2025-11-26 16:02:07', NULL),
+(11, 17, 'card', '2025-11-18', 0, 33333.00, NULL, '2025-11-26 21:27:18', '2025-11-26 16:02:04', NULL),
+(12, 17, 'cheque', '2025-11-26', 1, 252.00, NULL, '2025-11-26 21:29:00', '2025-11-26 16:07:22', 1),
+(13, 17, 'cheque', '2025-11-26', 1, 33.00, '/backend/files/zhIZzlCotFSOPyhGPXb2.pdf', '2025-11-26 21:30:33', '2025-11-26 16:07:10', 1),
+(14, 17, 'cheque', '2025-11-26', 0, 33.00, '/backend/files/sXflRQKMH2I05JaBjs5B.pdf', '2025-11-26 21:31:43', '2025-11-26 16:02:10', NULL),
+(15, 18, 'cheque', '2025-11-26', 0, 2000.00, NULL, '2025-11-26 21:32:45', '2025-11-26 15:32:45', NULL),
+(16, 18, 'cheque', '2025-11-26', 1, 5000.00, NULL, '2025-11-26 21:32:58', '2025-11-26 16:07:05', 1),
+(17, 18, 'card', '2025-11-26', 2, 50.00, NULL, '2025-11-26 21:33:55', '2025-11-26 15:34:17', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `deposit_log`
+--
+
+CREATE TABLE `deposit_log` (
+  `deposit_id` int(11) DEFAULT NULL,
+  `agent_id` int(11) DEFAULT NULL,
+  `payment_method` varchar(100) DEFAULT NULL,
+  `payment_date` date DEFAULT NULL,
+  `approval_status` int(11) DEFAULT NULL,
+  `amount_gbp` decimal(10,2) DEFAULT NULL,
+  `attachment` varchar(255) DEFAULT NULL,
+  `type` varchar(255) DEFAULT NULL,
+  `created_by` varchar(255) DEFAULT NULL,
+  `update_by` varchar(255) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `entry_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `deposit_log`
+--
+
+INSERT INTO `deposit_log` (`deposit_id`, `agent_id`, `payment_method`, `payment_date`, `approval_status`, `amount_gbp`, `attachment`, `type`, `created_by`, `update_by`, `created_at`, `updated_at`, `entry_by`) VALUES
+(4, 18, 'card', '2025-11-20', 1, 100.00, '/backend/files/gbXHiqsv4S2mNsehZwSe.pdf', 'update', NULL, 'Bijon Ahmed', '2025-11-26 21:15:13', '2025-11-26 15:15:13', 1),
+(12, 18, 'cheque', '2025-11-26', 0, 33.00, NULL, 'create', 'test48', NULL, '2025-11-26 21:31:43', '2025-11-26 15:31:43', 18),
+(15, 18, 'cheque', '2025-11-26', 0, 2000.00, NULL, 'create', 'test48', NULL, '2025-11-26 21:32:45', '2025-11-26 15:32:45', 18),
+(16, 18, 'cheque', '2025-11-26', 0, 5000.00, NULL, 'create', 'test48', NULL, '2025-11-26 21:32:58', '2025-11-26 15:32:58', 18),
+(17, 18, 'card', '2025-11-26', 0, 50.00, NULL, 'create', 'test48', NULL, '2025-11-26 21:33:55', '2025-11-26 15:33:55', 18),
+(17, 18, 'card', '2025-11-26', 2, 50.00, NULL, 'update', NULL, 'Bijon Ahmed', '2025-11-26 21:34:17', '2025-11-26 15:34:17', 1),
+(16, 18, 'cheque', '2025-11-26', 1, 5000.00, NULL, 'update', NULL, 'Bijon Ahmed', '2025-11-26 22:07:05', '2025-11-26 16:07:05', 1),
+(13, 17, 'cheque', '2025-11-26', 1, 33.00, '/backend/files/zhIZzlCotFSOPyhGPXb2.pdf', 'update', NULL, 'Bijon Ahmed', '2025-11-26 22:07:10', '2025-11-26 16:07:10', 1),
+(12, 17, 'cheque', '2025-11-26', 1, 252.00, NULL, 'update', NULL, 'Bijon Ahmed', '2025-11-26 22:07:22', '2025-11-26 16:07:22', 1);
 
 -- --------------------------------------------------------
 
@@ -501,61 +579,6 @@ INSERT INTO `model_has_roles` (`role_id`, `model_type`, `model_id`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `orders`
---
-
-CREATE TABLE `orders` (
-  `id` int(11) NOT NULL,
-  `orderId` varchar(255) NOT NULL,
-  `customer_id` int(11) DEFAULT NULL COMMENT 'ref users table role_id=2',
-  `shipping_phone` varchar(255) DEFAULT NULL,
-  `address` text DEFAULT NULL,
-  `coupons` text DEFAULT NULL,
-  `order_date` date DEFAULT NULL,
-  `payment_type` varchar(255) DEFAULT NULL,
-  `subtotal` decimal(10,2) DEFAULT NULL,
-  `amount` decimal(10,2) DEFAULT NULL,
-  `discount` int(11) DEFAULT NULL COMMENT '%',
-  `discount_amount` decimal(10,2) DEFAULT NULL,
-  `grand_total` decimal(10,2) DEFAULT NULL,
-  `advance` decimal(10,2) DEFAULT NULL,
-  `due` decimal(10,2) DEFAULT NULL,
-  `order_status` int(11) NOT NULL DEFAULT 1 COMMENT '1=Pending\r\n2=Order Received\r\n3=Shipped\r\n4=Out for Delivery\r\n5=Delivered\r\n6=Cancelled\r\n7=Returned\r\n8=Refunded\r\n9=Return complete\r\n',
-  `bkash_number` varchar(255) DEFAULT NULL,
-  `transaction_id` varchar(255) DEFAULT NULL,
-  `paymentMethod` varchar(255) DEFAULT NULL,
-  `devliery_charge` decimal(10,2) DEFAULT NULL,
-  `order_type` int(1) NOT NULL COMMENT '1=online\r\n2=instant_order',
-  `coupon_code` varchar(255) DEFAULT NULL,
-  `coupon_offer_status` int(11) DEFAULT NULL,
-  `orderUpdateDate` date DEFAULT NULL,
-  `orderUpdateby` int(11) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `order_history`
---
-
-CREATE TABLE `order_history` (
-  `id` int(11) NOT NULL,
-  `order_id` int(11) DEFAULT NULL,
-  `product_id` int(11) DEFAULT NULL,
-  `attribue_id` int(11) DEFAULT NULL,
-  `variation_value` varchar(255) DEFAULT NULL,
-  `qty` int(11) DEFAULT NULL,
-  `price` decimal(10,2) DEFAULT NULL,
-  `total_price` decimal(10,2) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `order_status`
 --
 
@@ -649,11 +672,11 @@ INSERT INTO `permissions` (`id`, `name`, `guard_name`, `role_type`, `parent_id`,
 (66, 'delete fee', 'api', '1', 62, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
 (74, 'Report Management', 'api', '1', 0, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
 (75, 'view report', 'api', '1', 74, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
-(76, 'Transaction Management', 'api', '1', 0, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
-(77, 'view transaction', 'api', '1', 76, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
-(78, 'create transaction', 'api', '1', 76, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
-(79, 'edit transaction', 'api', '1', 76, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
-(80, 'delete transaction', 'api', '1', 76, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
+(76, 'Transaction Management', 'api', '1,2', 0, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
+(77, 'view transaction', 'api', '1,2', 76, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
+(78, 'create transaction', 'api', '1,2', 76, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
+(79, 'edit transaction', 'api', '1,2', 76, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
+(80, 'delete transaction', 'api', '1,2', 76, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
 (81, 'Wallet Management', 'api', '1', 0, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
 (82, 'view wallet', 'api', '1', 81, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
 (83, 'create wallet', 'api', '1', 81, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
@@ -668,7 +691,12 @@ INSERT INTO `permissions` (`id`, `name`, `guard_name`, `role_type`, `parent_id`,
 (92, 'view branch', 'api', '1', 91, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
 (93, 'create branch', 'api', '1', 91, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
 (94, 'edit branch', 'api', '1', 91, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
-(95, 'delete branch', 'api', '1', 91, '2025-10-09 10:09:35', '2025-10-09 10:09:35');
+(95, 'delete branch', 'api', '1', 91, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
+(96, 'Deposit Request', 'api', '1,2', 0, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
+(97, 'view deposit', 'api', '1,2', 96, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
+(98, 'create deposit', 'api', '1,2', 96, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
+(99, 'edit deposit', 'api', '1,2', 96, '2025-10-09 10:09:35', '2025-10-09 10:09:35'),
+(100, 'delete deposit', 'api', '2', 96, '2025-10-09 10:09:35', '2025-10-09 10:09:35');
 
 -- --------------------------------------------------------
 
@@ -860,7 +888,9 @@ INSERT INTO `role_has_permissions` (`permission_id`, `role_id`) VALUES
 (65, 1),
 (75, 1),
 (77, 1),
+(77, 2),
 (78, 1),
+(78, 2),
 (79, 1),
 (82, 1),
 (83, 1),
@@ -870,7 +900,11 @@ INSERT INTO `role_has_permissions` (`permission_id`, `role_id`) VALUES
 (89, 1),
 (92, 1),
 (93, 1),
-(94, 1);
+(94, 1),
+(97, 1),
+(97, 2),
+(98, 2),
+(99, 1);
 
 -- --------------------------------------------------------
 
@@ -892,13 +926,30 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
+('0XyMCAfqhtHVvjc1U7Evq3pn3g7Xva93dukkTAyn', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiT0x5Z01jVHVVYThCdXlFdk00RkQ4QlAzb09rS3Yyb2hpTDNZVW90eCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999767),
 ('45qwWuWBckitiwDqVuo4s1TTO8lMFvtwNboZ1cxP', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiU2hPMUVmWHltN1FiaXNjQXpyR01mM1gxUUdSV0tUTXpkaW1UV1hDdiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763178451),
+('4XuXMFKLqpn6q8z6ZK3MU24G3mvdJ7dBIY1OuT8H', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiYlZuN1FYdHNkY3lzUkpIQ2ZRQ2p3Q045Q2dvR2x5YzNmWU93MWNRRiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999769),
 ('5JQ31BUynI7Ox0EhO6j5YF7cspS9XjbeMkVB57R2', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoicFNUMzB4WXVMZnRoTGs0ZzJNNEc0elhZNXFBNmM1M2l5OUdKWDNiSCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763178441),
 ('5pL7wYY8NG3dNCh0rTXfIGNCDXptS274xJUtT9pb', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiNGJ2RTh2ZEI3OEkyR1ZkVzdCR0NMbVJQUjVEMlVnTHhRZGJaa21sQiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1762543317),
+('79LdHWpcVeqxqdI2Ssu4L6kWdTSsOXWEOJ8RZsMC', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiVlNGbWw3VGRVcFhpSVUwUFM0REJobWl2TXdDUEl0QUkxY3BDM1NjciI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999768),
+('8qyCwsfQjYIb4yNb58G3nPcCeQXG88eLAatU9N7r', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiRWVseTFjNndJSUw5N0l0dW1yRWsyWEZYQlptTlk3UFBjNkJrQlFaUCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999768),
+('AlpQh1r0W5RoLpCqsHTpoFY5riqcTS3UPp3yZ6uL', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiQWIwUUpTSGRwaVBCcUF3ckxiVjduYzFadExtQkc3TWxCeXlXa1FYUyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999780),
+('bEQOfWvdWx1ZgRYpfzkMQtPvzL6ABkiH6Lk8MGLC', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiVkpudjBXWnJsWWVPcEhmeHY2TGEzT1oxU09odmMyMVBWdnBIZU5nYSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999769),
 ('efs7tipJ5EzeJnZ0auszXc5CNzyTIWobHe7NckLf', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiOFFIWURSd1VpRjROSUdTWmhoOXdjdkNOU1ZhYWFjSzN6Y0ZDakdGTiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1761881044),
+('FnVrBEGMMqJeZhyNKqvrTSzmla6d1yXoSs8YdSK0', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiSUo5WTBsQk1MTTVGVGdFeTJJd2d0VnFlYVNmQXdLZk1sQVhPb0Y4dCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999779),
+('FQ9Fi3OYc8OBCOPHL44u9kR9g9lymfwvPdaOqKkN', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiRkZDTFI2cFh2bWdLSU5sWkZyNUJEbnBJekdRRnRFcDJqTU1rWU0xbCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999781),
+('GDGFE2FRp4v3Z5aUbnsER7OfCTLss9ROeb98kYiK', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiaXpwMGt0RHBBOGwzMWZyS1NMZnFleTJFOFpQRVh2dW5zYnhKa1NqOSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999779),
 ('iAKJpaVSwUSnDld3LbNvU8A6GSOOMrh24jFQVoBb', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoieHBtOThhb1BjY1QzUkNGVVpvM2h3eTM1a25GMlNNaDE2Q2RsakdBMSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1761881086),
+('j6ElIJCXQlxrFQBFg0V63W3UnOsXluPDxhPUt9UT', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiemtzNDlOc0gxY3dzaGJ1cDJzbncwUHJ6MDhHQXZOV1dIRUJ0TnpHMiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999780),
+('JTWgPmehWoE4712mxies6JAR5OOYe4iy5nyGttT1', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiU2xyVWYyRDBuNjBkQUtRcTJhNVEybUpxSHJ1Skd5Y0VoNDJXUmludCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999781),
+('OfDRVuWuNgccuztn7gPOTodatRM4DPDhTMLIWdcQ', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiSU9UaVI1MjdwVWpVTktMREoxb2xvNzdWbHdFaGM1OWt3dnVDZ1VYMiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999780),
+('PjxgFY5TzfIaCO2gxFWSRT3izpzNvK0VU5A6oJWO', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiVkVBamF0YkNFWktNZHBMaDJTUzQ0TTUwU05ITTFOeUFKcUpURHhPMSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999769),
 ('tXMytEVVuxRjFPeXFJbX0bzGYSefDpqOTLutkngR', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiT1BmQnE0SlJFM2tjRWdGbkNYMzI0ZE41Q0ZNdURyc24zUnFEaHBteSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763178441),
+('Uk1f2wS0gXQ0Up6LI5ORo2eyXvHWGCmEBUbLmrMR', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiVlhvYXhDNVJpejRKaGxmVVZRWXpmNURwY3d5Ym5YZWhOS2s2QlMweSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999769),
+('UrSOR3sxGFmAYD61nmFwj93KvVcAvJz2GraPCe4T', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiVmJTOHBtOHBadm1pdEQ0cVFQWDhmUnd0R1JJUUttM1UxeWFrcHFiOSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999780),
 ('VSjdrNnBmkmgGhlTy88YdIg39LNr5Qcx4RvHxK2G', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiN3B0cjg5Z1k5RENldjhoanVnOGlWUzdNSHdWdUlLcXFEdDZ2T0VUSCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1761881021),
+('vxejJX1nuMYqhYJ91S8Q4NZ072qV3IkU4opc839W', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiaFNDVFJ0bmMza1l5MVZhb2d1UE14NDkwQTBWZFljQmd5bWdhSjdGTCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763999768),
+('XJSQOo4hLnPVbIOh8iKQ4LwAdOV1I6ZVBT6i5jbz', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiaERpa2JydTNndTNzVnQ5NmdGYmtMRTNiSk1BRVZWMWUyZkhpTFJETSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1764091259),
 ('yUqxBxvzTzBBfL39RxxrUSSccrqX26ZTOcfsAlfD', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiZ3lRVnhFaVN6cXhBYVFuNlBDakNkZmd6U2FxM1Z6NmFJaWFIclV6RiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1763178451);
 
 -- --------------------------------------------------------
@@ -1008,6 +1059,19 @@ CREATE TABLE `transactions` (
   `updated_at` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `transactions`
+--
+
+INSERT INTO `transactions` (`id`, `agent_id`, `beneficiaryName`, `beneficiaryPhone`, `status`, `paymentMethod`, `wallet_id`, `bank_id`, `branch_id`, `branchCode`, `accountNo`, `walletrate`, `bankRate`, `charges`, `fee`, `totalAmount`, `sendingMoney`, `senderName`, `receiving_money`, `description`, `entry_by`, `created_at`, `updated_at`) VALUES
+(1, 18, 'jons', '019157289822', 'paid', 'wallet', 1, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 3.00, 163.00, 150.00, 'TT', 23700.00, 'ssss', 1, '2025-11-22 23:05:07', '2025-11-22 23:05:07'),
+(2, 1, 'Janant', '0191572898', 'unpaid', 'wallet', 1, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 2.50, 112.50, 100.00, 'Test', 15800.00, 'sss', 1, '2025-11-22 23:06:44', '2025-11-22 23:06:44'),
+(3, 18, 'Kashem ali', '01566898989', 'paid', 'wallet', 1, NULL, NULL, NULL, NULL, 158.00, 1.00, 20.00, 2.00, 32.00, 10.00, 'Kamal', 1580.00, NULL, 1, '2025-11-22 23:35:47', '2025-11-22 23:35:47'),
+(4, 18, 'Fahim', '0209394394', 'unpaid', 'bank', NULL, 3, 39, 'BRAC-GLS', '343434', 0.00, 1.00, 3.00, 3.00, 156.00, 150.00, 'Kabir', 150.00, NULL, 18, '2025-11-22 23:38:14', '2025-11-22 23:38:14'),
+(5, 18, 'Amili', '293984849', 'unpaid', 'bank', NULL, 2, 38, 'DBBL-DHM', '454454545', 158.00, 1.00, 4.00, 3.00, 41.00, 34.00, 'Test', 34.00, NULL, 18, '2025-11-22 23:42:12', '2025-11-22 23:42:12'),
+(6, 1, 'Jons', '2938948494', 'paid', 'wallet', 1, NULL, NULL, NULL, NULL, 158.00, 1.00, 5.00, 2.00, 27.00, 20.00, 'Kabir', 3160.00, 'Test', 1, '2025-11-25 08:25:06', '2025-11-25 08:25:06'),
+(7, 18, 'Jons', '01915728982', 'cancel', 'wallet', 2, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 3.00, 163.00, 150.00, 'JONS', 23700.00, 'Description', 18, '2025-11-26 22:27:13', '2025-11-26 22:27:13');
+
 -- --------------------------------------------------------
 
 --
@@ -1039,6 +1103,22 @@ CREATE TABLE `transactions_log` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `transactions_log`
+--
+
+INSERT INTO `transactions_log` (`transaction_id`, `beneficiaryName`, `beneficiaryPhone`, `status`, `paymentMethod`, `wallet_id`, `bank_id`, `branch_id`, `branchCode`, `accountNo`, `walletrate`, `bankRate`, `charges`, `fee`, `totalAmount`, `sendingMoney`, `senderName`, `receiving_money`, `description`, `type`, `entry_by`, `created_at`, `updated_at`) VALUES
+(1, 'Rahim ahmed', '01915728982', 'paid', 'wallet', 1, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 2.00, 22.00, 10.00, 'Rahim ahmed', 10.00, 'test', 'create', 1, '2025-11-22 16:34:52', '2025-11-22 16:34:52'),
+(2, 'Kabir ahmed', '099999989899', 'paid', 'bank', 6, 3, 39, 'BRAC-GLS', '2344343434', 158.00, 1.00, 34.00, 3.00, 187.00, 150.00, 'ddd', 150.00, 'dd', 'create', 1, '2025-11-22 16:35:37', '2025-11-22 16:35:37'),
+(2, 'Kabir ahmed', '099999989899', 'paid', 'bank', 6, 3, 39, 'BRAC-GLS', '2344343434', 158.00, 1.00, 34.00, 3.00, 187.00, 150.00, 'ddd', 150.00, 'dd', 'update', 1, '2025-11-22 16:56:12', '2025-11-22 16:56:12'),
+(1, 'jons', '019157289822', 'paid', 'wallet', 1, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 3.00, 163.00, 150.00, 'TT', 23700.00, 'ssss', 'create', 1, '2025-11-22 17:05:07', '2025-11-22 17:05:07'),
+(2, 'Janant', '0191572898', 'unpaid', 'wallet', 1, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 2.50, 112.50, 100.00, 'Test', 15800.00, 'sss', 'create', 1, '2025-11-22 17:06:44', '2025-11-22 17:06:44'),
+(3, 'Kashem ali', '01566898989', 'paid', 'wallet', 1, NULL, NULL, NULL, NULL, 158.00, 1.00, 20.00, 2.00, 32.00, 10.00, 'Kamal', 1580.00, NULL, 'create', 1, '2025-11-22 17:35:47', '2025-11-22 17:35:47'),
+(4, 'Fahim', '0209394394', 'unpaid', 'bank', NULL, 3, 39, 'BRAC-GLS', '343434', 0.00, 1.00, 3.00, 3.00, 156.00, 150.00, 'Kabir', 150.00, NULL, 'create', 18, '2025-11-22 17:38:14', '2025-11-22 17:38:14'),
+(5, 'Amili', '293984849', 'unpaid', 'bank', NULL, 2, 38, 'DBBL-DHM', '454454545', 158.00, 1.00, 4.00, 3.00, 41.00, 34.00, 'Test', 34.00, NULL, 'create', 18, '2025-11-22 17:42:12', '2025-11-22 17:42:12'),
+(6, 'Jons', '2938948494', 'paid', 'wallet', 1, NULL, NULL, NULL, NULL, 158.00, 1.00, 5.00, 2.00, 27.00, 20.00, 'Kabir', 3160.00, 'Test', 'create', 1, '2025-11-25 02:25:06', '2025-11-25 02:25:06'),
+(7, 'Jons', '01915728982', 'cancel', 'wallet', 2, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 3.00, 163.00, 150.00, 'JONS', 23700.00, 'Description', 'create', 18, '2025-11-26 16:27:13', '2025-11-26 16:27:13');
 
 -- --------------------------------------------------------
 
@@ -1203,6 +1283,12 @@ ALTER TABLE `categorys`
   ADD UNIQUE KEY `slug` (`slug`);
 
 --
+-- Indexes for table `deposit`
+--
+ALTER TABLE `deposit`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `failed_jobs`
 --
 ALTER TABLE `failed_jobs`
@@ -1253,19 +1339,6 @@ ALTER TABLE `model_has_permissions`
 ALTER TABLE `model_has_roles`
   ADD PRIMARY KEY (`role_id`,`model_id`,`model_type`),
   ADD KEY `model_has_roles_model_id_model_type_index` (`model_id`,`model_type`);
-
---
--- Indexes for table `orders`
---
-ALTER TABLE `orders`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `orderId` (`orderId`);
-
---
--- Indexes for table `order_history`
---
-ALTER TABLE `order_history`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `order_status`
@@ -1388,6 +1461,12 @@ ALTER TABLE `categorys`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=96;
 
 --
+-- AUTO_INCREMENT for table `deposit`
+--
+ALTER TABLE `deposit`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
 -- AUTO_INCREMENT for table `failed_jobs`
 --
 ALTER TABLE `failed_jobs`
@@ -1418,18 +1497,6 @@ ALTER TABLE `migrations`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `orders`
---
-ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `order_history`
---
-ALTER TABLE `order_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `order_status`
 --
 ALTER TABLE `order_status`
@@ -1439,7 +1506,7 @@ ALTER TABLE `order_status`
 -- AUTO_INCREMENT for table `permissions`
 --
 ALTER TABLE `permissions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=96;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 
 --
 -- AUTO_INCREMENT for table `posts`
@@ -1481,7 +1548,7 @@ ALTER TABLE `supplier`
 -- AUTO_INCREMENT for table `transactions`
 --
 ALTER TABLE `transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `users`

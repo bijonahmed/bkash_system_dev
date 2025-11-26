@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Transaction;
 use App\Http\Controllers\Controller;
 use App\Models\Banks;
 use App\Models\Branch;
+use App\Models\Deposit;
 use App\Models\Fees;
 use App\Models\Post as PostModel;
 use App\Models\PostCategory;
@@ -50,16 +51,11 @@ class TransactionController extends Controller
         $offset = ($page - 1) * $limit;
 
 
-        //dd($user->getRoleNames());
-
         if ($user->getRoleNames()->contains('admin')) {
             $query = Transaction::query();
         } else if ($user->getRoleNames()->contains('agent')) {
             $query = Transaction::where('agent_id', $user->id);
         }
-
-        //exit;
-
 
 
         if ($beneficiaryPhone) {
@@ -106,6 +102,7 @@ class TransactionController extends Controller
             ->get();
 
         $modifiedCollection = $results->map(function ($item) {
+
             $chkuser   = User::find($item->entry_by);
             $chkwallet = Wallet::find($item->wallet_id);
             $chkbank   = Banks::find($item->bank_id);
@@ -140,11 +137,40 @@ class TransactionController extends Controller
             ];
         });
 
+        // Total approved balance for agent
+        $depositAppBalance = Transaction::where('agent_id', $user->id)
+            ->sum('totalAmount');
+
+        // Total agent settlement (sum of sendingMoney + fee) for all items
+        $agentSettlement = $results->sum(function ($item) {
+            return (float)($item->sendingMoney ?? 0) + (float)($item->fee ?? 0);
+        });
+
+        // Example: calculate balance if needed
+
+
+        if ($user->hasRole('admin')) {
+
+            $sumDepositApproved = Deposit::where('approval_status', 1)
+                ->sum('amount_gbp');
+        } else if ($user->hasRole('agent')) {
+
+            $sumDepositApproved = Deposit::where('approval_status', 1)
+                ->where('agent_id', $user->id)
+                ->sum('amount_gbp');
+        }
+
+        $getBalance = $sumDepositApproved - $agentSettlement;
+
+
+
+
         return response()->json([
-            'data'       => $modifiedCollection,
-            'total'      => $total,
-            'page'       => $page,
-            'last_page'  => ceil($total / $limit),
+            'data'                   => $modifiedCollection,
+            'sumDepositApproved'     => $getBalance,
+            'total'                  => $total,
+            'page'                   => $page,
+            'last_page'              => ceil($total / $limit),
         ]);
     }
 
@@ -173,7 +199,7 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
-       
+
         $user = Auth::user();
 
         if (! $user->can('create transaction')) {

@@ -57,17 +57,15 @@ export default function listPage() {
   }
 
   const today = new Date().toISOString().split("T")[0];
-const yesterday = new Date(Date.now() - 86400000)
-  .toISOString()
-  .split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
 
   const [filters, setFilters] = useState({
     beneficiaryName: "",
     beneficiaryPhone: "",
     senderName: "",
     accountNo: "",
-    createdFrom: yesterday,   // previous date
-  createdTo: today,         // current date
+    createdFrom: yesterday, // previous date
+    createdTo: today, // current date
     paymentMethod: "",
     wallet: "",
     status: "",
@@ -79,7 +77,8 @@ const yesterday = new Date(Date.now() - 86400000)
 
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { transactionData, loading, totalPages, refetch } = useTransactions();
+  const { transactionData, depositApproved, loading, totalPages, refetch } =
+    useTransactions();
 
   // Fetch transactions on page load or filter change
   useEffect(() => {
@@ -424,7 +423,7 @@ const yesterday = new Date(Date.now() - 86400000)
                         <th className="text-white">Total Amount</th>
                         <th className="text-white">Agent Settlement</th>
                         <th className="text-white">Description</th>
-                         <th></th>
+                        <th></th>
                       </tr>
                     </thead>
 
@@ -434,7 +433,7 @@ const yesterday = new Date(Date.now() - 86400000)
                           colSpan="12"
                           className="text-end fw-bold text-danger"
                         >
-                          Balance: 0000.00
+                          Balance: {depositApproved || 0}
                         </td>
                       </tr>
 

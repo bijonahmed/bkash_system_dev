@@ -9,14 +9,15 @@ use Laravel\Sanctum\HasApiTokens;
 use AuthorizesRequests;
 use DB;
 
-class Deposit extends Authenticatable
+class DepositLog extends Authenticatable
 {
     use HasFactory, Notifiable;
 
 
-    public $table = "deposit";
+    public $table = "deposit_log";
 
     protected $fillable = [
+        'deposit_id',
         'agent_id',
         'payment_method',
         'payment_date',
@@ -24,5 +25,8 @@ class Deposit extends Authenticatable
         'amount_gbp',
         'attachment',
         'entry_by',
+        'type',
+        'created_by',
+        'update_by'
     ];
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
+use App\Models\Deposit;
 use App\Models\Orders;
 use App\Models\PostCategory;
 use App\Models\Product;
@@ -35,8 +36,16 @@ class DashboardController extends Controller
             }
 
             $data['agentList']           = User::where('role_type', 2)->where('status', 1)->count();
+            if ($user->hasRole('admin')) {
+                $data['depositApproved'] = Deposit::where('approval_status', 1)
+                    ->sum('amount_gbp');
+            } else if ($user->hasRole('agent')) {
+                $data['depositApproved'] = Deposit::where('approval_status', 1)
+                    ->where('agent_id', $user->id)
+                    ->sum('amount_gbp');
+            }
 
-            // ✅ return data as JSON or view
+
             return response()->json([
                 'success' => true,
                 'data' => $data
