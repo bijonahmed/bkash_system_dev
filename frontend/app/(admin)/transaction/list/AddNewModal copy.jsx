@@ -10,7 +10,7 @@ import toast, { Toaster } from "react-hot-toast";
 import "../../../../app/style/loader.css";
 
 const AddNewModal = ({ show, onClose, onSuccess }) => {
-  const { token, permissions, roles } = useAuth();
+  const { token, permissions } = useAuth();
   const [loading, setLoading] = useState(false);
   const { transactionData, refetch } = getTransactions();
   const { settingData } = useSetting();
@@ -82,22 +82,21 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       "beneficiaryPhone",
     ];
 
-    // allow only numbers
+    // ✅ allow only numbers for specific inputs
     const updatedValue = numericFields.includes(name)
       ? allowOnlyNumbers(value)
       : value;
-
-    // update this field immediately
+    // update basic field first
     setFormData((prev) => ({
       ...prev,
       [name]: updatedValue,
     }));
 
-    // ===== Charges Calculation =====
     if (name === "charges") {
       const charges = parseFloat(updatedValue || 0);
       const sendingMoney = parseFloat(formData.sendingMoney || 0);
       const fee = parseFloat(formData.fee || 0);
+
       const total = sendingMoney + fee + charges;
 
       setFormData((prev) => ({
@@ -105,10 +104,10 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         charges: updatedValue,
         totalAmount: total.toString(),
       }));
-      return;
+
+      return; // prevent API call
     }
 
-    // ===== Branch Load  =====
     if (name === "bank_id") {
       try {
         const res = await fetch(
@@ -119,136 +118,102 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ bank_id: updatedValue }),
+            body: JSON.stringify({
+              bank_id: updatedValue,
+            }),
           }
         );
 
         const data = await res.json();
         setBranchData(data.data || []);
       } catch (error) {
-        console.error("Branch loading failed:", error);
+        console.error("Wallet request failed:", error);
       }
     }
 
-    // Normalize numeric values
-    const sendingMoney =
-      name === "sendingMoney"
-        ? Number(updatedValue)
-        : Number(formData.sendingMoney || 0);
-
-    const receivingMoneyInput =
-      name === "receiving_money"
-        ? Number(updatedValue)
-        : Number(formData.receiving_money || 0);
-
-    const bankRate = Number(formData.bankRate || 0);
-    const walletRate = Number(formData.walletrate || 0);
-
-    // ======================
-    //  BANK CALCULATION
-    // ======================
+    //  handle dynamic calculations and API calls
     if (
-      formData.paymentMethod === "bank" &&
-      (name === "sendingMoney" || name === "bankRate")
+      name === "sendingMoney" ||
+      name === "bankRate" ||
+      name === "walletrate"
     ) {
-      const receiving = (sendingMoney * bankRate).toString();
+      const sendingMoney = parseFloat(
+        name === "sendingMoney" ? updatedValue : formData.sendingMoney || 0
+      );
+      const bankRate = parseFloat(formData.bankRate || 0);
+      const walletRate = parseFloat(formData.walletrate || 0);
 
-      setFormData((prev) => ({
-        ...prev,
-        receiving_money: receiving,
-      }));
+      if (formData.paymentMethod === "bank" && updatedValue) {
+        //console.log("sending request... by bank");
 
-      // fee API call
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              paymentMethod: "bank",
-              receiving_money: receiving,
-            }),
-          }
-        );
-
-        const data = await res.json();
+        const receivingMoney = (sendingMoney * bankRate).toString();
 
         setFormData((prev) => ({
           ...prev,
-          fee: data.fee || 0,
-          totalAmount: Math.floor((sendingMoney + (data.fee || 0)) * 100) / 100, //sendingMoney + (data.fee || 0),
+          receiving_money: receivingMoney,
         }));
-      } catch (error) {
-        console.error("Fee calc failed:", error);
-      }
 
-      return;
-    }
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                paymentMethod: formData.paymentMethod,
+                receiving_money: receivingMoney,
+              }),
+            }
+          );
 
-    // ======================
-    //  WALLET CALCULATION (Two Way)
-    // ======================
-    if (formData.paymentMethod === "wallet") {
-      let newSending = sendingMoney;
-      let newReceiving = receivingMoneyInput;
+          const data = await res.json();
 
-      if (name === "sendingMoney") {
-        // calculate receiving money, but keep blank if sending is blank
-        newReceiving = sendingMoney ? sendingMoney * walletRate : "";
-      }
-
-      if (name === "receiving_money") {
-        // calculate sending money, blank if receiving is blank
-        newSending = receivingMoneyInput
-          ? receivingMoneyInput / walletRate
-          : "";
-      }
-
-      // update two-way result
-      setFormData((prev) => ({
-        ...prev,
-        sendingMoney:
-          newSending !== "" ? Math.floor(newSending * 100) / 100 : "",
-        receiving_money:
-          newReceiving !== "" ? Math.floor(newReceiving * 100) / 100 : "",
-      }));
-      // setFormData((prev) => ({
-      //   ...prev,
-      //   sendingMoney: newSending !== "" ? newSending : "",
-      //   receiving_money: newReceiving !== "" ? newReceiving : "",
-      // }));
-      // API fee calculation
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              paymentMethod: "wallet",
-              receiving_money: newReceiving,
-            }),
-          }
-        );
-
-        const data = await res.json();
+          setFormData((prev) => ({
+            ...prev,
+            fee: data.fee || 0,
+            totalAmount: parseInt(sendingMoney) + parseInt(data.fee || 0),
+          }));
+        } catch (error) {
+          console.error("Wallet request failed:", error);
+        }
+      } else if (formData.paymentMethod === "wallet" && updatedValue) {
+        //console.log("sending request... by wallet");
+        const receivingMoney = (sendingMoney * walletRate).toString(); // keep full value
 
         setFormData((prev) => ({
           ...prev,
-          fee: data.fee || 0,
-          totalAmount: (
-            Math.floor((Number(newSending) + Number(data.fee || 0)) * 100) / 100
-          ).toFixed(2), //Number(newSending) + Number(data.fee || 0),
+          receiving_money: receivingMoney,
         }));
-      } catch (error) {
-        console.error("Wallet fee calc failed:", error);
+
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                paymentMethod: formData.paymentMethod,
+                receiving_money: receivingMoney,
+              }),
+            }
+          );
+
+          const data = await res.json();
+
+          setFormData((prev) => ({
+            ...prev,
+            fee: data.fee || 0,
+            totalAmount: parseInt(sendingMoney) + parseInt(data.fee || 0),
+          }));
+        } catch (error) {
+          console.error("Wallet request failed:", error);
+        }
       }
     }
   };
@@ -360,25 +325,21 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                 </div>
 
                 {/* Status */}
-                {roles == "admin" && (
-                  <>
-                    <div className="col-md-3 mb-2">
-                      <label className="mb-0 custom-label">Status</label>
-                      <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleChange}
-                        className="form-control"
-                      >
-                        <option value="">Select Status</option>
-                        <option value="paid">Paid</option>
-                        <option value="unpaid">Unpaid</option>
-                        <option value="hold">Hold</option>
-                        <option value="cancel">Cancel</option>
-                      </select>
-                    </div>
-                  </>
-                )}
+                <div className="col-md-3 mb-2">
+                  <label className="mb-0 custom-label">Status</label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    className="form-control"
+                  >
+                    <option value="">Select Status</option>
+                    <option value="paid">Paid</option>
+                    <option value="unpaid">Unpaid</option>
+                    <option value="hold">Hold</option>
+                    <option value="cancel">Cancel</option>
+                  </select>
+                </div>
 
                 {/* Payment Method */}
                 <div className="col-md-3 mb-2">

@@ -3,12 +3,14 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext"; // adjust path
 
-export default function getBanks() {
-  const [bankData, setResponseData] = useState([]);
+export default function useBanks() {
+  const [bankData, setBankData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { token, permissions } = useAuth();
-  // useCallback ensures the function is memoized (won’t re-create unnecessarily)
-  const getBanks = useCallback(async () => {
+  const { token } = useAuth();
+
+  const fetchBanks = useCallback(async () => {
+    if (!token) return; // prevent API call if token is not ready
+
     setLoading(true);
     try {
       const url = `${process.env.NEXT_PUBLIC_API_BASE}/setting/getBanks`;
@@ -20,28 +22,23 @@ export default function getBanks() {
         },
       });
 
-      let result;
-      try {
-        result = await res.json();
-      } catch (e) {
-        result = null;
-      }
+      const result = await res.json().catch(() => null);
 
       if (!res.ok) {
         throw new Error(result?.message || `HTTP Error: ${res.status}`);
       }
 
-      setResponseData(result?.data || []);
+      setBankData(result?.data || []);
     } catch (err) {
-      toast.error(err.message || "Something went wrong!");
+      toast.error(err?.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]); // FIXED dependency
 
   useEffect(() => {
-    getBanks();
-  }, []);
+    fetchBanks();
+  }, [fetchBanks]); // FIXED dependency
 
-  return { bankData, loading, getBanks };
+  return { bankData, loading, refetch: fetchBanks };
 }

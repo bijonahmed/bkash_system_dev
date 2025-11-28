@@ -1,74 +1,62 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAuth } from "../../../../context/AuthContext"; // adjust path
-import { usePathname } from "next/navigation";
-import Link from "next/link";
-import toast, { Toaster } from "react-hot-toast";
+import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "../../../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import toast, { Toaster } from "react-hot-toast";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function EditUserForm({ id }) {
   const { token, permissions } = useAuth();
+  const router = useRouter();
+  const title = "Post Edit";
+
   const [formData, setFormData] = useState({
-    id: id,
+    id,
     name: "",
     meta_title: "",
     meta_description: "",
     meta_keyword: "",
     categoryId: "",
     description_full: "",
-    files: null, // single image
+    files: null,
     status: "",
   });
+
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [postCategory, setPostCategorys] = useState([]);
-  const router = useRouter();
-  const pathname = usePathname();
-  const title = "Post Edit";
 
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (files) {
-      setFormData({ ...formData, [name]: files[0] }); // store single file
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
   };
 
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = new FormData();
-    payload.append("id", formData.id);
-    payload.append("name", formData.name);
-    payload.append("meta_title", formData.meta_title);
-    payload.append("meta_description", formData.meta_description);
-    payload.append("meta_keyword", formData.meta_keyword);
-    payload.append("categoryId", formData.categoryId);
-    payload.append("description_full", formData.description_full);
-    payload.append("status", formData.status);
-
-    if (formData.files instanceof File) {
-      payload.append("files", formData.files);
-    }
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== null) payload.append(key, value);
+    });
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/posts/update`,
-        {
-          method: "POST",
-          body: payload,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/posts/update`, {
+        method: "POST",
+        body: payload,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       const data = await res.json();
       if (res.ok) {
-        // setUser(data);
-        toast.success("Post update successfully ✅");
+        toast.success("Post updated successfully ✅");
         router.push("/post");
       } else if (data.errors) {
         toast.error(Object.values(data.errors).flat().join("\n"), {
@@ -85,79 +73,72 @@ export default function EditUserForm({ id }) {
   };
 
   // Fetch post data
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/posts/postrow/${id}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const data = await res.json();
-        const datarow = data?.data || {};
-        const chkImg = data.images || "";
-        console.log("chkImg", chkImg);
-
-        setFormData({
-          id: datarow.id ?? "",
-          name: datarow.name ?? "",
-          meta_title: datarow.meta_title ?? "",
-          meta_description: datarow.meta_description ?? "",
-          meta_keyword: datarow.meta_keyword ?? "",
-          categoryId: datarow.categoryId ?? "",
-          description_full: datarow.description_full ?? "",
-          status: datarow.status ?? "",
-          files: chkImg ?? "",
-        });
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPost();
-  }, []);
+  const fetchPost = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/posts/postrow/${id}`, {
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      const datarow = data?.data || {};
+      const chkImg = data?.images || "";
+      setFormData((prev) => ({
+        ...prev,
+        id: datarow.id ?? "",
+        name: datarow.name ?? "",
+        meta_title: datarow.meta_title ?? "",
+        meta_description: datarow.meta_description ?? "",
+        meta_keyword: datarow.meta_keyword ?? "",
+        categoryId: datarow.categoryId ?? "",
+        description_full: datarow.description_full ?? "",
+        status: datarow.status ?? "",
+        files: chkImg ?? "",
+      }));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [id,token]); // only token
 
   // Fetch post categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/posts/postCategorysearch`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const data = await res.json();
-        if (res.ok) setPostCategorys(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchCategories();
-  }, []);
+  const fetchCategories = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/posts/postCategorysearch`, {
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) setPostCategorys(data);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [token]); // only token
 
+  // Initial fetch
   useEffect(() => {
-    if (title) document.title = title;
+    fetchPost();
+    fetchCategories();
+  }, [fetchPost, fetchCategories]);
+
+  // Set document title
+  useEffect(() => {
+    document.title = title;
   }, [title]);
 
   if (loading) return <p>Loading...</p>;
 
   if (!permissions.includes("edit posts")) {
     router.replace("/dashboard");
-    return false;
+    return null;
   }
 
   return (
     <main className="app-main" id="main" tabIndex={-1}>
       <Toaster position="top-right" />
+
+      {/* Header */}
       <div className="app-content-header">
         <div className="container-fluid">
           <div className="row">
@@ -166,10 +147,8 @@ export default function EditUserForm({ id }) {
             </div>
             <div className="col-sm-6">
               <ol className="breadcrumb float-sm-end">
-                <li className="breadcrumb-item">
-                  <Link href="/dashboard">Home</Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
+                <li className="breadcrumb-item"><Link href="/dashboard">Home</Link></li>
+                <li className="breadcrumb-item active">
                   <a
                     href="#"
                     onClick={(e) => {
@@ -187,6 +166,7 @@ export default function EditUserForm({ id }) {
         </div>
       </div>
 
+      {/* Form */}
       <div className="app-content">
         <div className="container-fluid">
           <div className="row g-4">
@@ -194,122 +174,85 @@ export default function EditUserForm({ id }) {
               <div className="card card-primary card-outline mb-4">
                 <form onSubmit={handleSubmit}>
                   <div className="card-body">
+                    {/* Name */}
                     <div className="mb-3">
                       <label className="form-label">Name</label>
                       <input
                         type="text"
                         name="name"
-                        className={`form-control ${
-                          errors.name ? "is-invalid" : ""
-                        }`}
+                        className={`form-control ${errors.name ? "is-invalid" : ""}`}
                         value={formData.name}
                         onChange={handleChange}
                       />
-                      {errors.name && (
-                        <div className="invalid-feedback">{errors.name[0]}</div>
-                      )}
+                      {errors.name && <div className="invalid-feedback">{errors.name[0]}</div>}
                     </div>
 
+                    {/* Meta fields */}
                     <div className="mb-3">
                       <label className="form-label">Meta Title</label>
-                      <input
-                        type="text"
-                        name="meta_title"
-                        className="form-control"
-                        value={formData.meta_title}
-                        onChange={handleChange}
-                      />
+                      <input type="text" name="meta_title" className="form-control" value={formData.meta_title} onChange={handleChange} />
                     </div>
 
                     <div className="mb-3">
                       <label className="form-label">Meta Keyword</label>
-                      <input
-                        type="text"
-                        name="meta_keyword"
-                        className="form-control"
-                        value={formData.meta_keyword}
-                        onChange={handleChange}
-                      />
+                      <input type="text" name="meta_keyword" className="form-control" value={formData.meta_keyword} onChange={handleChange} />
                     </div>
 
                     <div className="mb-3">
                       <label className="form-label">Meta Description</label>
-                      <textarea
-                        name="meta_description"
-                        className="form-control"
-                        rows={5}
-                        value={formData.meta_description}
-                        onChange={handleChange}
-                      />
+                      <textarea name="meta_description" className="form-control" rows={5} value={formData.meta_description} onChange={handleChange} />
                     </div>
 
+                    {/* Category */}
                     <div className="mb-3">
                       <label className="form-label">Post Category</label>
                       <select
                         name="categoryId"
-                        className={`form-control ${
-                          errors.categoryId ? "is-invalid" : ""
-                        }`}
+                        className={`form-control ${errors.categoryId ? "is-invalid" : ""}`}
                         value={formData.categoryId}
                         onChange={handleChange}
                       >
                         <option value="">-- Select --</option>
                         {postCategory.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
                         ))}
                       </select>
                     </div>
 
+                    {/* Full description */}
                     <div className="mb-3">
                       <label className="form-label">Full Description</label>
                       <CKEditor
                         editor={ClassicEditor}
-                        key={formData.id} // important: force rerender when id changes
+                        key={formData.id}
                         data={formData.description_full}
-                        onChange={(event, editor) => {
-                          const data = editor.getData();
-                          setFormData((prev) => ({
-                            ...prev,
-                            description_full: data,
-                          }));
-                        }}
+                        onChange={(event, editor) =>
+                          setFormData((prev) => ({ ...prev, description_full: editor.getData() }))
+                        }
                       />
                     </div>
 
+                    {/* File upload */}
                     <div className="mb-3">
                       <label className="form-label">Upload Image</label>
-                      <input
-                        type="file"
-                        name="files"
-                        accept="image/*"
-                        onChange={handleChange}
-                        className="form-control"
-                      />
+                      <input type="file" name="files" accept="image/*" onChange={handleChange} className="form-control" />
                     </div>
 
-                    {/* ✅ Show Preview if Image is Selected */}
+                    {/* Preview */}
                     {formData.files && (
                       <div className="mb-3">
-                        <img
-                          src={
-                            typeof formData.files === "string"
-                              ? formData.files // API URL
-                              : URL.createObjectURL(formData.files) // new File object
-                          }
-                          alt="Preview"
-                          className="img-thumbnail"
-                          style={{ maxHeight: "150px" }}
-                        />
+                        {typeof formData.files === "string" ? (
+                          <Image src={formData.files} alt="Preview" width={150} height={150} className="img-thumbnail" />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={URL.createObjectURL(formData.files)} alt="Preview" className="img-thumbnail" style={{ maxHeight: 150 }} />
+                        )}
                       </div>
                     )}
                   </div>
 
                   <div className="card-footer text-end">
-                    <button type="submit" className="btn btn-primary">
-                      Submit
-                    </button>
+                    <button type="submit" className="btn btn-primary">Submit</button>
                   </div>
                 </form>
               </div>

@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import useWallets from "../../../../hooks/getWallet";
@@ -9,14 +8,12 @@ import toast, { Toaster } from "react-hot-toast";
 import "../../../../../app/style/loader.css";
 import { useRouter, usePathname } from "next/navigation";
 import { useParams } from "next/navigation";
-
 const EditNewModal = () => {
   const params = useParams();
   const id = params.id;
   useEffect(() => {
     document.title = `Transaction Update [${id}]`;
   }, [id]);
-
   const router = useRouter();
   const { token, permissions } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -43,7 +40,6 @@ const EditNewModal = () => {
     receiving_money: "",
     description: "",
   };
-
   const [formData, setFormData] = useState(initialFormData);
   const resetForm = () => setFormData(initialFormData);
   const { walletData } = useWallets();
@@ -52,7 +48,6 @@ const EditNewModal = () => {
   const [showBank, setShowBank] = useState(false);
   const [branchData, setBranchData] = useState([]);
   const [transaction, setTransaction] = useState(null);
-
   // ✅ Automatically toggle Wallet/Bank inputs
   useEffect(() => {
     if (formData.paymentMethod === "wallet") {
@@ -66,12 +61,9 @@ const EditNewModal = () => {
       setShowBank(false);
     }
   }, [formData.paymentMethod]);
-
   const allowOnlyNumbers = (value) => value.replace(/[^0-9]/g, "");
-
   const handleChange = async (e) => {
     const { name, value } = e.target;
-
     const numericFields = [
       "sendingMoney",
       "walletrate",
@@ -79,33 +71,29 @@ const EditNewModal = () => {
       "charges",
       "beneficiaryPhone",
     ];
-
-    // ✅ allow only numbers for specific inputs
+    // allow only numbers
     const updatedValue = numericFields.includes(name)
       ? allowOnlyNumbers(value)
       : value;
-    // update basic field first
+    // update this field immediately
     setFormData((prev) => ({
       ...prev,
       [name]: updatedValue,
     }));
-
+    // ===== Charges Calculation =====
     if (name === "charges") {
       const charges = parseFloat(updatedValue || 0);
       const sendingMoney = parseFloat(formData.sendingMoney || 0);
       const fee = parseFloat(formData.fee || 0);
-
       const total = sendingMoney + fee + charges;
-
       setFormData((prev) => ({
         ...prev,
         charges: updatedValue,
         totalAmount: total.toString(),
       }));
-
-      return; // prevent API call
+      return;
     }
-
+    // ===== Branch Load  =====
     if (name === "bank_id") {
       try {
         const res = await fetch(
@@ -116,106 +104,124 @@ const EditNewModal = () => {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({
-              bank_id: updatedValue,
-            }),
+            body: JSON.stringify({ bank_id: updatedValue }),
           }
         );
-
         const data = await res.json();
         setBranchData(data.data || []);
       } catch (error) {
-        console.error("Wallet request failed:", error);
+        console.error("Branch loading failed:", error);
       }
     }
-
-    //  handle dynamic calculations and API calls
+    // Normalize numeric values
+    const sendingMoney =
+      name === "sendingMoney"
+        ? Number(updatedValue)
+        : Number(formData.sendingMoney || 0);
+    const receivingMoneyInput =
+      name === "receiving_money"
+        ? Number(updatedValue)
+        : Number(formData.receiving_money || 0);
+    const bankRate = Number(formData.bankRate || 0);
+    const walletRate = Number(formData.walletrate || 0);
+    // ======================
+    //  BANK CALCULATION
+    // ======================
     if (
-      name === "sendingMoney" ||
-      name === "bankRate" ||
-      name === "walletrate"
+      formData.paymentMethod === "bank" &&
+      (name === "sendingMoney" || name === "bankRate")
     ) {
-      const sendingMoney = parseFloat(
-        name === "sendingMoney" ? updatedValue : formData.sendingMoney || 0
-      );
-      const bankRate = parseFloat(formData.bankRate || 0);
-      const walletRate = parseFloat(formData.walletrate || 0);
-
-      if (formData.paymentMethod === "bank" && updatedValue) {
-        console.log("sending request... by bank");
-
-        const receivingMoney = (sendingMoney * bankRate).toString();
-
+      const receiving = (sendingMoney * bankRate).toString();
+      setFormData((prev) => ({
+        ...prev,
+        receiving_money: receiving,
+      }));
+      // fee API call
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              paymentMethod: "bank",
+              receiving_money: receiving,
+            }),
+          }
+        );
+        const data = await res.json();
         setFormData((prev) => ({
           ...prev,
-          receiving_money: receivingMoney,
+          fee: data.fee || 0,
+          totalAmount: Math.floor((sendingMoney + (data.fee || 0)) * 100) / 100, //sendingMoney + (data.fee || 0),
         }));
-
-        try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                paymentMethod: formData.paymentMethod,
-                receiving_money: receivingMoney,
-              }),
-            }
-          );
-
-          const data = await res.json();
-
-          setFormData((prev) => ({
-            ...prev,
-            fee: data.fee || 0,
-            totalAmount: parseInt(sendingMoney) + parseInt(data.fee || 0),
-          }));
-        } catch (error) {
-          console.error("Wallet request failed:", error);
-        }
-      } else if (formData.paymentMethod === "wallet" && updatedValue) {
-        console.log("sending request... by wallet");
-        const receivingMoney = (sendingMoney * walletRate).toString(); // keep full value
-
+      } catch (error) {
+        console.error("Fee calc failed:", error);
+      }
+      return;
+    }
+    // ======================
+    //  WALLET CALCULATION (Two Way)
+    // ======================
+    if (formData.paymentMethod === "wallet") {
+      let newSending = sendingMoney;
+      let newReceiving = receivingMoneyInput;
+      if (name === "sendingMoney") {
+        // calculate receiving money, but keep blank if sending is blank
+        newReceiving = sendingMoney ? sendingMoney * walletRate : "";
+      }
+      if (name === "receiving_money") {
+        // calculate sending money, blank if receiving is blank
+        newSending = receivingMoneyInput
+          ? receivingMoneyInput / walletRate
+          : "";
+      }
+      // update two-way result
+      setFormData((prev) => ({
+        ...prev,
+        sendingMoney:
+          newSending !== "" ? Math.floor(newSending * 100) / 100 : "",
+        receiving_money:
+          newReceiving !== "" ? Math.floor(newReceiving * 100) / 100 : "",
+      }));
+      // setFormData((prev) => ({
+      //   ...prev,
+      //   sendingMoney: newSending !== "" ? newSending : "",
+      //   receiving_money: newReceiving !== "" ? newReceiving : "",
+      // }));
+      // API fee calculation
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              paymentMethod: "wallet",
+              receiving_money: newReceiving,
+            }),
+          }
+        );
+        const data = await res.json();
         setFormData((prev) => ({
           ...prev,
-          receiving_money: receivingMoney,
+          fee: data.fee || 0,
+          totalAmount: (
+            Math.floor((Number(newSending) + Number(data.fee || 0)) * 100) / 100
+          ).toFixed(2), //Number(newSending) + Number(data.fee || 0),
         }));
-
-        try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                paymentMethod: formData.paymentMethod,
-                receiving_money: receivingMoney,
-              }),
-            }
-          );
-
-          const data = await res.json();
-
-          setFormData((prev) => ({
-            ...prev,
-            fee: data.fee || 0,
-            totalAmount: parseInt(sendingMoney) + parseInt(data.fee || 0),
-          }));
-        } catch (error) {
-          console.error("Wallet request failed:", error);
-        }
+      } catch (error) {
+        console.error("Wallet fee calc failed:", error);
       }
     }
   };
-
+  
   useEffect(() => {
     const fetchTransaction = async () => {
       try {
@@ -231,7 +237,6 @@ const EditNewModal = () => {
           }
         );
         const result = await res.json();
-
         setBranchData(result.data.branch);
         setFormData({
           beneficiaryName: result.data.beneficiaryName || "",
@@ -259,15 +264,12 @@ const EditNewModal = () => {
         setLoading(false);
       }
     };
-
     fetchTransaction();
-  }, [id]);
-
+  }, [id, token]);
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     // return false; // for testing
-
     try {
       setLoading(true);
       const res = await fetch(
@@ -284,14 +286,11 @@ const EditNewModal = () => {
           }),
         }
       );
-
       const data = await res.json();
-
       if (res.ok) {
         toast.success("Transaction added successfully ✅");
         refetch();
         setFormData(initialFormData); // this rest
-
         router.push("/transaction/list");
       } else {
         if (data.errors) {
@@ -310,7 +309,6 @@ const EditNewModal = () => {
       setLoading(false);
     }
   };
-
   // ✅ Modal layout
   return (
     <div
@@ -330,7 +328,6 @@ const EditNewModal = () => {
         >
           <div className="modal-header bg-primary text-white">
             <h5 className="modal-title">Transaction Update [{id}]</h5>
-
             <button type="button" className="btn-close"></button>
           </div>
           {loading && (
@@ -340,7 +337,6 @@ const EditNewModal = () => {
               </div>
             </div>
           )}
-
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
               <div className="row">
@@ -355,7 +351,6 @@ const EditNewModal = () => {
                     className="form-control"
                   />
                 </div>
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Beneficiary Phone</label>
                   <input
@@ -366,7 +361,6 @@ const EditNewModal = () => {
                     className="form-control"
                   />
                 </div>
-
                 {/* Status */}
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Status</label>
@@ -379,10 +373,10 @@ const EditNewModal = () => {
                     <option value="">Select Status</option>
                     <option value="paid">Paid</option>
                     <option value="unpaid">Unpaid</option>
+                    <option value="hold">Hold</option>
                     <option value="cancel">Cancel</option>
                   </select>
                 </div>
-
                 {/* Payment Method */}
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Payment Method</label>
@@ -402,12 +396,10 @@ const EditNewModal = () => {
                     <option value="bank">Bank</option>
                   </select>
                 </div>
-
                 {/* Wallet Fields */}
                 {showWallet && (
                   <div className="col-md-3 mb-2">
                     <label className="mb-0 custom-label">Wallet</label>
-
                     <select
                       name="wallet_id"
                       className="form-select"
@@ -423,7 +415,6 @@ const EditNewModal = () => {
                     </select>
                   </div>
                 )}
-
                 {/* Bank Fields */}
                 {showBank && (
                   <>
@@ -443,7 +434,6 @@ const EditNewModal = () => {
                         ))}
                       </select>
                     </div>
-
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Branch</label>
                       <select
@@ -472,7 +462,6 @@ const EditNewModal = () => {
                         ))}
                       </select>
                     </div>
-
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Routing No.</label>
                       <input
@@ -483,7 +472,6 @@ const EditNewModal = () => {
                         className="form-control"
                       />
                     </div>
-
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Account #</label>
                       <input
@@ -499,7 +487,6 @@ const EditNewModal = () => {
                         className="form-control"
                       />
                     </div>
-
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Bank Rate</label>
                       <input
@@ -512,7 +499,6 @@ const EditNewModal = () => {
                     </div>
                   </>
                 )}
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">
                     Sending Money (GBP)
@@ -525,7 +511,6 @@ const EditNewModal = () => {
                     className="form-control"
                   />
                 </div>
-
                 {showWallet && (
                   <div className="col-md-3 mb-2">
                     <label className="mb-0 custom-label">Wallet Rate</label>
@@ -538,7 +523,6 @@ const EditNewModal = () => {
                     />
                   </div>
                 )}
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">
                     Receiving Money (BDT)
@@ -551,7 +535,6 @@ const EditNewModal = () => {
                     className="form-control"
                   />
                 </div>
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Charges (GBP)</label>
                   <input
@@ -562,7 +545,6 @@ const EditNewModal = () => {
                     className="form-control"
                   />
                 </div>
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Admin Fee (GBP)</label>
                   <input
@@ -573,7 +555,6 @@ const EditNewModal = () => {
                     className="form-control"
                   />
                 </div>
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">
                     Total Amount (GBP)
@@ -586,7 +567,6 @@ const EditNewModal = () => {
                     className="form-control"
                   />
                 </div>
-
                 {/* Sender & Note */}
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Sender Name</label>
@@ -598,7 +578,6 @@ const EditNewModal = () => {
                     className="form-control"
                   />
                 </div>
-
                 <div className="col-md-12 mb-2">
                   <label className="mb-0 custom-label">
                     Description / Note
@@ -613,7 +592,6 @@ const EditNewModal = () => {
                 </div>
               </div>
             </div>
-
             <div className="modal-footer">
               <button
                 type="button"
@@ -625,7 +603,6 @@ const EditNewModal = () => {
               >
                 Close
               </button>
-
               <button type="submit" className="btn btn-primary">
                 Submit
               </button>
@@ -636,5 +613,4 @@ const EditNewModal = () => {
     </div>
   );
 };
-
 export default EditNewModal;

@@ -1,9 +1,8 @@
-// EditUserForm.jsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../../../context/AuthContext";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -19,26 +18,24 @@ export default function EditUserForm({ id }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // ✅ FIX: Correct handleChange
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/bank/update`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/bank/update`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
 
       const data = await res.json();
 
@@ -75,13 +72,14 @@ export default function EditUserForm({ id }) {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [id]);
+  }, [id, token]);
 
-  // Permission check
-  if (!permissions.includes("edit bank")) {
-    router.replace("/dashboard");
-    return null;
-  }
+  // Permission check inside useEffect
+  useEffect(() => {
+    if (!permissions.includes("edit bank")) {
+      router.replace("/dashboard");
+    }
+  }, [permissions, router]);
 
   // Set page title
   useEffect(() => {
@@ -100,7 +98,6 @@ export default function EditUserForm({ id }) {
             <div className="col-sm-6">
               <h3 className="mb-0">Bank Edit</h3>
             </div>
-
             <div className="col-sm-6">
               <ol className="breadcrumb float-sm-end">
                 <li className="breadcrumb-item">
@@ -130,29 +127,22 @@ export default function EditUserForm({ id }) {
             <div className="col-md-12">
               <div className="card card-primary card-outline mb-4">
                 <Toaster position="top-right" />
-
                 <form onSubmit={handleSubmit}>
                   <div className="card-body">
-                    {/* Bank Name */}
                     <div className="mb-3">
                       <label className="form-label">Bank Name</label>
                       <input
                         type="text"
                         name="bank_name"
-                        className={`form-control ${
-                          errors.bank_name ? "is-invalid" : ""
-                        }`}
+                        className={`form-control ${errors.bank_name ? "is-invalid" : ""}`}
                         value={formData.bank_name}
                         onChange={handleChange}
                       />
                       {errors.bank_name && (
-                        <div className="invalid-feedback">
-                          {errors.bank_name[0]}
-                        </div>
+                        <div className="invalid-feedback">{errors.bank_name[0]}</div>
                       )}
                     </div>
                   </div>
-
                   <div className="card-footer text-end">
                     <button type="submit" className="btn btn-primary">
                       Submit

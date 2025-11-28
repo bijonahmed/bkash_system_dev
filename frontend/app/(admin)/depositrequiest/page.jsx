@@ -16,7 +16,7 @@ export default function DepositRequestPage() {
     ? permissions
     : permissions?.split(",") || [];
   const pathname = usePathname();
-  const title = "Deposit Request";
+  const title = "Agent Deposit Request";
   //const title = pathname ? pathname.replace("/", "").charAt(0).toUpperCase() + pathname.slice(2) : "";
   // update document title
   useEffect(() => {
@@ -296,7 +296,7 @@ export default function DepositRequestPage() {
           {/*begin::Row*/}
           <div className="row">
             <div className="col-sm-6">
-              <h3 className="mb-0">{title}</h3>
+              <h3 className="mb-0">{title} <span className="text-success">(Approval Amount GBP {approvalAmount})</span></h3>
             </div>
             <div className="col-sm-6">
               <ol className="breadcrumb float-sm-end">
@@ -319,9 +319,7 @@ export default function DepositRequestPage() {
       <div className="app-content">
         {/*begin::Container*/}
         <div className="container-fluid">
-          <center>
-            <h3>Approval Amount GBP {approvalAmount}</h3>
-          </center>
+          
 
           {/*begin::Row*/}
           <div className="card card-primary card-outline mb-4">
@@ -358,7 +356,7 @@ export default function DepositRequestPage() {
                   {/* Column 3: Add User button */}
 
                   <div className="col-6 col-md-3 col-lg-1 ms-auto">
-                    {perms.includes("view deposit") ? (
+                    {perms.includes("create deposit") ? (
                       <button
                         className="btn btn-primary w-100"
                         data-bs-toggle="modal"

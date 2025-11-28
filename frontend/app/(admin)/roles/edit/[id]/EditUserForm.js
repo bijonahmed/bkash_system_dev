@@ -84,7 +84,7 @@ export default function EditUserForm({ id }) {
       }
     };
     fetchUser();
-  }, []);
+  }, [id,token]);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_BASE}/roles/checkrow/${id}`, {
@@ -104,7 +104,7 @@ export default function EditUserForm({ id }) {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [id]);
+  }, [id,token]);
 
   const pathname = usePathname();
   const title = "Roles Edit";

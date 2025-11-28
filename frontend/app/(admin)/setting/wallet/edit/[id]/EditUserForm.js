@@ -76,7 +76,7 @@ export default function EditUserForm({ id }) {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [id]);
+  }, [id,token]);
 
   const pathname = usePathname();
   const title = "Wallet Edit";

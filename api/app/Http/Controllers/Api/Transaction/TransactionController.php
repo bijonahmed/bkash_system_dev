@@ -25,154 +25,120 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
-
         $user = Auth::user();
+
         if (! $user->can('view transaction')) {
             return response()->json([
-                'message' => 'Unauthorized: You do not have permission to view posts',
+                'message' => 'Unauthorized',
             ], 403);
         }
 
-        // dd($request->all());
-        $beneficiaryName  = $request->input('beneficiaryName');
-        $beneficiaryPhone = $request->input('beneficiaryPhone');
-        $senderName       = $request->input('senderName');
-        $accountNo        = $request->input('accountNo');
-        $createdFrom      = $request->input('createdFrom');
-        $createdTo        = $request->input('createdTo');
-        $paymentMethod    = $request->input('paymentMethod');
-        $wallet_id        = $request->input('wallet_id');
-        $agent_id         = $request->input('agent_id');
+        $filters = $request->only([
+            'beneficiaryName',
+            'beneficiaryPhone',
+            'senderName',
+            'accountNo',
+            'createdFrom',
+            'createdTo',
+            'paymentMethod',
+            'wallet_id',
+            'agent_id',
+            'status'
+        ]);
 
-        $status           = $request->input('status');
-        $limit            = $request->input('limit', 50);
-        $page             = $request->input('page', 1);
-
+        $limit = $request->input('limit', 50);
+        $page  = $request->input('page', 1);
         $offset = ($page - 1) * $limit;
 
+        // Base query with joins
+        $query = Transaction::leftJoin('users as creators', 'transactions.entry_by', '=', 'creators.id')
+            ->leftJoin('wallet', 'transactions.wallet_id', '=', 'wallet.id')
+            ->leftJoin('banks', 'transactions.bank_id', '=', 'banks.id')
+            ->leftJoin('branches', 'transactions.branch_id', '=', 'branches.id')
+            ->select([
+                'transactions.*',
+                'creators.name as createdBy',
+                'wallet.name as walletName',
+                'banks.bank_name as bankName',
+                'branches.branch_name as branchName',
+                'branches.branch_code as branchCode'
+            ]);
 
-        if ($user->getRoleNames()->contains('admin')) {
-            $query = Transaction::query();
-        } else if ($user->getRoleNames()->contains('agent')) {
-            $query = Transaction::where('agent_id', $user->id);
-        }
-
-
-        if ($beneficiaryPhone) {
-            $query->where('beneficiaryPhone', 'like', "%$beneficiaryPhone%");
-        }
-        if ($beneficiaryName) {
-            $query->where('beneficiaryName', 'like', "%$beneficiaryName%");
-        }
-        if ($senderName) {
-            $query->where('senderName', 'like', "%$senderName%");
-        }
-        if ($accountNo) {
-            $query->where('accountNo', 'like', "%$accountNo%");
+        // Role-based access
+        if ($user->hasRole('agent')) {
+            $query->where('transactions.agent_id', $user->id);
         }
 
-        if ($createdFrom) {
-            $query->whereDate('created_at', '>=', $createdFrom);
-        }
+        // Apply filters dynamically
+        if (!empty($filters['beneficiaryPhone'])) $query->where('beneficiaryPhone', 'like', "%{$filters['beneficiaryPhone']}%");
+        if (!empty($filters['beneficiaryName'])) $query->where('beneficiaryName', 'like', "%{$filters['beneficiaryName']}%");
+        if (!empty($filters['senderName'])) $query->where('senderName', 'like', "%{$filters['senderName']}%");
+        if (!empty($filters['accountNo'])) $query->where('accountNo', 'like', "%{$filters['accountNo']}%");
+        if (!empty($filters['createdFrom'])) $query->whereDate('transactions.created_at', '>=', $filters['createdFrom']);
+        if (!empty($filters['createdTo'])) $query->whereDate('transactions.created_at', '<=', $filters['createdTo']);
+        if (!empty($filters['paymentMethod'])) $query->where('paymentMethod', $filters['paymentMethod']);
+        if (!empty($filters['status'])) $query->where('status', $filters['status']);
+        if (!empty($filters['wallet_id'])) $query->where('wallet_id', $filters['wallet_id']);
+        if (!empty($filters['agent_id'])) $query->where('agent_id', $filters['agent_id']);
 
-        if ($createdTo) {
-            $query->whereDate('created_at', '<=', $createdTo);
-        }
-        if ($paymentMethod) {
-            $query->where('paymentMethod', $paymentMethod);
-        }
+        $total = $query->count();
 
-        if ($status) {
-            $query->where('status', $status);
-        }
-
-        if ($wallet_id) {
-            $query->where('wallet_id', $wallet_id);
-        }
-
-        if ($agent_id) {
-            $query->where('agent_id', $agent_id);
-        }
-
-        $total = $query->count(); // total records
-
-        $results = $query->orderBy('id', 'desc')
-            ->skip($offset)
-            ->take($limit)
+        $results = $query->orderByDesc('transactions.id')
+            ->offset($offset)
+            ->limit($limit)
             ->get();
 
+        // Map results (no extra queries)
         $modifiedCollection = $results->map(function ($item) {
-
-            $chkuser   = User::find($item->entry_by);
-            $chkwallet = Wallet::find($item->wallet_id);
-            $chkbank   = Banks::find($item->bank_id);
-            $chkBranch = Branch::find($item->branch_id);
-
             return [
-                'id'               => $item->id,
-                'beneficiaryName'  => $item->beneficiaryName,
-                'beneficiaryPhone' => $item->beneficiaryPhone,
-                'charges'          => $item->charges,
-                'fee'              => $item->fee,
-                'totalAmount'      => $item->totalAmount,
-                'receiving_money'  => $item->receiving_money,
-                'sendingMoney'     => $item->sendingMoney,
-                'walletName'       => $chkwallet->name ?? '',
-                'walletrate'       => $item->walletrate,
-                'bankRate'         => $item->bankRate,
-                'bankName'         => $chkbank->bank_name ?? '',
-                'branchName'       => $chkBranch->branch_name ?? '',
-                'branchCode'       => $chkBranch->branch_code ?? '',
-                'accountNo'        => $item->accountNo ?? '',
-                'description'      => $item->description ?? '',
-                'agentsettlement'  => number_format((float)($item->sendingMoney ?? 0) + (float)($item->fee ?? 0), 2),
-                'status'           => ucfirst($item->status),
-                'paytMethod'       => $item->paymentMethod,
-                'senderName'       => ucfirst($item->senderName),
-                'paymentMethod'    => ucfirst($item->paymentMethod),
-                'createdBy'        => $chkuser->name ?? 'N/A',
-                'created_at'       => Carbon::parse($item->created_at)
+                'id'                    => $item->id,
+                'beneficiaryName'       => $item->beneficiaryName,
+                'beneficiaryPhone'      => $item->beneficiaryPhone,
+                'charges'               => $item->charges,
+                'fee'                   => $item->fee,
+                'totalAmount'           => $item->totalAmount,
+                'receiving_money'       => $item->receiving_money,
+                'sendingMoney'          => $item->sendingMoney,
+                'walletName'            => $item->walletName ?? '',
+                'walletrate'            => $item->walletrate,
+                'bankRate'              => $item->bankRate,
+                'bankName'              => $item->bankName ?? '',
+                'branchName'            => $item->branchName ?? '',
+                'branchCode'            => $item->branchCode ?? '',
+                'accountNo'             => $item->accountNo ?? '',
+                'description'           => $item->description ?? '',
+                'agentsettlement'       => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
+                'status'                => ucfirst($item->status),
+                'paytMethod'            => $item->paymentMethod,
+                'senderName'            => ucfirst($item->senderName),
+                'paymentMethod'         => ucfirst($item->paymentMethod),
+                'createdBy'             => $item->createdBy ?? 'N/A',
+                'created_at'            => Carbon::parse($item->created_at)
                     ->timezone('Asia/Dhaka')
                     ->format('M d, Y h:i A'),
             ];
         });
 
-        // Total approved balance for agent
-        $depositAppBalance = Transaction::where('agent_id', $user->id)
-            ->sum('totalAmount');
+        // Agent settlement sum
+        $agentSettlement = $results->sum(fn($item) => ($item->sendingMoney ?? 0) + ($item->fee ?? 0));
 
-        // Total agent settlement (sum of sendingMoney + fee) for all items
-        $agentSettlement = $results->sum(function ($item) {
-            return (float)($item->sendingMoney ?? 0) + (float)($item->fee ?? 0);
-        });
-
-        // Example: calculate balance if needed
-
-
-        if ($user->hasRole('admin')) {
-
-            $sumDepositApproved = Deposit::where('approval_status', 1)
-                ->sum('amount_gbp');
-        } else if ($user->hasRole('agent')) {
-
-            $sumDepositApproved = Deposit::where('approval_status', 1)
-                ->where('agent_id', $user->id)
-                ->sum('amount_gbp');
-        }
+        // Sum deposit approved
+        $depositQuery = Deposit::where('approval_status', 1);
+        if ($user->hasRole('agent')) $depositQuery->where('agent_id', $user->id);
+        $sumDepositApproved = $depositQuery->sum('amount_gbp');
 
         $getBalance = $sumDepositApproved - $agentSettlement;
 
-
-
-
         return response()->json([
-            'data'                   => $modifiedCollection,
-            'sumDepositApproved'     => $getBalance,
-            'total'                  => $total,
-            'page'                   => $page,
-            'last_page'              => ceil($total / $limit),
+            'data' => $modifiedCollection,
+            'sumDepositApproved' => $getBalance,
+            'total' => $total,
+            'page' => $page,
+            'last_page' => ceil($total / $limit),
         ]);
     }
+
+
 
     public function checkrow($id)
     {
@@ -211,7 +177,7 @@ class TransactionController extends Controller
         $validator = Validator::make($request->all(), [
             'beneficiaryName'       => 'required',
             'beneficiaryPhone'      => 'required',
-            'status'                => 'required',
+            // 'status'                => 'required',
             'paymentMethod'         => 'required',
             // Conditional validations
             'wallet_id'             => 'required_if:paymentMethod,wallet',
@@ -252,6 +218,7 @@ class TransactionController extends Controller
         ]);
         $data['entry_by'] = $user->id;
         $data['agent_id'] = $user->id;
+        $data['status'] = "unpaid";
 
         $transaction      = Transaction::create($data);
 

@@ -5,17 +5,18 @@ import { useAuth } from "../context/AuthContext";
 
 export default function useTransactions() {
   const [transactionData, setTransactionData] = useState([]);
-  const [depositApproved, sumDepositApproved] = useState(0);
+  const [depositApproved, setDepositApproved] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [totalPages, setTotalPages] = useState(0); // total pages from backend
+  const [totalPages, setTotalPages] = useState(0);
   const { token } = useAuth();
 
   const fetchTransactions = useCallback(
     async ({ filters = {}, page = 1 } = {}) => {
+      if (!token) return; // prevent API call if token not ready
+
+      // Clean filters (remove empty values)
       const cleaned = Object.fromEntries(
-        Object.entries({ ...filters }).filter(
-          ([_, v]) => v !== "" && v !== null
-        )
+        Object.entries(filters).filter(([_, v]) => v !== "" && v !== null)
       );
 
       cleaned.limit = filters.limit || 50;
@@ -24,8 +25,10 @@ export default function useTransactions() {
       const query = new URLSearchParams(cleaned).toString();
 
       setLoading(true);
+
       try {
         const url = `${process.env.NEXT_PUBLIC_API_BASE}/transaction/index?${query}`;
+
         const res = await fetch(url, {
           method: "GET",
           headers: {
@@ -34,20 +37,22 @@ export default function useTransactions() {
           },
         });
 
-        const result = await res.json();
+        const result = await res.json().catch(() => null);
 
-        if (!res.ok) throw new Error(result?.message || "API error");
+        if (!res.ok) {
+          throw new Error(result?.message || "API error");
+        }
 
-        setTransactionData(result.data);
-        sumDepositApproved(result.sumDepositApproved);
-        setTotalPages(result.last_page || 1);
+        setTransactionData(result?.data || []);
+        setDepositApproved(result?.sumDepositApproved || 0);
+        setTotalPages(result?.last_page || 1);
       } catch (err) {
-        toast.error(err.message || "Something went wrong!");
+        toast.error(err?.message || "Something went wrong!");
       } finally {
         setLoading(false);
       }
     },
-    [token]
+    [token] // FIXED missing dependency warnings
   );
 
   return {

@@ -1,14 +1,16 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; // adjust path
+import { useAuth } from "../context/AuthContext";
 
-export default function getLimits() {
+export default function useLimits() {
   const [limitData, setLimitData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { token, permissions } = useAuth();
-  // useCallback ensures the function is memoized (won’t re-create unnecessarily)
-  const getLimit = useCallback(async () => {
+  const { token } = useAuth();
+
+  const fetchLimits = useCallback(async () => {
+    if (!token) return; // prevent API call until token is ready
+
     setLoading(true);
     try {
       const url = `${process.env.NEXT_PUBLIC_API_BASE}/setting/getLimits`;
@@ -20,12 +22,7 @@ export default function getLimits() {
         },
       });
 
-      let result;
-      try {
-        result = await res.json();
-      } catch (e) {
-        result = null;
-      }
+      const result = await res.json().catch(() => null);
 
       if (!res.ok) {
         throw new Error(result?.message || `HTTP Error: ${res.status}`);
@@ -33,14 +30,15 @@ export default function getLimits() {
 
       setLimitData(result?.data || []);
     } catch (err) {
-      toast.error(err.message || "Something went wrong!");
+      toast.error(err?.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]); // FIXED: add token dependency
 
   useEffect(() => {
-    getLimit();
-  }, []);
-  return { limitData, loading, refetch: getLimit };  
+    fetchLimits();
+  }, [fetchLimits]); // FIXED: add callback instead of empty array
+
+  return { limitData, loading, refetch: fetchLimits };
 }

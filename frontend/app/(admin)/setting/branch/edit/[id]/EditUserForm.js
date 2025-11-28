@@ -83,7 +83,7 @@ export default function EditBranchForm({ id }) {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [id]);
+  }, [id,token]);
 
   const pathname = usePathname();
   const title = "Branch Edit";

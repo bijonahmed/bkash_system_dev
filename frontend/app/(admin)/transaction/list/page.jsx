@@ -126,7 +126,7 @@ export default function listPage() {
             </div>
             <div className="col-sm-6">
               <nav aria-label="breadcrumb">
-                <ol className="breadcrumb float-sm-end bg-light rounded px-3 py-2 shadow-sm">
+                <ol className="breadcrumb float-sm-end bg-light rounded px-3">
                   <li className="breadcrumb-item">
                     <Link
                       href="/dashboard"
@@ -407,23 +407,50 @@ export default function listPage() {
 
               {/* 🔹 Transactions Card */}
               <div className="card-body p-0 mt-2">
-                <div className="overflow-auto-">
+                <div className="overflow-auto">
                   <table className="table table-sm table-hover table-bordered table-colorful">
                     <thead>
                       <tr className="table-gradient">
-                        <th className="text-center text-white">#</th>
-                        <th className="text-white">Created By</th>
-                        <th className="text-white">Beneficiary Detail</th>
-                        <th className="text-white">Sender Detail</th>
-                        <th className="text-white">Paid at</th>
-                        <th className="text-white">Payment Details</th>
-                        <th className="text-white">Sending Amount</th>
-                        <th className="text-white">Charges</th>
-                        <th className="text-white">Admin Fee</th>
-                        <th className="text-white">Total Amount</th>
-                        <th className="text-white">Agent Settlement</th>
-                        <th className="text-white">Description</th>
-                        <th></th>
+                        <th
+                          className="text-center text-white"
+                          style={{ width: "3%" }}
+                        >
+                          #
+                        </th>
+                        <th className="text-white" style={{ width: "15%" }}>
+                          Agent Name
+                        </th>
+                        <th className="text-white" style={{ width: "15%" }}>
+                          Beneficiary Details
+                        </th>
+                        <th className="text-white" style={{ width: "15%" }}>
+                          Sender Details
+                        </th>
+                        <th className="text-white" style={{ width: "7%" }}>
+                          Status
+                        </th>
+                        <th className="text-white" style={{ width: "15%" }}>
+                          Payment Method
+                        </th>
+                        <th className="text-white" style={{ width: "8%" }}>
+                          Sending Amount
+                        </th>
+                        <th className="text-white" style={{ width: "4%" }}>
+                          Charges
+                        </th>
+                        <th className="text-white" style={{ width: "4%" }}>
+                          Admin Fee
+                        </th>
+                        <th className="text-white" style={{ width: "4%" }}>
+                          Total Amount
+                        </th>
+                        <th className="text-white" style={{ width: "4%" }}>
+                          Agent Settlement
+                        </th>
+                        <th className="text-white" style={{ width: "8%" }}>
+                          Description
+                        </th>
+                        <th style={{ width: "4%" }} colSpan={2}></th>
                       </tr>
                     </thead>
 
@@ -458,7 +485,9 @@ export default function listPage() {
                               {item.beneficiaryPhone}
                             </td>
                             <td>
-                              {item.senderName} <br />
+                              {item.senderName}
+
+                              <br />
                               <span
                                 className={`badge ${
                                   item.paymentMethod.toLowerCase() === "bank"
@@ -468,6 +497,13 @@ export default function listPage() {
                               >
                                 {item.paymentMethod.charAt(0).toUpperCase() +
                                   item.paymentMethod.slice(1)}
+
+                                {item?.paymentMethod?.toLowerCase() ===
+                                "wallet" ? (
+                                  <>&nbsp;({item.walletName})</>
+                                ) : (
+                                  <>&nbsp;({item.bankName})</>
+                                )}
                               </span>
                             </td>
                             <td>
@@ -544,7 +580,18 @@ export default function listPage() {
                                   href={`/transaction/edit/${item.id}`}
                                   className="btn btn-warning btn-sm"
                                 >
-                                  <i className="bi bi-pencil-fill"></i> Edit
+                                  <i className="bi bi-pencil-fill"></i>
+                                </Link>
+                              </td>
+                            )}
+
+                            {permissions.includes("delete transaction") && (
+                              <td>
+                                <Link
+                                  href={`/transaction/edit/${item.id}`}
+                                  className="btn btn-danger btn-sm"
+                                >
+                                  <i className="bi bi-trash-fill"></i>
                                 </Link>
                               </td>
                             )}

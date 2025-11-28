@@ -73,7 +73,12 @@ export default function AdminSidebar() {
             icon: "bi-arrow-left-right",
           },
           {
-            label: "Deposit Request",
+            label: "Admin Ledger",
+            href: "#",
+            icon: "bi-arrow-left-right",
+          },
+          {
+            label: "Agent Deposit Request",
             href: "/depositrequiest",
             icon: "bi-arrow-left-right",
           },
@@ -118,7 +123,7 @@ export default function AdminSidebar() {
                 href: "/report/users",
                 icon: "bi-circle",
               },
-                {
+              {
                 label: "Deposit",
                 href: "/report/deposit",
                 icon: "bi-circle",

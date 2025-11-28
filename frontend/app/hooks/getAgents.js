@@ -3,12 +3,14 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext"; // adjust path
 
-export default function getWallet() {
-  const [agentData, setResponseData] = useState([]);
+export default function useAgents() {
+  const [agentData, setAgentData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { token, permissions } = useAuth();
-  // useCallback ensures the function is memoized (won’t re-create unnecessarily)
-  const getwallet = useCallback(async () => {
+  const { token } = useAuth();
+
+  const fetchAgents = useCallback(async () => {
+    if (!token) return; // prevent API call if token is not ready
+
     setLoading(true);
     try {
       const url = `${process.env.NEXT_PUBLIC_API_BASE}/users/getOnlyAgentList`;
@@ -20,28 +22,23 @@ export default function getWallet() {
         },
       });
 
-      let result;
-      try {
-        result = await res.json();
-      } catch (e) {
-        result = null;
-      }
+      const result = await res.json().catch(() => null);
 
       if (!res.ok) {
         throw new Error(result?.message || `HTTP Error: ${res.status}`);
       }
 
-      setResponseData(result?.data || []);
+      setAgentData(result?.data || []);
     } catch (err) {
-      toast.error(err.message || "Something went wrong!");
+      toast.error(err?.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]); // useCallback depends on token
 
   useEffect(() => {
-    getwallet();
-  }, []);
+    fetchAgents();
+  }, [fetchAgents]); // useEffect depends on fetchAgents
 
-  return { agentData, loading, getwallet };
+  return { agentData, loading, refetch: fetchAgents };
 }
