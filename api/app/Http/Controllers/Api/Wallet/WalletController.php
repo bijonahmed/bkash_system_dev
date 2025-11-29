@@ -59,6 +59,42 @@ class WalletController extends Controller
             'total_records' => $paginator->total(),
         ], 200);
     }
+    public function getwalletAgent(Request $request)
+    {
+        $user = Auth::user();
+
+        if (! $user->can('view wallet')) {
+            return response()->json([
+                'message' => 'Unauthorized: You do not have permission to view wallet',
+            ], 403);
+        }
+
+        $searchQuery  = $request->searchQuery;
+
+        $query = AssignWallet::select('assign_wallet.*', 'wallet.name as wallet_name', 'users.name as agent_name')
+            ->leftJoin('wallet', 'wallet.id', '=', 'assign_wallet.wallet_id')
+            ->leftJoin('users', 'users.id', '=', 'assign_wallet.agent_id')
+            ->orderBy('id', 'desc');
+
+        if ($searchQuery !== null) {
+            $query->where('users.name', 'like', '%' . $searchQuery . '%');
+        }
+
+        $collection = $query->get()->map(function ($item) {
+            return [
+                'id'            => $item->id,
+                'wallet_id'     => $item->wallet_id ?? "",
+                'agent_id'      => $item->agent_id ?? "",
+                'wallet_name'   => $item->wallet_name ?? "",
+                'agent_name'    => $item->agent_name ?? "",
+                'amount'        => $item->amount ?? "",
+            ];
+        });
+
+        return response()->json([
+            'data' => $collection,
+        ], 200);
+    }
 
     public function store(Request $request)
     {
@@ -126,7 +162,6 @@ class WalletController extends Controller
             'agent_id'  => $request->agent_id,
             'wallet_id' => $request->wallet_id,
             'amount'    => $request->amount,
-            'status'    => 1,
         ];
 
         //dd($data);

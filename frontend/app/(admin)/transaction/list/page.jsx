@@ -18,19 +18,22 @@ export default function listPage() {
   const { token, permissions, role } = useAuth();
   const searchBtnRef = useRef(null);
   const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(1);
+  const { transactionData, depositApproved, loading, totalPages, refetch } =
+    useTransactions();
   const [showFilters, setShowFilters] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const title = "Transaction List";
   const contentRef = useRef(null);
   const { walletData } = useWallets();
   const { agentData } = useAgents();
-const stickyTh = {
-  position: "sticky",
-  top: 0,
-  zIndex: 10,
-  background: "#343a40",
-  color: "#fff",
-};
+  const stickyTh = {
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    background: "#343a40",
+    color: "#fff",
+  };
   // update document title
   useEffect(() => {
     if (title) {
@@ -40,6 +43,68 @@ const stickyTh = {
 
   const [createdFrom, setCreatedFrom] = useState("");
   const [createdTo, setCreatedTo] = useState("");
+
+  const deleteTransaction = async (transactionId) => {
+    console.log("TransactionID" + transactionId);
+
+    if (!confirm("Are you sure you want to delete this transaction  ?")) return;
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/transaction/delete/${transactionId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // আপনার AuthContext থেকে token নিন
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Delete failed");
+        return;
+      }
+      toast.success("Deleted successfully");
+      // Refresh table / remove deleted row from state
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
+    }
+  };
+
+  const restoreTransaction = async (transactionId) => {
+    if (!confirm("Are you sure you want to restore this transaction?")) return;
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/transaction/restoreTransaction/${transactionId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Delete failed");
+        return;
+      }
+      toast.success("Restore successfully");
+      // Refresh table / remove deleted row from state
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
+    }
+  };
 
   useEffect(() => {
     const today = new Date();
@@ -70,6 +135,7 @@ const stickyTh = {
     beneficiaryPhone: "",
     senderName: "",
     accountNo: "",
+    transection_status: 1,
     createdFrom: yesterday, // previous date
     createdTo: today, // current date
     paymentMethod: "",
@@ -80,11 +146,6 @@ const stickyTh = {
     agent: "",
     limit: 50, // 50 records per page
   });
-
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const { transactionData, depositApproved, loading, totalPages, refetch } =
-    useTransactions();
 
   // Fetch transactions on page load or filter change
   useEffect(() => {
@@ -99,12 +160,6 @@ const stickyTh = {
   const goToPage = (page) => {
     setCurrentPage(page);
   };
-
-  /*
-  const filterByTransaction = () => {
-    refetch(filters);
-  };
-  */
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
@@ -396,7 +451,27 @@ const stickyTh = {
                           </select>
                         </div>
 
-                        <div className="col-md-3 mb-1 d-flex align-items-end">
+                        <div className="col-md-2 mb-1">
+                          <label className="mb-0 fw-semibold">
+                            Transation Status
+                          </label>
+                          <select
+                            className="form-control"
+                            value={filters.transection_status}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                transection_status: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="">Choose Transation Status</option>
+                            <option value="1">Active</option>
+                            <option value="0">Delete</option>
+                          </select>
+                        </div>
+
+                        <div className="col-md-1 mb-1 d-flex align-items-end">
                           <button
                             ref={searchBtnRef}
                             className="btn btn-sm btn-primary btn-lg"
@@ -593,12 +668,25 @@ const stickyTh = {
 
                             {permissions.includes("delete transaction") && (
                               <td>
-                                <Link
-                                  href={`/transaction/edit/${item.id}`}
-                                  className="btn btn-danger btn-sm"
-                                >
-                                  <i className="bi bi-trash-fill"></i>
-                                </Link>
+                                {item.transection_status == 1 ? (
+                                  <>
+                                    <button
+                                      className="btn btn-sm btn-danger"
+                                      onClick={() => deleteTransaction(item.id)}
+                                    >
+                                      <i className="bi bi-trash"></i>
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      className="btn btn-sm btn-danger"
+                                      onClick={() => restoreTransaction(item.id)}
+                                    >
+                                      <i className="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                  </>
+                                )}
                               </td>
                             )}
                           </tr>

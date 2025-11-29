@@ -40,6 +40,7 @@ class TransactionController extends Controller
             'accountNo',
             'createdFrom',
             'createdTo',
+            'transection_status',
             'paymentMethod',
             'wallet_id',
             'agent_id',
@@ -55,6 +56,7 @@ class TransactionController extends Controller
             ->leftJoin('wallet', 'transactions.wallet_id', '=', 'wallet.id')
             ->leftJoin('banks', 'transactions.bank_id', '=', 'banks.id')
             ->leftJoin('branches', 'transactions.branch_id', '=', 'branches.id')
+            //->where('transection_status',1)
             ->select([
                 'transactions.*',
                 'creators.name as createdBy',
@@ -80,7 +82,9 @@ class TransactionController extends Controller
         if (!empty($filters['status'])) $query->where('status', $filters['status']);
         if (!empty($filters['wallet_id'])) $query->where('wallet_id', $filters['wallet_id']);
         if (!empty($filters['agent_id'])) $query->where('agent_id', $filters['agent_id']);
-
+        if (isset($filters['transection_status'])) {
+            $query->where('transection_status', $filters['transection_status']);
+        }
         $total = $query->count();
 
         $results = $query->orderByDesc('transactions.id')
@@ -110,6 +114,7 @@ class TransactionController extends Controller
                 'agentsettlement'       => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
                 'status'                => ucfirst($item->status),
                 'paytMethod'            => $item->paymentMethod,
+                'transection_status'    => $item->transection_status,
                 'senderName'            => ucfirst($item->senderName),
                 'paymentMethod'         => ucfirst($item->paymentMethod),
                 'createdBy'             => $item->createdBy ?? 'N/A',
@@ -270,24 +275,55 @@ class TransactionController extends Controller
     {
         $user = Auth::user();
 
-        if (! $user->can('delete posts')) {
+        if (! $user->can('delete transaction')) {
             return response()->json([
-                'message' => 'Unauthorized: You do not have permission to delete posts',
+                'message' => 'Unauthorized: You do not have permission to delete transaction',
             ], 403);
         }
 
-        $post = PostModel::find($id);
-        if (! $post) {
+        $transaction = Transaction::find($id);
+
+        if (! $transaction) {
             return response()->json([
-                'message' => 'Post not found',
+                'message' => 'Transaction not found',
             ], 404);
         }
-        // $post->delete();
+
+        $transaction->transection_status = 0;
+        $transaction->save();
         return response()->json([
-            'message' => 'Post deleted successfully',
+            'message' => 'Transaction deleted successfully',
             'id' => $id,
         ], 200);
     }
+
+
+public function restoreTransaction($id)
+    {
+        $user = Auth::user();
+
+        if (! $user->can('delete transaction')) {
+            return response()->json([
+                'message' => 'Unauthorized: You do not have permission to delete transaction',
+            ], 403);
+        }
+
+        $transaction = Transaction::find($id);
+
+        if (! $transaction) {
+            return response()->json([
+                'message' => 'Transaction not found',
+            ], 404);
+        }
+
+        $transaction->transection_status = 1;
+        $transaction->save();
+        return response()->json([
+            'message' => 'Transaction restore successfully',
+            'id' => $id,
+        ], 200);
+    }
+    
 
     public function update(Request $request)
     {

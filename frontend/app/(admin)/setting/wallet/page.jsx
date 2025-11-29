@@ -8,6 +8,7 @@ import { customStyles } from "../../../components/styles/customDataTable";
 import { useAuth } from "../../../context/AuthContext";
 import getAgents from "../../../hooks/getAgents";
 import getWallets from "../../../hooks/getWallet";
+import getWalletAgent from "../../../hooks/getWalletAgent";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function UserPage() {
@@ -25,8 +26,9 @@ export default function UserPage() {
       document.title = title;
     }
   }, [title]);
-  const { agentData, refetch } = getAgents();
+  const { agentData } = getAgents();
   const { walletData } = getWallets();
+  const { walletAgentData, refetchAgentWallet } = getWalletAgent();
   const [errors, setErrors] = useState({});
   const [statusFilter, setStatusFilter] = useState("");
   const [data, setData] = useState([]);
@@ -66,7 +68,7 @@ export default function UserPage() {
     }
   };
 
-  const fetchUsers = async (
+  const fetchWallet = async (
     page = 1,
     pageSize = 10,
     searchQuery = "",
@@ -117,6 +119,16 @@ export default function UserPage() {
     status: 1,
   });
 
+  const handleEdit = (row) => {
+    setFormData((prev) => ({
+      ...prev,
+      id: row.id,
+      agent_id: row.agent_id,
+      wallet_id: row.wallet_id,
+      amount: row.amount,
+    }));
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -139,8 +151,21 @@ export default function UserPage() {
       const data = await res.json();
       if (res.ok) {
         //setUser(data);
+        refetchAgentWallet();
 
-        toast.success("Add successfully");
+        setFormData({
+          id: "",
+          agent_id: "",
+          wallet_id: "",
+          amount: "",
+          status: 1,
+        });
+
+        if (formData.id) {
+          toast.success("Update successfully");
+        } else {
+          toast.success("Add successfully");
+        }
       } else if (data.errors) {
         toast.error(Object.values(data.errors).flat().join("\n"), {
           style: { whiteSpace: "pre-line" },
@@ -157,7 +182,7 @@ export default function UserPage() {
   };
 
   useEffect(() => {
-    fetchUsers(page, perPage, search);
+    fetchWallet(page, perPage, search);
   }, [page, perPage, search]);
 
   const columns = [
@@ -290,7 +315,7 @@ export default function UserPage() {
                           <button
                             type="button"
                             className="btn btn-outline-secondary w-100"
-                            onClick={() => fetchUsers()}
+                            onClick={() => fetchWallet()}
                           >
                             Fetch
                           </button>
@@ -332,7 +357,47 @@ export default function UserPage() {
               {activeTab === "assign" && (
                 <div className="tab-pane active">
                   <div className="row">
-                    <div className="col-6"></div>
+                    <div className="col-6">
+                      <div
+                        className="table-responsive"
+                        style={{ maxHeight: "900px" }}
+                      >
+                        <table className="table table-bordered table-striped">
+                          <thead
+                            className="table-dark"
+                            style={{ position: "sticky", top: 0 }}
+                          >
+                            <tr>
+                              <th>ID</th>
+                              <th>Agent Name</th>
+                              <th>Wallet Name</th>
+                              <th>Amount</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            {walletAgentData.map((row, index) => (
+                              <tr key={row.id}>
+                                <td>{index + 1}</td>
+                                <td>{row.agent_name}</td>
+                                <td>{row.wallet_name}</td>
+
+                                <td>{row.amount}</td>
+                                <td>
+                                  <button
+                                    className="btn btn-sm btn-primary me-2"
+                                    onClick={() => handleEdit(row)}
+                                  >
+                                    <i className="bi bi-pencil"></i> Edit
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
 
                     <div className="col-6">
                       <form onSubmit={handleSubmit}>
@@ -345,7 +410,7 @@ export default function UserPage() {
                                 errors.agent_id ? "is-invalid" : ""
                               }`}
                               name="agent_id"
-                              value={formData.name}
+                              value={formData.agent_id}
                               onChange={handleChange}
                             >
                               <option value="">Select Name</option>

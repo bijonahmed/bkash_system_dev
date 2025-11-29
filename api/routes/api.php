@@ -55,6 +55,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::prefix('wallet')->group(function () {
         Route::get('/index', [WalletController::class, 'index']);
+        Route::get('/getwalletAgent', [WalletController::class, 'getwalletAgent']);
         Route::post('/create', [WalletController::class, 'store']);
         Route::post('/assignWallet', [WalletController::class, 'assignWallet']);
         Route::post('/update', [WalletController::class, 'update']);
@@ -85,6 +86,8 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/index', [TransactionController::class, 'index']);
         Route::post('/create', [TransactionController::class, 'store']);
         Route::post('/update', [TransactionController::class, 'update']);
+        Route::DELETE('/delete/{id}', [TransactionController::class, 'destroy']);
+        Route::DELETE('/restoreTransaction/{id}', [TransactionController::class, 'restoreTransaction']);
         Route::get('/checkrow/{id}', [TransactionController::class, 'checkrow']);
         Route::post('/walletcalculate', [TransactionController::class, 'walletcalculate']);
     });

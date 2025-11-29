@@ -32,6 +32,7 @@ class Transaction extends Model
         'description',
         'created_at',
         'updated_at',
+        'transection_status',
         'entry_by'
     ];
 }
