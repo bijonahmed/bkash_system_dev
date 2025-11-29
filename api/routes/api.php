@@ -49,13 +49,16 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/getByReportDeposit', [ReportController::class, 'getByReportDeposit']);
         Route::get('/getByReportLimit', [ReportController::class, 'getByReportLimit']);
         Route::get('/getByReportUser', [ReportController::class, 'getByReportUser']);
+        Route::get('/getTransactionReport', [ReportController::class, 'getTransactionReport']);
     });
 
 
     Route::prefix('wallet')->group(function () {
         Route::get('/index', [WalletController::class, 'index']);
         Route::post('/create', [WalletController::class, 'store']);
+        Route::post('/assignWallet', [WalletController::class, 'assignWallet']);
         Route::post('/update', [WalletController::class, 'update']);
+        Route::post('/walletcalculateCheck', [WalletController::class, 'walletcalculateCheck']);
         Route::get('/checkrow/{id}', [WalletController::class, 'checkrow']);
         Route::DELETE('/delete/{id}', [WalletController::class, 'destroy']);
     });

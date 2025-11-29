@@ -221,7 +221,7 @@ const EditNewModal = () => {
       }
     }
   };
-  
+
   useEffect(() => {
     const fetchTransaction = async () => {
       try {
@@ -288,7 +288,7 @@ const EditNewModal = () => {
       );
       const data = await res.json();
       if (res.ok) {
-        toast.success("Transaction added successfully ✅");
+        toast.success("Transaction added successfully ");
         refetch();
         setFormData(initialFormData); // this rest
         router.push("/transaction/list");
@@ -309,6 +309,9 @@ const EditNewModal = () => {
       setLoading(false);
     }
   };
+  const selectedWallet = walletData.find(
+    (wallet) => wallet.id.toString() === formData.wallet_id
+  );
   // ✅ Modal layout
   return (
     <div
@@ -517,7 +520,8 @@ const EditNewModal = () => {
                     <input
                       type="text"
                       name="walletrate"
-                      value={formData.walletrate}
+                      value={selectedWallet?.amount ?? formData.walletrate}
+                      // value={formData.walletrate}
                       onChange={handleChange}
                       className="form-control"
                     />

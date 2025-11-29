@@ -9,23 +9,20 @@ use Laravel\Sanctum\HasApiTokens;
 use AuthorizesRequests;
 use DB;
 
-class Wallet extends Authenticatable
+class AssignWallet extends Authenticatable
 {
     use HasFactory, Notifiable;
 
 
-    public $table = "wallet";
+    public $table = "assign_wallet";
 
     protected $fillable = [
         'id',
-        'name',
-        'amount',
-        'status'
+        'agent_id',
+        'wallet_id',
+        'amount'
 
     ];
 
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
+   
 }

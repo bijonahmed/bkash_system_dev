@@ -14,6 +14,8 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const { transactionData, refetch } = getTransactions();
   const { settingData } = useSetting();
+  const [walletRate, setWalletRate] = useState("");
+  const [receiving, setReceiving] = useState(""); // your input value
 
   //console.log("exchange_rate_wallet :", settingData?.exchange_rate_wallet);
   //console.log("bank rate :", settingData?.exchange_rate_bank);
@@ -189,20 +191,15 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       return;
     }
 
-    // ======================
-    //  WALLET CALCULATION (Two Way)
-    // ======================
     if (formData.paymentMethod === "wallet") {
       let newSending = sendingMoney;
       let newReceiving = receivingMoneyInput;
 
       if (name === "sendingMoney") {
-        // calculate receiving money, but keep blank if sending is blank
         newReceiving = sendingMoney ? sendingMoney * walletRate : "";
       }
 
       if (name === "receiving_money") {
-        // calculate sending money, blank if receiving is blank
         newSending = receivingMoneyInput
           ? receivingMoneyInput / walletRate
           : "";
@@ -216,12 +213,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         receiving_money:
           newReceiving !== "" ? Math.floor(newReceiving * 100) / 100 : "",
       }));
-      // setFormData((prev) => ({
-      //   ...prev,
-      //   sendingMoney: newSending !== "" ? newSending : "",
-      //   receiving_money: newReceiving !== "" ? newReceiving : "",
-      // }));
-      // API fee calculation
+
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
@@ -298,7 +290,48 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     }
   };
 
-  // ✅ Modal layout
+  const selectedWallet = walletData.find(
+    (wallet) => wallet.id.toString() === formData.wallet_id
+  );
+
+  // Watch for wallet change
+  useEffect(() => {
+    const calculateWalletRate = async () => {
+      if (!selectedWallet) return;
+      setLoading(true);
+
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE}/wallet/walletcalculateCheck`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              wallet_id: formData.wallet_id,
+            }),
+          }
+        );
+
+        const data = await res.json();
+        console.log("response: walletrate amount: " + data.walletrate);
+
+        setFormData((prev) => ({
+          ...prev,
+          walletrate: data.walletrate,
+        }));
+      } catch (err) {
+        console.error("Error fetching wallet rate:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    calculateWalletRate();
+  }, [selectedWallet, receiving, token]); // run when selectedWallet changes
+
   return (
     <div
       className={`modal fade ${show ? "show d-block" : ""}`}

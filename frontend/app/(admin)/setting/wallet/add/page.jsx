@@ -11,8 +11,7 @@ import Link from "next/link";
 export default function UserAddPage() {
   const { token, permissions } = useAuth();
   const [user, setUser] = useState(null);
-  const [rulesType, setRoleTypes] = useState([]);
-  const pathname = usePathname();
+
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
@@ -25,37 +24,9 @@ export default function UserAddPage() {
     }
   }, [title]);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/roles/getRolesType`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const data = await res.json();
-        if (res.ok) {
-          setRoleTypes(data.data);
-        } else {
-          console.error("Auth error:", data.message);
-        }
-      } catch (err) {
-        console.error("API error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
-
   const [formData, setFormData] = useState({
     name: "",
-    role_type: "",
+    amount: "",
     status: 1,
   });
 
@@ -167,6 +138,23 @@ export default function UserAddPage() {
                       />
                       {errors.name && errors.name.length > 0 && (
                         <div className="invalid-feedback">{errors.name[0]}</div>
+                      )}
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Amount</label>
+                      <input
+                        type="text"
+                        className={`form-control ${
+                          errors.amount ? "is-invalid" : ""
+                        }`}
+                        name="amount"
+                        value={formData.amount}
+                        onChange={handleChange}
+                      />
+                      {errors.amount && errors.amount.length > 0 && (
+                        <div className="invalid-feedback">
+                          {errors.amount[0]}
+                        </div>
                       )}
                     </div>
                   </div>

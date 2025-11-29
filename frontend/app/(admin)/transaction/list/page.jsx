@@ -24,7 +24,13 @@ export default function listPage() {
   const contentRef = useRef(null);
   const { walletData } = useWallets();
   const { agentData } = useAgents();
-
+const stickyTh = {
+  position: "sticky",
+  top: 0,
+  zIndex: 10,
+  background: "#343a40",
+  color: "#fff",
+};
   // update document title
   useEffect(() => {
     if (title) {
@@ -426,7 +432,7 @@ export default function listPage() {
                         <th className="text-white" style={{ width: "15%" }}>
                           Sender Details
                         </th>
-                        <th className="text-white" style={{ width: "7%" }}>
+                        <th className="text-white" style={{ width: "5%" }}>
                           Status
                         </th>
                         <th className="text-white" style={{ width: "15%" }}>

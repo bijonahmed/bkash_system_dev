@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Wallet;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssignWallet;
 use App\Models\Roles;
 use App\Models\RolesType;
 use App\Models\Permission as ModelsPermission;
@@ -46,6 +47,7 @@ class WalletController extends Controller
             return [
                 'id'            => $item->id,
                 'name'          => Str::title(Str::replace('_', ' ', $item->name)),
+                'amount'        => $item->amount,
                 'status'        => $item->status,
             ];
         });
@@ -70,6 +72,7 @@ class WalletController extends Controller
         // dd($request->all());
         $validator = Validator::make($request->all(), [
             'name'          => 'required',
+            'amount'        => 'required',
             'status'        => 'required',
         ]);
         if ($validator->fails()) {
@@ -90,6 +93,111 @@ class WalletController extends Controller
     }
 
 
+
+
+    public function assignWallet(Request $request)
+    {
+        $user = Auth::user();
+
+        if (! $user->can('create wallet')) {
+            return response()->json([
+                'message' => 'Unauthorized: You do not have permission to create wallet',
+            ], 403);
+        }
+
+        // VALIDATION
+        $validator = Validator::make($request->all(), [
+            'agent_id'  => 'required',
+            'wallet_id' => 'required',
+            'amount'    => 'required',
+            'status'    => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // CHECK IF EXISTS
+        $exists = AssignWallet::where('agent_id', $request->agent_id)
+            ->where('wallet_id', $request->wallet_id)
+            ->first();
+
+        $data = [
+            'agent_id'  => $request->agent_id,
+            'wallet_id' => $request->wallet_id,
+            'amount'    => $request->amount,
+            'status'    => 1,
+        ];
+
+        //dd($data);
+
+        // INSERT
+        if (empty($request->id)) {
+            if ($exists) {
+                return response()->json([
+                    'message' => 'This wallet is already assigned to this agent!',
+                    'status'  => 'error'
+                ], 409);
+            }
+
+            AssignWallet::create($data);
+
+            return response()->json([
+                'message' => 'Wallet Assigned Successfully',
+                'status'  => 'success'
+            ]);
+        }
+
+        // UPDATE
+        if ($exists && $exists->id != $request->id) {
+            return response()->json([
+                'message' => 'Another record already exists with same Agent & Wallet!',
+                'status'  => 'error'
+            ], 409);
+        }
+
+        AssignWallet::where('id', $request->id)->update($data);
+
+        return response()->json([
+            'message' => 'Wallet Updated Successfully',
+            'status'  => 'success'
+        ]);
+    }
+
+
+
+
+
+    public function walletcalculateCheck(Request $request)
+    {
+
+
+        // dd($request->all());
+        $wallet_id = $request->wallet_id;
+        $user      = Auth::user();
+        $agent_id  = $user->id;
+
+        // Check general wallet and agent-specific wallet
+        $chkGeneral = Wallet::where('id', $wallet_id)->first();
+        $chkPoint   = AssignWallet::where('agent_id', $agent_id)
+            ->where('wallet_id', $wallet_id)
+            ->first();
+
+        // Determine wallet rate
+        if (!empty($chkPoint)) {
+            $walletRate = $chkPoint->amount;
+        } else {
+            $walletRate = $chkGeneral ? $chkGeneral->amount : 0; // fallback to 0 if general wallet not found
+        }
+
+        // Return JSON response
+        return response()->json([
+            'walletrate' => $walletRate,
+        ]);
+        //dd($chkPoint);
+    }
+
+
     public function update(Request $request)
     {
 
@@ -104,6 +212,7 @@ class WalletController extends Controller
         // Validate Request
         $validator = Validator::make($request->all(), [
             'name'      => 'required|unique:wallet,name,' . $id,
+            'amount'    => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -112,6 +221,7 @@ class WalletController extends Controller
         // Update Role by Role ID, not User ID!
         Wallet::where('id', $id)->update([
             'name'      => $request->name,
+            'amount'    => $request->amount,
         ]);
 
         return response()->json([

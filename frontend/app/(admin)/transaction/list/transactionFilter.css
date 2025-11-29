@@ -16,22 +16,36 @@
   background: transparent;
 }
 
-/* Responsive table */
-/* Colorful interactive table */
-
-/* Header gradient */
-.table-gradient th {
+/* ============================
+   Colorful Table Header
+============================ */
+.table thead {
   background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
-  color: white;
+}
+
+.table thead th {
+  color: #5e4545 !important;
+  text-align: center;
+  font-weight: 600;
+  border: none !important;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+/* If using .table-gradient class */
+.table-gradient th {
+  background: inherit;
+  color: rgb(27, 18, 153);
   text-align: center;
 }
 
 /* Alternate row colors */
 .table-colorful tbody tr:nth-child(odd) {
-  background-color: #f0f8ff;
+  background-color: #0a5faa;
 }
 .table-colorful tbody tr:nth-child(even) {
-  background-color: #e6f7ff;
+  background-color: #079ce0;
 }
 
 /* Balance row */
@@ -50,18 +64,17 @@
 /* Tooltips */
 .tooltip-inner {
   background-color: #333 !important;
-  color: #fff !important;
+  color: #2e1818 !important;
   font-size: 12px;
   padding: 6px 10px;
 }
 
 /* Responsive scroll */
 .overflow-auto {
-  max-height: 500px;
+  max-height: 800px;
 }
 
-
-/* initial hidden state */
+/* Card collapse */
 .card-collapse {
   max-height: 0;
   opacity: 0;
@@ -69,10 +82,30 @@
   transition: max-height 0.5s ease, opacity 0.5s ease;
 }
 
-/* expanded state */
 .card-collapse.show {
-  max-height: 1000px; /* large enough to fit content */
+  max-height: 1000px;
   opacity: 1;
 }
 
+/* Scrollable table wrapper */
+.table-wrapper {
+  max-height: 800px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
 
+
+.table thead {
+  background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%) !important;
+}
+
+.table thead th {
+  background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%) !important;
+  color: #fff !important;
+  text-align: center;
+  font-weight: 600;
+  border: none !important;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}

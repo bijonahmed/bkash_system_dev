@@ -19,7 +19,7 @@ export default function EditUserForm({ id }) {
   const [formData, setFormData] = useState({
     id: id || "",
     name: user?.name || "",
-    role_type: user?.role_type || "",
+    amount: user?.amount || "",
   });
 
   const handleChange = (e) => {
@@ -71,12 +71,12 @@ export default function EditUserForm({ id }) {
         setFormData({
           id: user.id, // ✅ now id will be included
           name: user.name ?? "",
-          role_type: user.role_type ?? "", // ensure string, not undefined
+          amount: user.amount ?? "", // ensure string, not undefined
         });
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [id,token]);
+  }, [id, token]);
 
   const pathname = usePathname();
   const title = "Wallet Edit";
@@ -155,6 +155,24 @@ export default function EditUserForm({ id }) {
                       />
                       {errors.name?.length > 0 && (
                         <div className="invalid-feedback">{errors.name[0]}</div>
+                      )}
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label">Amount</label>
+                      <input
+                        type="text"
+                        className={`form-control ${
+                          errors.amount ? "is-invalid" : ""
+                        }`}
+                        name="amount"
+                       value={formData.amount ?? ""}
+                        onChange={handleChange}
+                      />
+                      {errors.amount && errors.amount.length > 0 && (
+                        <div className="invalid-feedback">
+                          {errors.amount[0]}
+                        </div>
                       )}
                     </div>
                   </div>

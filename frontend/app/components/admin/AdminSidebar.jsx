@@ -130,7 +130,7 @@ export default function AdminSidebar() {
               },
               {
                 label: "Transaction",
-                href: "#",
+                href: "/report/transaction",
                 icon: "bi-circle",
               },
             ],

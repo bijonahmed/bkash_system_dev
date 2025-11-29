@@ -43,7 +43,7 @@ export default function SettingPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // ✅ pass token
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ ...formData }),
         }
@@ -52,7 +52,7 @@ export default function SettingPage() {
       const data = await res.json();
       if (res.ok) {
         setUser(data);
-        toast.success("updated successfully ✅"); // ✅ success toast
+        toast.success("Updated successfully");
       } else if (data.errors) {
         toast.error(Object.values(data.errors).flat().join(" "));
         setErrors(data.errors);
@@ -173,7 +173,7 @@ export default function SettingPage() {
                   <div className="card-body">
                     <div className="row">
                       {/* Left Column */}
-                      <div className="col-md-6">
+                      <div className="col-md-12">
                         <div className="mb-3">
                           <label className="form-label">Sending Currency</label>
                           <input
@@ -186,7 +186,7 @@ export default function SettingPage() {
                           />
                         </div>
 
-                        <div className="mb-3">
+                        <div className="mb-3 d-none">
                           <label className="form-label">
                             Exchange Rate (Wallet)
                           </label>
@@ -201,7 +201,7 @@ export default function SettingPage() {
                       </div>
 
                       {/* Right Column */}
-                      <div className="col-md-6">
+                      <div className="col-md-12">
                         <div className="mb-3">
                           <label className="form-label">
                             Receiving Currency

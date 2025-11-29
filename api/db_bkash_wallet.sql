@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 26, 2025 at 06:13 PM
+-- Generation Time: Nov 29, 2025 at 10:17 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,29 @@ SET time_zone = "+00:00";
 --
 -- Database: `db_bkash_wallet`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `assign_wallet`
+--
+
+CREATE TABLE `assign_wallet` (
+  `id` int(11) NOT NULL,
+  `agent_id` int(11) DEFAULT NULL,
+  `wallet_id` int(11) DEFAULT NULL,
+  `amount` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `assign_wallet`
+--
+
+INSERT INTO `assign_wallet` (`id`, `agent_id`, `wallet_id`, `amount`, `created_at`, `updated_at`) VALUES
+(1, 18, 1, 100, '2025-11-29 09:16:40', '2025-11-29 09:16:40'),
+(2, 18, 2, 500, '2025-11-29 09:17:36', '2025-11-29 09:17:36');
 
 -- --------------------------------------------------------
 
@@ -159,7 +182,7 @@ CREATE TABLE `cache` (
 --
 
 INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
-('laravel-cache-spatie.permission.cache', 'a:3:{s:5:\"alias\";a:6:{s:1:\"a\";s:2:\"id\";s:1:\"b\";s:4:\"name\";s:1:\"c\";s:10:\"guard_name\";s:1:\"d\";s:9:\"role_type\";s:1:\"e\";s:9:\"parent_id\";s:1:\"r\";s:5:\"roles\";}s:11:\"permissions\";a:58:{i:0;a:6:{s:1:\"a\";i:1;s:1:\"b\";s:9:\"view rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:1;a:6:{s:1:\"a\";i:2;s:1:\"b\";s:11:\"create rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:2;a:6:{s:1:\"a\";i:3;s:1:\"b\";s:9:\"edit rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:3;a:5:{s:1:\"a\";i:4;s:1:\"b\";s:11:\"delete rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:27;}i:4;a:6:{s:1:\"a\";i:5;s:1:\"b\";s:10:\"view users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:5;a:6:{s:1:\"a\";i:6;s:1:\"b\";s:12:\"create users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:6;a:6:{s:1:\"a\";i:7;s:1:\"b\";s:10:\"edit users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:7;a:5:{s:1:\"a\";i:8;s:1:\"b\";s:12:\"delete users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:28;}i:8;a:6:{s:1:\"a\";i:22;s:1:\"b\";s:9:\"view role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:31;s:1:\"r\";a:1:{i:0;i:1;}}i:9;a:5:{s:1:\"a\";i:23;s:1:\"b\";s:11:\"create role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:31;}i:10;a:6:{s:1:\"a\";i:24;s:1:\"b\";s:9:\"edit role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:31;s:1:\"r\";a:1:{i:0;i:1;}}i:11;a:5:{s:1:\"a\";i:25;s:1:\"b\";s:11:\"delete role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:31;}i:12;a:5:{s:1:\"a\";i:26;s:1:\"b\";s:22:\"Update website setting\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:13;a:5:{s:1:\"a\";i:27;s:1:\"b\";s:4:\"Rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:14;a:5:{s:1:\"a\";i:28;s:1:\"b\";s:15:\"User Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:15;a:5:{s:1:\"a\";i:31;s:1:\"b\";s:15:\"Role Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:16;a:5:{s:1:\"a\";i:32;s:1:\"b\";s:21:\"Permission Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:17;a:6:{s:1:\"a\";i:33;s:1:\"b\";s:15:\"view permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:18;a:6:{s:1:\"a\";i:34;s:1:\"b\";s:17:\"create permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:19;a:6:{s:1:\"a\";i:35;s:1:\"b\";s:15:\"edit permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:20;a:5:{s:1:\"a\";i:36;s:1:\"b\";s:17:\"delete permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;}i:21;a:5:{s:1:\"a\";i:57;s:1:\"b\";s:5:\"Limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:22;a:6:{s:1:\"a\";i:58;s:1:\"b\";s:10:\"view limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:23;a:6:{s:1:\"a\";i:59;s:1:\"b\";s:12:\"create limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:24;a:6:{s:1:\"a\";i:60;s:1:\"b\";s:10:\"edit limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:25;a:5:{s:1:\"a\";i:61;s:1:\"b\";s:12:\"delete limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;}i:26;a:5:{s:1:\"a\";i:62;s:1:\"b\";s:3:\"Fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:27;a:6:{s:1:\"a\";i:63;s:1:\"b\";s:8:\"view fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:28;a:6:{s:1:\"a\";i:64;s:1:\"b\";s:10:\"create fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:29;a:6:{s:1:\"a\";i:65;s:1:\"b\";s:8:\"edit fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:30;a:5:{s:1:\"a\";i:66;s:1:\"b\";s:10:\"delete fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;}i:31;a:5:{s:1:\"a\";i:74;s:1:\"b\";s:17:\"Report Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:32;a:6:{s:1:\"a\";i:75;s:1:\"b\";s:11:\"view report\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:74;s:1:\"r\";a:1:{i:0;i:1;}}i:33;a:5:{s:1:\"a\";i:76;s:1:\"b\";s:22:\"Transaction Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:0;}i:34;a:6:{s:1:\"a\";i:77;s:1:\"b\";s:16:\"view transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;s:1:\"r\";a:2:{i:0;i:1;i:1;i:2;}}i:35;a:6:{s:1:\"a\";i:78;s:1:\"b\";s:18:\"create transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;s:1:\"r\";a:2:{i:0;i:1;i:1;i:2;}}i:36;a:6:{s:1:\"a\";i:79;s:1:\"b\";s:16:\"edit transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;s:1:\"r\";a:1:{i:0;i:1;}}i:37;a:5:{s:1:\"a\";i:80;s:1:\"b\";s:18:\"delete transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;}i:38;a:5:{s:1:\"a\";i:81;s:1:\"b\";s:17:\"Wallet Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:39;a:6:{s:1:\"a\";i:82;s:1:\"b\";s:11:\"view wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:40;a:6:{s:1:\"a\";i:83;s:1:\"b\";s:13:\"create wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:41;a:6:{s:1:\"a\";i:84;s:1:\"b\";s:11:\"edit wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:42;a:5:{s:1:\"a\";i:85;s:1:\"b\";s:13:\"delete wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;}i:43;a:5:{s:1:\"a\";i:86;s:1:\"b\";s:15:\"Bank Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:44;a:6:{s:1:\"a\";i:87;s:1:\"b\";s:9:\"view bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:45;a:6:{s:1:\"a\";i:88;s:1:\"b\";s:11:\"create bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:46;a:6:{s:1:\"a\";i:89;s:1:\"b\";s:9:\"edit bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:47;a:5:{s:1:\"a\";i:90;s:1:\"b\";s:11:\"delete bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;}i:48;a:5:{s:1:\"a\";i:91;s:1:\"b\";s:17:\"Branch Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:49;a:6:{s:1:\"a\";i:92;s:1:\"b\";s:11:\"view branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:50;a:6:{s:1:\"a\";i:93;s:1:\"b\";s:13:\"create branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:51;a:6:{s:1:\"a\";i:94;s:1:\"b\";s:11:\"edit branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:52;a:5:{s:1:\"a\";i:95;s:1:\"b\";s:13:\"delete branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;}i:53;a:5:{s:1:\"a\";i:96;s:1:\"b\";s:15:\"Deposit Request\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:0;}i:54;a:6:{s:1:\"a\";i:97;s:1:\"b\";s:12:\"view deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:96;s:1:\"r\";a:2:{i:0;i:1;i:1;i:2;}}i:55;a:6:{s:1:\"a\";i:98;s:1:\"b\";s:14:\"create deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:96;s:1:\"r\";a:1:{i:0;i:2;}}i:56;a:6:{s:1:\"a\";i:99;s:1:\"b\";s:12:\"edit deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:96;s:1:\"r\";a:1:{i:0;i:1;}}i:57;a:5:{s:1:\"a\";i:100;s:1:\"b\";s:14:\"delete deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"2\";s:1:\"e\";i:96;}}s:5:\"roles\";a:2:{i:0;a:4:{s:1:\"a\";i:1;s:1:\"b\";s:5:\"admin\";s:1:\"c\";s:3:\"api\";s:1:\"d\";i:1;}i:1;a:4:{s:1:\"a\";i:2;s:1:\"b\";s:5:\"agent\";s:1:\"c\";s:3:\"api\";s:1:\"d\";i:2;}}}', 1764180107);
+('laravel-cache-spatie.permission.cache', 'a:3:{s:5:\"alias\";a:6:{s:1:\"a\";s:2:\"id\";s:1:\"b\";s:4:\"name\";s:1:\"c\";s:10:\"guard_name\";s:1:\"d\";s:9:\"role_type\";s:1:\"e\";s:9:\"parent_id\";s:1:\"r\";s:5:\"roles\";}s:11:\"permissions\";a:58:{i:0;a:6:{s:1:\"a\";i:1;s:1:\"b\";s:9:\"view rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:1;a:6:{s:1:\"a\";i:2;s:1:\"b\";s:11:\"create rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:2;a:6:{s:1:\"a\";i:3;s:1:\"b\";s:9:\"edit rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:27;s:1:\"r\";a:1:{i:0;i:1;}}i:3;a:5:{s:1:\"a\";i:4;s:1:\"b\";s:11:\"delete rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:27;}i:4;a:6:{s:1:\"a\";i:5;s:1:\"b\";s:10:\"view users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:5;a:6:{s:1:\"a\";i:6;s:1:\"b\";s:12:\"create users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:6;a:6:{s:1:\"a\";i:7;s:1:\"b\";s:10:\"edit users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:28;s:1:\"r\";a:1:{i:0;i:1;}}i:7;a:5:{s:1:\"a\";i:8;s:1:\"b\";s:12:\"delete users\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:28;}i:8;a:6:{s:1:\"a\";i:22;s:1:\"b\";s:9:\"view role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:31;s:1:\"r\";a:1:{i:0;i:1;}}i:9;a:5:{s:1:\"a\";i:23;s:1:\"b\";s:11:\"create role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:31;}i:10;a:6:{s:1:\"a\";i:24;s:1:\"b\";s:9:\"edit role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:31;s:1:\"r\";a:1:{i:0;i:1;}}i:11;a:5:{s:1:\"a\";i:25;s:1:\"b\";s:11:\"delete role\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:5:\"1,2,3\";s:1:\"e\";i:31;}i:12;a:5:{s:1:\"a\";i:26;s:1:\"b\";s:22:\"Update website setting\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:13;a:5:{s:1:\"a\";i:27;s:1:\"b\";s:4:\"Rate\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:14;a:5:{s:1:\"a\";i:28;s:1:\"b\";s:15:\"User Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:15;a:5:{s:1:\"a\";i:31;s:1:\"b\";s:15:\"Role Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:16;a:5:{s:1:\"a\";i:32;s:1:\"b\";s:21:\"Permission Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:17;a:6:{s:1:\"a\";i:33;s:1:\"b\";s:15:\"view permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:18;a:6:{s:1:\"a\";i:34;s:1:\"b\";s:17:\"create permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:19;a:6:{s:1:\"a\";i:35;s:1:\"b\";s:15:\"edit permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;s:1:\"r\";a:1:{i:0;i:1;}}i:20;a:5:{s:1:\"a\";i:36;s:1:\"b\";s:17:\"delete permission\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:32;}i:21;a:5:{s:1:\"a\";i:57;s:1:\"b\";s:5:\"Limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:22;a:6:{s:1:\"a\";i:58;s:1:\"b\";s:10:\"view limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:23;a:6:{s:1:\"a\";i:59;s:1:\"b\";s:12:\"create limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:24;a:6:{s:1:\"a\";i:60;s:1:\"b\";s:10:\"edit limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;s:1:\"r\";a:1:{i:0;i:1;}}i:25;a:5:{s:1:\"a\";i:61;s:1:\"b\";s:12:\"delete limit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:57;}i:26;a:5:{s:1:\"a\";i:62;s:1:\"b\";s:3:\"Fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:27;a:6:{s:1:\"a\";i:63;s:1:\"b\";s:8:\"view fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:28;a:6:{s:1:\"a\";i:64;s:1:\"b\";s:10:\"create fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:29;a:6:{s:1:\"a\";i:65;s:1:\"b\";s:8:\"edit fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;s:1:\"r\";a:1:{i:0;i:1;}}i:30;a:5:{s:1:\"a\";i:66;s:1:\"b\";s:10:\"delete fee\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:62;}i:31;a:5:{s:1:\"a\";i:74;s:1:\"b\";s:17:\"Report Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:32;a:6:{s:1:\"a\";i:75;s:1:\"b\";s:11:\"view report\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:74;s:1:\"r\";a:1:{i:0;i:1;}}i:33;a:5:{s:1:\"a\";i:76;s:1:\"b\";s:22:\"Transaction Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:0;}i:34;a:6:{s:1:\"a\";i:77;s:1:\"b\";s:16:\"view transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;s:1:\"r\";a:2:{i:0;i:1;i:1;i:2;}}i:35;a:6:{s:1:\"a\";i:78;s:1:\"b\";s:18:\"create transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;s:1:\"r\";a:2:{i:0;i:1;i:1;i:2;}}i:36;a:6:{s:1:\"a\";i:79;s:1:\"b\";s:16:\"edit transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;s:1:\"r\";a:1:{i:0;i:1;}}i:37;a:6:{s:1:\"a\";i:80;s:1:\"b\";s:18:\"delete transaction\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:76;s:1:\"r\";a:1:{i:0;i:1;}}i:38;a:5:{s:1:\"a\";i:81;s:1:\"b\";s:17:\"Wallet Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:39;a:6:{s:1:\"a\";i:82;s:1:\"b\";s:11:\"view wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:40;a:6:{s:1:\"a\";i:83;s:1:\"b\";s:13:\"create wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:41;a:6:{s:1:\"a\";i:84;s:1:\"b\";s:11:\"edit wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;s:1:\"r\";a:1:{i:0;i:1;}}i:42;a:5:{s:1:\"a\";i:85;s:1:\"b\";s:13:\"delete wallet\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:81;}i:43;a:5:{s:1:\"a\";i:86;s:1:\"b\";s:15:\"Bank Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:44;a:6:{s:1:\"a\";i:87;s:1:\"b\";s:9:\"view bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:45;a:6:{s:1:\"a\";i:88;s:1:\"b\";s:11:\"create bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:46;a:6:{s:1:\"a\";i:89;s:1:\"b\";s:9:\"edit bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;s:1:\"r\";a:1:{i:0;i:1;}}i:47;a:5:{s:1:\"a\";i:90;s:1:\"b\";s:11:\"delete bank\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:86;}i:48;a:5:{s:1:\"a\";i:91;s:1:\"b\";s:17:\"Branch Management\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:0;}i:49;a:6:{s:1:\"a\";i:92;s:1:\"b\";s:11:\"view branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:50;a:6:{s:1:\"a\";i:93;s:1:\"b\";s:13:\"create branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:51;a:6:{s:1:\"a\";i:94;s:1:\"b\";s:11:\"edit branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;s:1:\"r\";a:1:{i:0;i:1;}}i:52;a:5:{s:1:\"a\";i:95;s:1:\"b\";s:13:\"delete branch\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"1\";s:1:\"e\";i:91;}i:53;a:5:{s:1:\"a\";i:96;s:1:\"b\";s:15:\"Deposit Request\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:0;}i:54;a:6:{s:1:\"a\";i:97;s:1:\"b\";s:12:\"view deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:96;s:1:\"r\";a:2:{i:0;i:1;i:1;i:2;}}i:55;a:6:{s:1:\"a\";i:98;s:1:\"b\";s:14:\"create deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:96;s:1:\"r\";a:1:{i:0;i:2;}}i:56;a:6:{s:1:\"a\";i:99;s:1:\"b\";s:12:\"edit deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:3:\"1,2\";s:1:\"e\";i:96;s:1:\"r\";a:1:{i:0;i:1;}}i:57;a:5:{s:1:\"a\";i:100;s:1:\"b\";s:14:\"delete deposit\";s:1:\"c\";s:3:\"api\";s:1:\"d\";s:1:\"2\";s:1:\"e\";i:96;}}s:5:\"roles\";a:2:{i:0;a:4:{s:1:\"a\";i:1;s:1:\"b\";s:5:\"admin\";s:1:\"c\";s:3:\"api\";s:1:\"d\";i:1;}i:1;a:4:{s:1:\"a\";i:2;s:1:\"b\";s:5:\"agent\";s:1:\"c\";s:3:\"api\";s:1:\"d\";i:2;}}}', 1764440187);
 
 -- --------------------------------------------------------
 
@@ -574,7 +597,8 @@ INSERT INTO `model_has_roles` (`role_id`, `model_type`, `model_id`) VALUES
 (2, 'App\\Models\\User', 15),
 (2, 'App\\Models\\User', 16),
 (2, 'App\\Models\\User', 17),
-(2, 'App\\Models\\User', 18);
+(2, 'App\\Models\\User', 18),
+(2, 'App\\Models\\User', 20);
 
 -- --------------------------------------------------------
 
@@ -892,6 +916,7 @@ INSERT INTO `role_has_permissions` (`permission_id`, `role_id`) VALUES
 (78, 1),
 (78, 2),
 (79, 1),
+(80, 1),
 (82, 1),
 (83, 1),
 (84, 1),
@@ -1001,7 +1026,7 @@ CREATE TABLE `setting` (
 --
 
 INSERT INTO `setting` (`id`, `name`, `tel`, `email`, `address`, `whatsApp`, `bkash_number`, `emergency`, `photo`, `description`, `copyright`, `status`, `admin_photo`, `admin_name`, `admin_email`, `admin_phone`, `sending_currency`, `receiving_currency`, `exchange_rate_wallet`, `exchange_rate_bank`, `meta_keywords`, `meta_description`, `pphoto`, `bg_color`, `currency`, `reffer_bonus`, `fblink`, `twitterlink`, `linkdinlink`, `instragramlink`, `website`, `telegram`, `update_by`, `created_at`, `updated_at`) VALUES
-(1, 'XMG REMIT', '+880 1301-047166', 'info@xmg.com', '57,agpara sylhet', '#', '01740586574', '+880 1301-047166', 'pic/2tAjiUpJ0X8GziIrKJJJ.png', 'XMG REMIT is a trusted and secure international money transfer company dedicated to connecting families, friends, and businesses across borders. We make sending and receiving money simple, fast, and affordable — anytime, anywhere.\n\nOur mission is to empower people with reliable financial solutions that bridge distances and support economic growth. Whether you’re sending funds to loved ones, paying for services abroad, or managing business payments, XMG REMIT ensures your transactions are safe, transparent, and delivered on time.\n\nWe combine cutting-edge digital technology with strong global partnerships to provide seamless remittance services across multiple countries. Every transfer is backed by advanced encryption, real-time tracking, and 24/7 customer support — giving our customers confidence and peace of mind.\n\nAt XMG REMIT, we believe in more than just money transfers — we believe in strengthening human connections, supporting communities, and making global remittance easier for everyone.\n\nFast. Secure. Reliable.\nThat’s the XMG REMIT promise.', 'Copyright © 2025 xmgremit. All Rights Reserved', 1, 'pic/ZOdc8nsWAMY1YELkp9zH.jpg', 'admin', 'info@admin.com', '+44245454545', 'GBP', 'BDT', 158.00, 1.00, NULL, NULL, '', '#ffffff', '', 5, '#', 'https://www.facebook.com', 'https://web.whatsapp.com/', '#', '#', '#', 1, '2024-05-12 05:32:50', '2025-11-08 05:25:44');
+(1, 'XMG REMIT', '+880 1301-047166', 'info@xmg.com', '57,agpara sylhet', '#', '01740586574', '+880 1301-047166', 'pic/2tAjiUpJ0X8GziIrKJJJ.png', 'XMG REMIT is a trusted and secure international money transfer company dedicated to connecting families, friends, and businesses across borders. We make sending and receiving money simple, fast, and affordable — anytime, anywhere.\n\nOur mission is to empower people with reliable financial solutions that bridge distances and support economic growth. Whether you’re sending funds to loved ones, paying for services abroad, or managing business payments, XMG REMIT ensures your transactions are safe, transparent, and delivered on time.\n\nWe combine cutting-edge digital technology with strong global partnerships to provide seamless remittance services across multiple countries. Every transfer is backed by advanced encryption, real-time tracking, and 24/7 customer support — giving our customers confidence and peace of mind.\n\nAt XMG REMIT, we believe in more than just money transfers — we believe in strengthening human connections, supporting communities, and making global remittance easier for everyone.\n\nFast. Secure. Reliable.\nThat’s the XMG REMIT promise.', 'Copyright © 2025 xmgremit. All Rights Reserved', 1, 'pic/ZOdc8nsWAMY1YELkp9zH.jpg', 'admin', 'info@admin.com', '+44245454545', 'GBP', 'BDT', 158.00, 1.00, NULL, NULL, '', '#ffffff', '', 5, '#', 'https://www.facebook.com', 'https://web.whatsapp.com/', '#', '#', '#', 1, '2024-05-12 05:32:50', '2025-11-29 03:36:00');
 
 -- --------------------------------------------------------
 
@@ -1070,7 +1095,8 @@ INSERT INTO `transactions` (`id`, `agent_id`, `beneficiaryName`, `beneficiaryPho
 (4, 18, 'Fahim', '0209394394', 'unpaid', 'bank', NULL, 3, 39, 'BRAC-GLS', '343434', 0.00, 1.00, 3.00, 3.00, 156.00, 150.00, 'Kabir', 150.00, NULL, 18, '2025-11-22 23:38:14', '2025-11-22 23:38:14'),
 (5, 18, 'Amili', '293984849', 'unpaid', 'bank', NULL, 2, 38, 'DBBL-DHM', '454454545', 158.00, 1.00, 4.00, 3.00, 41.00, 34.00, 'Test', 34.00, NULL, 18, '2025-11-22 23:42:12', '2025-11-22 23:42:12'),
 (6, 1, 'Jons', '2938948494', 'paid', 'wallet', 1, NULL, NULL, NULL, NULL, 158.00, 1.00, 5.00, 2.00, 27.00, 20.00, 'Kabir', 3160.00, 'Test', 1, '2025-11-25 08:25:06', '2025-11-25 08:25:06'),
-(7, 18, 'Jons', '01915728982', 'cancel', 'wallet', 2, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 3.00, 163.00, 150.00, 'JONS', 23700.00, 'Description', 18, '2025-11-26 22:27:13', '2025-11-26 22:27:13');
+(7, 18, 'Jons', '01915728982', 'cancel', 'wallet', 2, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 2.50, 102.50, 100.00, 'JONS', 15800.00, 'Description', 1, '2025-11-26 22:27:13', '2025-11-28 22:29:04'),
+(8, 18, 'agent48', '598999265656', 'unpaid', 'wallet', 2, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 2.50, 112.50, 100.00, 'agent48', 15800.00, 'agent48', 1, '2025-11-28 23:58:17', '2025-11-29 10:47:57');
 
 -- --------------------------------------------------------
 
@@ -1118,7 +1144,11 @@ INSERT INTO `transactions_log` (`transaction_id`, `beneficiaryName`, `beneficiar
 (4, 'Fahim', '0209394394', 'unpaid', 'bank', NULL, 3, 39, 'BRAC-GLS', '343434', 0.00, 1.00, 3.00, 3.00, 156.00, 150.00, 'Kabir', 150.00, NULL, 'create', 18, '2025-11-22 17:38:14', '2025-11-22 17:38:14'),
 (5, 'Amili', '293984849', 'unpaid', 'bank', NULL, 2, 38, 'DBBL-DHM', '454454545', 158.00, 1.00, 4.00, 3.00, 41.00, 34.00, 'Test', 34.00, NULL, 'create', 18, '2025-11-22 17:42:12', '2025-11-22 17:42:12'),
 (6, 'Jons', '2938948494', 'paid', 'wallet', 1, NULL, NULL, NULL, NULL, 158.00, 1.00, 5.00, 2.00, 27.00, 20.00, 'Kabir', 3160.00, 'Test', 'create', 1, '2025-11-25 02:25:06', '2025-11-25 02:25:06'),
-(7, 'Jons', '01915728982', 'cancel', 'wallet', 2, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 3.00, 163.00, 150.00, 'JONS', 23700.00, 'Description', 'create', 18, '2025-11-26 16:27:13', '2025-11-26 16:27:13');
+(7, 'Jons', '01915728982', 'cancel', 'wallet', 2, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 3.00, 163.00, 150.00, 'JONS', 23700.00, 'Description', 'create', 18, '2025-11-26 16:27:13', '2025-11-26 16:27:13'),
+(7, 'Jons', '01915728982', 'cancel', 'wallet', 2, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 2.50, 102.50, 100.00, 'JONS', 15800.00, 'Description', 'update', 1, '2025-11-28 16:29:04', '2025-11-28 16:29:04'),
+(8, 'agent48', '598999265656', 'unpaid', 'wallet', 2, NULL, NULL, NULL, NULL, 158.00, 1.00, NULL, 2.50, 102.50, 100.00, 'agent48', 15800.00, 'agent48', 'create', 18, '2025-11-28 17:58:17', '2025-11-28 17:58:17'),
+(8, 'agent48', '598999265656', 'unpaid', 'wallet', 2, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 2.50, 112.50, 100.00, 'agent48', 15800.00, 'agent48', 'update', 1, '2025-11-29 04:47:47', '2025-11-29 04:47:47'),
+(8, 'agent48', '598999265656', 'unpaid', 'wallet', 2, NULL, NULL, NULL, NULL, 158.00, 1.00, 10.00, 2.50, 112.50, 100.00, 'agent48', 15800.00, 'agent48', 'update', 1, '2025-11-29 04:47:57', '2025-11-29 04:47:57');
 
 -- --------------------------------------------------------
 
@@ -1167,7 +1197,8 @@ INSERT INTO `users` (`id`, `name`, `email`, `role_type`, `agentCode`, `email_ver
 (16, 'test46', 'test46@gmail.com', 2, '54787878888', NULL, '$2y$12$5H4tUcmQ/YHo5j4h1H8I4ODibKCUcHhBoB/H1pYhrC6MMNssAX8qC', '48787888', 'DHK', NULL, NULL, NULL, NULL, NULL, 1, 1, NULL, NULL, NULL),
 (17, 'test47', 'test47@gmail.com', 2, '4545', NULL, '$2y$12$Xt9fkLUl34UvaaW9QctA8OdqrwuQbFBDZPC3B613Jbg9il8lCU3x6', '54878788', 'DHK', NULL, NULL, NULL, NULL, NULL, 1, 1, NULL, NULL, NULL),
 (18, 'test48', 'test48@gmail.com', 2, '989899', NULL, '$2y$12$lVzv7xxzZwOBL4TfupKOkuVcHlzGAc/H881Jp78FoGkl8rArpCr4e', '48787888', 'DHKs', NULL, NULL, NULL, NULL, NULL, 1, 1, NULL, NULL, '2025-11-08 07:58:44'),
-(19, 'Admin', 'admin123@gmail.com', 1, NULL, NULL, '$2y$12$78J9JPLbadiY4JMqG.DaNO2loD0/JeqX997RL89HogsWYyT823jdC', '5978978', 'DHK', NULL, NULL, NULL, NULL, NULL, 1, 1, NULL, NULL, '2025-11-15 13:29:41');
+(19, 'Admin', 'admin123@gmail.com', 1, NULL, NULL, '$2y$12$78J9JPLbadiY4JMqG.DaNO2loD0/JeqX997RL89HogsWYyT823jdC', '5978978', 'DHK', NULL, NULL, NULL, NULL, NULL, 1, 1, NULL, NULL, '2025-11-15 13:29:41'),
+(20, 'Test1233', 'test1233@gmail.com', 2, 'test1233@gmail.com', NULL, '$2y$12$jiUH6rk4sGVFAjwXpI.c2uiPEkIaV3l9tCtd1NbuvDHfJFLETu5MG', '5989899999', 'DHK', NULL, NULL, NULL, NULL, NULL, 1, 1, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1211,7 +1242,8 @@ INSERT INTO `users_log` (`user_id`, `type`, `name`, `email`, `role_type`, `agent
 (18, 'udpate', 'test48', 'test48@gmail.com', 'Agent', '989899', NULL, '48787888', 'DHKs', NULL, NULL, NULL, NULL, NULL, 1, NULL, 'test48', NULL, '2025-11-08 07:58:01', '2025-11-08 07:58:01'),
 (18, 'udpate', 'test48', 'test48@gmail.com', 'Agent', '989899', NULL, '48787888', 'DHKs', NULL, NULL, NULL, NULL, NULL, 1, NULL, 'Bijon Ahmed', NULL, '2025-11-08 07:58:44', '2025-11-08 07:58:44'),
 (19, 'create', 'tetsAdmin', 'testadmin@gmail.com', 'Admin', NULL, '$2y$12$ELeOHyDEs5Ls7tcUIyVJ0.yG1rQ.15Njz.rJ/K/XCT2/AsJCfKEx2', '5978978', 'DHK', NULL, NULL, NULL, NULL, NULL, 1, 'Bijon Ahmed', NULL, NULL, '2025-11-08 07:59:15', '2025-11-08 07:59:15'),
-(19, 'udpate', 'Admin', 'admin123@gmail.com', 'Admin', NULL, NULL, '5978978', 'DHK', NULL, NULL, NULL, NULL, NULL, 1, NULL, 'Bijon Ahmed', NULL, '2025-11-15 13:29:41', '2025-11-15 13:29:41');
+(19, 'udpate', 'Admin', 'admin123@gmail.com', 'Admin', NULL, NULL, '5978978', 'DHK', NULL, NULL, NULL, NULL, NULL, 1, NULL, 'Bijon Ahmed', NULL, '2025-11-15 13:29:41', '2025-11-15 13:29:41'),
+(20, 'create', 'Test1233', 'test1233@gmail.com', 'Agent', 'test1233@gmail.com', '$2y$12$ZUPqwqNArc3MynpzBhi3g.WRgj0ZYFAVYHhdCTekXC2C7YyUX31fK', '5989899999', 'DHK', NULL, NULL, NULL, NULL, NULL, 1, 'Bijon Ahmed', NULL, NULL, '2025-11-28 17:41:37', '2025-11-28 17:41:37');
 
 -- --------------------------------------------------------
 
@@ -1222,6 +1254,7 @@ INSERT INTO `users_log` (`user_id`, `type`, `name`, `email`, `role_type`, `agent
 CREATE TABLE `wallet` (
   `id` int(11) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
+  `amount` int(11) DEFAULT NULL,
   `status` int(11) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
@@ -1231,18 +1264,20 @@ CREATE TABLE `wallet` (
 -- Dumping data for table `wallet`
 --
 
-INSERT INTO `wallet` (`id`, `name`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Nagad', 1, '2025-11-07 17:16:29', '2025-11-07 17:16:34'),
-(2, 'Bkash', 1, '2025-11-07 17:16:37', '2025-11-07 17:16:40'),
-(3, 'Roket', 1, '2025-11-07 17:16:37', '2025-11-07 17:16:40'),
-(6, 'ddd', 1, '2025-11-15 16:25:31', '2025-11-15 16:25:31'),
-(7, 'ssssss', 1, '2025-11-15 16:26:27', '2025-11-15 16:26:27'),
-(8, 'baks222', 1, '2025-11-15 16:28:01', '2025-11-15 16:28:28'),
-(9, 'banks', 1, '2025-11-15 16:29:13', '2025-11-15 16:29:13');
+INSERT INTO `wallet` (`id`, `name`, `amount`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'Nagad', 158, 1, '2025-11-07 17:16:29', '2025-11-29 03:31:43'),
+(2, 'Bkash', 160, 1, '2025-11-07 17:16:37', '2025-11-29 03:31:37'),
+(3, 'Roket', 150, 1, '2025-11-07 17:16:37', '2025-11-29 03:29:59');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `assign_wallet`
+--
+ALTER TABLE `assign_wallet`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `banks`
@@ -1437,6 +1472,12 @@ ALTER TABLE `wallet`
 --
 
 --
+-- AUTO_INCREMENT for table `assign_wallet`
+--
+ALTER TABLE `assign_wallet`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `banks`
 --
 ALTER TABLE `banks`
@@ -1548,13 +1589,13 @@ ALTER TABLE `supplier`
 -- AUTO_INCREMENT for table `transactions`
 --
 ALTER TABLE `transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `wallet`

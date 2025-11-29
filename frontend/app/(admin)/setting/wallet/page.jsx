@@ -6,6 +6,8 @@ import DataTable from "react-data-table-component";
 import Link from "next/link";
 import { customStyles } from "../../../components/styles/customDataTable";
 import { useAuth } from "../../../context/AuthContext";
+import getAgents from "../../../hooks/getAgents";
+import getWallets from "../../../hooks/getWallet";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function UserPage() {
@@ -23,6 +25,9 @@ export default function UserPage() {
       document.title = title;
     }
   }, [title]);
+  const { agentData, refetch } = getAgents();
+  const { walletData } = getWallets();
+  const [errors, setErrors] = useState({});
   const [statusFilter, setStatusFilter] = useState("");
   const [data, setData] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
@@ -30,7 +35,7 @@ export default function UserPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [search, setSearch] = useState("");
-
+  const [activeTab, setActiveTab] = useState("general");
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete?")) return;
 
@@ -104,12 +109,60 @@ export default function UserPage() {
     }
   };
 
+  const [formData, setFormData] = useState({
+    id: "",
+    agent_id: "",
+    wallet_id: "",
+    amount: "",
+    status: 1,
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/wallet/assignWallet`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ...formData }),
+        }
+      );
+
+      const data = await res.json();
+      if (res.ok) {
+        //setUser(data);
+
+        toast.success("Add successfully");
+      } else if (data.errors) {
+        toast.error(Object.values(data.errors).flat().join("\n"), {
+          style: { whiteSpace: "pre-line" },
+        });
+
+        setErrors(data.errors);
+      } else {
+        toast.error(data.message || "Something went wrong!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network or server error!");
+    }
+  };
+
   useEffect(() => {
     fetchUsers(page, perPage, search);
   }, [page, perPage, search]);
 
   const columns = [
     { name: "Name", selector: (row) => row.name, sortable: true },
+    { name: "Amount", selector: (row) => `BDT ${row.amount}`, sortable: true },
     {
       name: "Status",
       selector: (row) => (row.status == 1 ? "Active" : "Inactive"),
@@ -178,70 +231,197 @@ export default function UserPage() {
         <div className="container-fluid">
           {/*begin::Row*/}
           <div className="card card-primary card-outline mb-4">
-            {/* Header */}
-            <div className="card-header">
-              <div className="card-title w-100">
-                <div className="row g-2 align-items-center">
-                  {/* Column 1: Search input */}
-                  <div className="col-12 col-md-6 col-lg-6">
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      className="form-control"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
+            <ul className="nav nav-tabs">
+              <li className="nav-item">
+                <button
+                  className={`nav-link ${
+                    activeTab === "general" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab("general")}
+                >
+                  General Wallet
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  className={`nav-link ${
+                    activeTab === "assign" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab("assign")}
+                >
+                  Assign Wallet
+                </button>
+              </li>
+            </ul>
+
+            {/* Tab Content */}
+            <div className="tab-content p-3">
+              {/* General Wallet */}
+              {activeTab === "general" && (
+                <div className="tab-pane active">
+                  <div className="card-header">
+                    <div className="card-title w-100">
+                      <div className="row g-2 align-items-center">
+                        {/* Search input */}
+                        <div className="col-12 col-md-6 col-lg-6">
+                          <input
+                            type="text"
+                            placeholder="Search..."
+                            className="form-control"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                          />
+                        </div>
+
+                        {/* Status filter */}
+                        <div className="col-4 col-md-4 col-lg-3">
+                          <select
+                            className="form-control"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                          >
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                          </select>
+                        </div>
+
+                        {/* Fetch button */}
+                        <div className="col-6 col-md-3 col-lg-2">
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary w-100"
+                            onClick={() => fetchUsers()}
+                          >
+                            Fetch
+                          </button>
+                        </div>
+
+                        {/* Add Wallet button */}
+                        <div className="col-6 col-md-3 col-lg-1 ms-auto">
+                          {perms.includes("create wallet") && (
+                            <button
+                              className="btn btn-primary w-100"
+                              onClick={() => router.push(`/setting/wallet/add`)}
+                            >
+                              Add New
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* DataTable */}
+                  <div className="card-body p-0">
+                    <DataTable
+                      columns={columns}
+                      data={data}
+                      progressPending={loading}
+                      pagination
+                      paginationServer
+                      paginationTotalRows={totalRows}
+                      onChangePage={handlePageChange}
+                      onChangeRowsPerPage={handlePerRowsChange}
+                      customStyles={customStyles}
                     />
                   </div>
-                  {/* Status Filter */}
-                  <div className="col-4 col-md-4 col-lg-3">
-                    <select
-                      className="form-control"
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                      <option value="1">Active</option>
-                      <option value="0">Inactive</option>
-                    </select>
-                  </div>
-                  {/* Column 2: Fetch button */}
-                  <div className="col-6 col-md-3 col-lg-2">
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary w-100"
-                      onClick={() => fetchUsers()}
-                    >
-                      Fetch
-                    </button>
-                  </div>
+                </div>
+              )}
 
-                  {/* Column 3: Add User button */}
-                  <div className="col-6 col-md-3 col-lg-1 ms-auto">
-                    {perms.includes("create wallet") ? (
-                      <button
-                        className="btn btn-primary w-100"
-                        onClick={() => router.push(`/setting/wallet/add`)}
-                      >
-                        Add New
-                      </button>
-                    ) : null}{" "}
+              {/* Assign Wallet */}
+              {activeTab === "assign" && (
+                <div className="tab-pane active">
+                  <div className="row">
+                    <div className="col-6"></div>
+
+                    <div className="col-6">
+                      <form onSubmit={handleSubmit}>
+                        {/*begin::Body*/}
+                        <div className="card-body">
+                          <div className="mb-3">
+                            <label className="form-label">Agent</label>
+                            <select
+                              className={`form-control ${
+                                errors.agent_id ? "is-invalid" : ""
+                              }`}
+                              name="agent_id"
+                              value={formData.name}
+                              onChange={handleChange}
+                            >
+                              <option value="">Select Name</option>
+
+                              {agentData.map((agent) => (
+                                <option key={agent.id} value={agent.id}>
+                                  {agent.name}
+                                </option>
+                              ))}
+                            </select>
+
+                            {errors.agent_id && errors.agent_id.length > 0 && (
+                              <div className="invalid-feedback">
+                                {errors.agent_id[0]}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="mb-3">
+                            <label className="form-label">Wallet</label>
+                            <select
+                              className={`form-control ${
+                                errors.wallet_id ? "is-invalid" : ""
+                              }`}
+                              name="wallet_id"
+                              value={formData.wallet_id}
+                              onChange={handleChange}
+                            >
+                              <option value="">Select Name</option>
+
+                              {walletData.map((data) => (
+                                <option key={data.id} value={data.id}>
+                                  {data.name}
+                                </option>
+                              ))}
+                            </select>
+
+                            {errors.wallet_id &&
+                              errors.wallet_id.length > 0 && (
+                                <div className="invalid-feedback">
+                                  {errors.wallet_id[0]}
+                                </div>
+                              )}
+                          </div>
+
+                          <div className="mb-3">
+                            <label className="form-label">Amount</label>
+                            <input
+                              type="text"
+                              className={`form-control ${
+                                errors.amount ? "is-invalid" : ""
+                              }`}
+                              name="amount"
+                              value={formData.amount}
+                              onChange={handleChange}
+                            />
+                            {errors.amount && errors.amount.length > 0 && (
+                              <div className="invalid-feedback">
+                                {errors.amount[0]}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {/*end::Body*/}
+                        {/*begin::Footer*/}
+                        <div className="text-end">
+                          <button type="submit" className="btn btn-primary">
+                            Submit
+                          </button>
+                        </div>
+                        {/*end::Footer*/}
+                      </form>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Body */}
-            <div className="card-body p-0">
-              <DataTable
-                columns={columns}
-                data={data}
-                progressPending={loading}
-                pagination
-                paginationServer
-                paginationTotalRows={totalRows}
-                onChangePage={handlePageChange}
-                onChangeRowsPerPage={handlePerRowsChange}
-                customStyles={customStyles}
-              />
+              )}
             </div>
           </div>
 
