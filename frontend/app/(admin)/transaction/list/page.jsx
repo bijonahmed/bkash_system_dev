@@ -47,7 +47,7 @@ export default function listPage() {
   const deleteTransaction = async (transactionId) => {
     console.log("TransactionID" + transactionId);
 
-    if (!confirm("Are you sure you want to delete this transaction  ?")) return;
+    if (!confirm("Are you sure you want to delete this transaction?")) return;
 
     try {
       const res = await fetch(

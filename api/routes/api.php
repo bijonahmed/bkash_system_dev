@@ -50,6 +50,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/getByReportLimit', [ReportController::class, 'getByReportLimit']);
         Route::get('/getByReportUser', [ReportController::class, 'getByReportUser']);
         Route::get('/getTransactionReport', [ReportController::class, 'getTransactionReport']);
+         Route::get('/getGlobalReport', [ReportController::class, 'getGlobalReport']);
     });
 
 

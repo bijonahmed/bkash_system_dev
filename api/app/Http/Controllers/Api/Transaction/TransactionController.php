@@ -298,7 +298,7 @@ class TransactionController extends Controller
     }
 
 
-public function restoreTransaction($id)
+    public function restoreTransaction($id)
     {
         $user = Auth::user();
 
@@ -323,7 +323,7 @@ public function restoreTransaction($id)
             'id' => $id,
         ], 200);
     }
-    
+
 
     public function update(Request $request)
     {

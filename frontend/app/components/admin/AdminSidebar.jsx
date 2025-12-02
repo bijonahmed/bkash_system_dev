@@ -73,9 +73,9 @@ export default function AdminSidebar() {
             icon: "bi-arrow-left-right",
           },
           {
-            label: "Admin Ledger",
-            href: "#",
-            icon: "bi-arrow-left-right",
+            label: "Global Report",
+            href: "/report/globalreport",
+            icon: "bi-circle",
           },
           {
             label: "Agent Deposit Request",
