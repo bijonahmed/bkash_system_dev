@@ -72,6 +72,11 @@ export default function AdminSidebar() {
             href: "/transaction/list",
             icon: "bi-arrow-left-right",
           },
+           {
+            label: "Agent Statement",
+            href: "/report/agentStatement",
+            icon: "bi bi-person-circle",
+          },
           {
             label: "Global Report",
             href: "/report/globalreport",

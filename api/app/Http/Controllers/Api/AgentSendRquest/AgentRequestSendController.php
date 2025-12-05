@@ -70,7 +70,7 @@ class AgentRequestSendController extends Controller
             return [
                 'id'              => $item->id,
                 'payment_method'  => ucfirst($item->payment_method),
-                'payment_date'    => $item->payment_date,
+                'payment_date'    => date("d-m-Y",strtotime($item->payment_date)),
                 'approval_status' => $item->approval_status,
                 'amount_gbp'      => $item->amount_gbp,
                 'agent_name'      => $item->agent_name,

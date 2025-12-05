@@ -124,19 +124,28 @@ class TransactionController extends Controller
             ];
         });
 
-        // Agent settlement sum
-        $agentSettlement = $results->sum(fn($item) => ($item->sendingMoney ?? 0) + ($item->fee ?? 0));
+        if ($user->hasRole('agent')) {
 
-        // Sum deposit approved
-        $depositQuery = Deposit::where('approval_status', 1);
-        if ($user->hasRole('agent')) $depositQuery->where('agent_id', $user->id);
-        $sumDepositApproved = $depositQuery->sum('amount_gbp');
+            $agentSettlement = Transaction::selectRaw('SUM(sendingMoney + fee) as total')->where('agent_id', $user->id)
+                ->value('total');
+            $sumDepositApproved = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
 
-        $getBalance = $sumDepositApproved - $agentSettlement;
+
+            $getBalance = $sumDepositApproved - $agentSettlement;
+        }
+
+
+        if ($user->hasRole('admin')) {
+            $agentSettlement = Transaction::selectRaw('SUM(sendingMoney + fee) as total')->value('total');
+
+            $depositQuery = Deposit::where('approval_status', 1);
+            $sumDepositApproved = $depositQuery->sum('amount_gbp');
+            $getBalance = $agentSettlement - $sumDepositApproved;
+        }
 
         return response()->json([
             'data' => $modifiedCollection,
-            'sumDepositApproved' => $getBalance,
+            'sumDepositApproved' => number_format($getBalance, 2),
             'total' => $total,
             'page' => $page,
             'last_page' => ceil($total / $limit),
