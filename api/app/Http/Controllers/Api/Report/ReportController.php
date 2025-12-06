@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Contracts\Permission;
 use Validator;
 use App\Helpers\PermissionHelper;
+use App\Models\AdminFundDeposit;
 use App\Models\Deposit;
 use App\Models\DepositLog;
 use App\Models\FeesLog;
@@ -130,132 +131,143 @@ class ReportController extends Controller
     }
 
 
-     public function agentReport(Request $request)
-{
-    $fromDate      = $request->input('fromDate');
-    $toDate        = $request->input('toDate');
-    $wallet_id     = $request->input('wallet_id');
-    $bank_id       = $request->input('bank_id');
-    $status        = $request->input('status');
-    $agent_id      = $request->input('agent_id');
+    public function agentReport(Request $request)
+    {
+        $fromDate      = $request->input('fromDate');
+        $toDate        = $request->input('toDate');
+        $wallet_id     = $request->input('wallet_id');
+        $bank_id       = $request->input('bank_id');
+        $status        = $request->input('status');
+        $agent_id      = $request->input('agent_id');
+        $paymentMethod = $request->input('paymentMethod');
 
-    $sl = 1;
-    $report = collect();
+        $sl = 1;
+        $report = collect();
 
-    // 1️⃣ Fetch Transactions
-    $query = Transaction::leftJoin('users as creators', 'transactions.entry_by', '=', 'creators.id')
-        ->leftJoin('wallet', 'transactions.wallet_id', '=', 'wallet.id')
-        ->leftJoin('banks', 'transactions.bank_id', '=', 'banks.id')
-        ->leftJoin('branches', 'transactions.branch_id', '=', 'branches.id')
-        ->select([
-            'transactions.*',
-            'creators.name as createdBy',
-            'wallet.name as walletName',
-            'banks.bank_name as bankName',
-            'branches.branch_name as branchName',
-            'branches.branch_code as branchCode'
-        ]);
+        // 1️⃣ Fetch Transactions
+        $query = Transaction::leftJoin('users as creators', 'transactions.entry_by', '=', 'creators.id')
+            ->leftJoin('wallet', 'transactions.wallet_id', '=', 'wallet.id')
+            ->leftJoin('banks', 'transactions.bank_id', '=', 'banks.id')
+            ->leftJoin('branches', 'transactions.branch_id', '=', 'branches.id')
+            ->select([
+                'transactions.*',
+                'creators.name as createdBy',
+                'wallet.name as walletName',
+                'banks.bank_name as bankName',
+                'branches.branch_name as branchName',
+                'branches.branch_code as branchCode'
+            ]);
 
-    if (!empty($wallet_id)) $query->where('wallet_id', $wallet_id);
-    if (!empty($bank_id)) $query->where('bank_id', $bank_id);
-    if (!empty($status)) $query->where('transactions.status', $status);
-    if (!empty($agent_id)) $query->where('agent_id', $agent_id);
-    if (!empty($fromDate)) $query->whereDate('transactions.created_at', '>=', $fromDate);
-    if (!empty($toDate)) $query->whereDate('transactions.created_at', '<=', $toDate);
+        if (!empty($wallet_id)) $query->where('wallet_id', $wallet_id);
+        if (!empty($bank_id)) $query->where('bank_id', $bank_id);
+        if (!empty($status)) $query->where('transactions.status', $status);
+        if (!empty($agent_id)) $query->where('agent_id', $agent_id);
+        if (!empty($paymentMethod)) $query->where('paymentMethod', $paymentMethod);
+        if (!empty($fromDate)) $query->whereDate('transactions.created_at', '>=', $fromDate);
+        if (!empty($toDate)) $query->whereDate('transactions.created_at', '<=', $toDate);
 
-    $total = $query->count();
+        $total = $query->count();
 
-    $transactions = $query->orderBy('transactions.created_at', 'asc')->orderBy('transactions.id', 'asc')->get();
+        $transactions = $query->orderBy('transactions.created_at', 'asc')->orderBy('transactions.id', 'asc')->get();
 
-    // 2️⃣ Fetch Deposits (all deposits in date range, not just ones linked to transactions)
-    $depositQuery = Deposit::where('approval_status', 1);
-    if (!empty($agent_id)) $depositQuery->where('agent_id', $agent_id);
-    if (!empty($fromDate)) $depositQuery->whereDate('created_at', '>=', $fromDate);
-    if (!empty($toDate)) $depositQuery->whereDate('created_at', '<=', $toDate);
+        // 2️⃣ Fetch Deposits (all deposits in date range, not just ones linked to transactions)
+        $depositQuery = Deposit::where('approval_status', 1);
+        if (!empty($agent_id)) $depositQuery->where('agent_id', $agent_id);
+        if (!empty($fromDate)) $depositQuery->whereDate('created_at', '>=', $fromDate);
+        if (!empty($toDate)) $depositQuery->whereDate('created_at', '<=', $toDate);
 
-    $deposits = $depositQuery->orderBy('created_at', 'asc')->get();
+        $deposits = $depositQuery->orderBy('created_at', 'asc')->get();
 
-    // Map deposits by agent_id + date for easy lookup
-    $depositMap = [];
-    foreach ($deposits as $dep) {
-        $key = $dep->agent_id . '|' . Carbon::parse($dep->payment_date)->format('Y-m-d');
-        // sum multiple deposits per agent per date
-        if (!isset($depositMap[$key])) {
-            $depositMap[$key] = $dep->amount_gbp;
-        } else {
-            $depositMap[$key] += $dep->amount_gbp;
+        // Map deposits by agent_id + date for easy lookup
+        $depositMap = [];
+        foreach ($deposits as $dep) {
+            $key = $dep->agent_id . '|' . Carbon::parse($dep->payment_date)->format('Y-m-d');
+            // sum multiple deposits per agent per date
+            if (!isset($depositMap[$key])) {
+                $depositMap[$key] = $dep->amount_gbp;
+            } else {
+                $depositMap[$key] += $dep->amount_gbp;
+            }
         }
-    }
 
-    // 3️⃣ Add Transaction Rows (debit)
-    foreach ($transactions as $tx) {
-        $txDateYmd = Carbon::parse($tx->created_at)->format('Y-m-d');
+        // 3️⃣ Add Transaction Rows (debit)
+        foreach ($transactions as $tx) {
+            $txDateYmd = Carbon::parse($tx->created_at)->format('Y-m-d');
 
-        $report->push([
-            'sl'              => $sl++,
-            'id'              => $tx->id,
-            'created_at'      => Carbon::parse($tx->created_at)->timezone('Asia/Dhaka')->format('d-m-Y'),
-            'senderName'      => ucfirst($tx->senderName),
-            'beneficiaryName' => $tx->beneficiaryName,
-            'paytMethod'      => ucfirst($tx->paymentMethod),
-            'beneficiaryPhone'=> $tx->beneficiaryPhone,
-            'walletrate'      => $tx->walletrate,
-            'fee'             => $tx->fee,
-            'receiving_money' => $tx->receiving_money,
-            'debit'           => (float) $tx->sendingMoney,
-            'credit'          => 0,
-        ]);
+            $rate = 0;
+            if ($tx->paymentMethod == 'wallet') {
+                $rate = $tx->walletrate;
+            } else if ($tx->paymentMethod == 'bank') {
+                $rate = $tx->bankRate;
+            }
 
-        // 4️⃣ Add Credit Row if deposit exists for this agent + date
-        $depositKey = $tx->agent_id . '|' . $txDateYmd;
-        if (isset($depositMap[$depositKey]) && $depositMap[$depositKey] > 0) {
+
             $report->push([
                 'sl'              => $sl++,
                 'id'              => $tx->id,
                 'created_at'      => Carbon::parse($tx->created_at)->timezone('Asia/Dhaka')->format('d-m-Y'),
-                'senderName'      => '',  // blank for credit row
-                'beneficiaryName' => '',  // blank for credit row
-                'paytMethod'      => '', 
-                'beneficiaryPhone'=> '',
+                'senderName'      => ucfirst($tx->senderName),
+                'beneficiaryName' => $tx->beneficiaryName,
+                'paytMethod'      => ucfirst($tx->paymentMethod),
+                'beneficiaryPhone' => $tx->beneficiaryPhone,
+
+                'walletrate'      => $rate,
+                'fee'             => $tx->fee,
+                'receiving_money' => $tx->receiving_money,
+                'debit'           => (float) $tx->sendingMoney,
+                'credit'          => 0,
+            ]);
+
+            // 4️⃣ Add Credit Row if deposit exists for this agent + date
+            $depositKey = $tx->agent_id . '|' . $txDateYmd;
+            if (isset($depositMap[$depositKey]) && $depositMap[$depositKey] > 0) {
+                $report->push([
+                    'sl'              => $sl++,
+                    'id'              => $tx->id,
+                    'created_at'      => Carbon::parse($tx->created_at)->timezone('Asia/Dhaka')->format('d-m-Y'),
+                    'senderName'      => '',  // blank for credit row
+                    'beneficiaryName' => '',  // blank for credit row
+                    'paytMethod'      => '',
+                    'beneficiaryPhone' => '',
+                    'walletrate'      => '',
+                    'fee'             => '',
+                    'receiving_money' => '',
+                    'debit'           => 0,
+                    'credit'          => $depositMap[$depositKey],
+                ]);
+
+                // Remove from map to prevent duplicate credit rows
+                unset($depositMap[$depositKey]);
+            }
+        }
+
+        // 5️⃣ Add remaining deposits that have no corresponding transaction
+        foreach ($depositMap as $key => $amount) {
+            [$agentId, $date] = explode('|', $key);
+            $report->push([
+                'sl'              => $sl++,
+                'id'              => 0, // no transaction id
+                'created_at'      => Carbon::parse($date)->timezone('Asia/Dhaka')->format('d-m-Y'),
+                'senderName'      => '',
+                'beneficiaryName' => '',
+                'paytMethod'      => '',
+                'beneficiaryPhone' => '',
                 'walletrate'      => '',
                 'fee'             => '',
                 'receiving_money' => '',
                 'debit'           => 0,
-                'credit'          => $depositMap[$depositKey],
+                'credit'          => $amount,
             ]);
-
-            // Remove from map to prevent duplicate credit rows
-            unset($depositMap[$depositKey]);
         }
-    }
 
-    // 5️⃣ Add remaining deposits that have no corresponding transaction
-    foreach ($depositMap as $key => $amount) {
-        [$agentId, $date] = explode('|', $key);
-        $report->push([
-            'sl'              => $sl++,
-            'id'              => 0, // no transaction id
-            'created_at'      => Carbon::parse($date)->timezone('Asia/Dhaka')->format('d-m-Y'),
-            'senderName'      => '',
-            'beneficiaryName' => '',
-            'paytMethod'      => '',
-            'beneficiaryPhone'=> '',
-            'walletrate'      => '',
-            'fee'             => '',
-            'receiving_money' => '',
-            'debit'           => 0,
-            'credit'          => $amount,
+        // 6️⃣ Sort by date and serial (optional)
+        $report = $report->sortBy('created_at')->values();
+
+        return response()->json([
+            'data'  => $report,
+            'total' => $total,
         ]);
     }
-
-    // 6️⃣ Sort by date and serial (optional)
-    $report = $report->sortBy('created_at')->values();
-
-    return response()->json([
-        'data'  => $report,
-        'total' => $total,
-    ]);
-}
 
 
 
@@ -273,10 +285,13 @@ class ReportController extends Controller
         $query = Transaction::leftJoin('users as creators', 'transactions.entry_by', '=', 'creators.id')
             ->leftJoin('wallet', 'transactions.wallet_id', '=', 'wallet.id')
             ->leftJoin('banks', 'transactions.bank_id', '=', 'banks.id')
+            ->leftJoin('users', 'transactions.agent_id', '=', 'users.id')
             ->leftJoin('branches', 'transactions.branch_id', '=', 'branches.id')
             ->select([
                 'transactions.*',
                 'creators.name as createdBy',
+                'users.name as agentName',
+                'users.agentCode',
                 'wallet.name as walletName',
                 'banks.bank_name as bankName',
                 'branches.branch_name as branchName',
@@ -292,36 +307,156 @@ class ReportController extends Controller
         $total = $query->count();
         $results = $query->orderByDesc('transactions.id')
             ->get();
-        // Map results (no extra queries)
-        $modifiedCollection = $results->map(function ($item) {
+
+
+
+        $getFundBalance = AdminFundDeposit::where('status', 1)->get();
+$depositAmt = (float) $getFundBalance->sum('depsoit_amount'); // total deposit
+
+$modifiedCollection = collect(); // empty collection to append rows
+
+// 1️⃣ Add the initial Deposit row
+$modifiedCollection->push([
+    'id'                => '',
+    'agentName'         => 'Deposit Amount',
+    'agentCode'         => '',
+    'beneficiaryName'   => '',
+    'beneficiaryPhone'  => '',
+    'charges'           => '',
+    'fee'               => '',
+    'totalAmount'       => '',
+    'receiving_money'   => '',
+    'sendingMoney'      => '',
+    'walletName'        => '',
+    'walletrate'        => '',
+    'bankRate'          => '',
+    'bankName'          => '',
+    'branchName'        => '',
+    'branchCode'        => '',
+    'accountNo'         => '',
+    'description'       => '',
+    'agentsettlement'   => '',
+    'totalCollection'   => '',
+    'status'            => '',
+    'paytMethod'        => '',
+    'ourProfit'         => '',
+    'senderName'        => '',
+    'paymentMethod'     => '',
+    'buyingRate'        => '',
+    'deposit_balance'   => number_format($depositAmt, 2), // show full deposit
+    'createdBy'         => '',
+    'created_at'        => '',
+]);
+
+// 2️⃣ Add transaction rows with running balance
+$runningBalance = $depositAmt; // initialize running balance
+
+$results->each(function ($item) use (&$runningBalance, $modifiedCollection) {
+
+    $paymentMethod = strtolower((string)$item->paymentMethod ?? '');
+    $rate = 0;
+    if ($paymentMethod === 'wallet') {
+        $rate = (float) ($item->walletrate ?? 0);
+    } elseif ($paymentMethod === 'bank') {
+        $rate = (float) ($item->bankRate ?? 0);
+    }
+
+    $buyingRate = $rate;
+
+    // Subtract receiving money from running balance
+    $runningBalance -= (float) ($item->receiving_money ?? 0);
+
+    $modifiedCollection->push([
+        'id'                => $item->id,
+        'agentName'         => $item->agentName ?? "",
+        'agentCode'         => $item->agentCode ?? "",
+        'beneficiaryName'   => $item->beneficiaryName,
+        'beneficiaryPhone'  => $item->beneficiaryPhone,
+        'charges'           => $item->charges,
+        'fee'               => $item->fee,
+        'totalAmount'       => $item->totalAmount,
+        'receiving_money'   => $item->receiving_money,
+        'sendingMoney'      => $item->sendingMoney,
+        'walletName'        => $item->walletName ?? '',
+        'walletrate'        => $rate,
+        'bankRate'          => $item->bankRate,
+        'bankName'          => $item->bankName ?? '',
+        'branchName'        => $item->branchName ?? '',
+        'branchCode'        => $item->branchCode ?? '',
+        'accountNo'         => $item->accountNo ?? '',
+        'description'       => $item->description ?? '',
+        'agentsettlement'   => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
+        'totalCollection'   => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
+        'status'            => ucfirst($item->status),
+        'paytMethod'        => $item->paymentMethod,
+        'ourProfit'         => "00",
+        'senderName'        => ucfirst($item->senderName),
+        'paymentMethod'     => ucfirst($item->paymentMethod),
+        'buyingRate'        => $buyingRate,
+        'deposit_balance'   => number_format($runningBalance, 2),
+        'createdBy'         => $item->createdBy ?? 'N/A',
+        'created_at'        => Carbon::parse($item->created_at)
+                                ->timezone('Asia/Dhaka')
+                                ->format('d-m-Y'),
+    ]);
+});
+    
+
+        /*
+        $getFundBalance = AdminFundDeposit::where('status', 1)->get();
+        $depositAmt     = (float) $getFundBalance->sum('depsoit_amount');
+        $buyingRate     = (float) ($getFundBalance->first()->buying_rate ?? 0);
+        $running        = $depositAmt;
+
+        $modifiedCollection = $results->map(function ($item) use (&$running, $buyingRate) {
+        $paymentMethod      = strtolower((string)$item->paymentMethod);
+      
+            $rate = 0;
+            if ($paymentMethod === 'wallet') {
+                $rate = (float) ($item->walletrate ?? 0);
+            } elseif ($paymentMethod === 'bank') {
+                $rate = (float) ($item->bankRate ?? 0);
+            }
+          
+            $buyRateValue = $buyingRate;
+            $receiving    = (float) ($item->receiving_money ?? 0);
+            $running      = $running - $receiving;
+
             return [
-                'id'                    => $item->id,
-                'beneficiaryName'       => $item->beneficiaryName,
-                'beneficiaryPhone'      => $item->beneficiaryPhone,
-                'charges'               => $item->charges,
-                'fee'                   => $item->fee,
-                'totalAmount'           => $item->totalAmount,
-                'receiving_money'       => $item->receiving_money,
-                'sendingMoney'          => $item->sendingMoney,
-                'walletName'            => $item->walletName ?? '',
-                'walletrate'            => $item->walletrate,
-                'bankRate'              => $item->bankRate,
-                'bankName'              => $item->bankName ?? '',
-                'branchName'            => $item->branchName ?? '',
-                'branchCode'            => $item->branchCode ?? '',
-                'accountNo'             => $item->accountNo ?? '',
-                'description'           => $item->description ?? '',
-                'agentsettlement'       => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
-                'status'                => ucfirst($item->status),
-                'paytMethod'            => $item->paymentMethod,
-                'senderName'            => ucfirst($item->senderName),
-                'paymentMethod'         => ucfirst($item->paymentMethod),
-                'createdBy'             => $item->createdBy ?? 'N/A',
-                'created_at'            => Carbon::parse($item->created_at)
+                'id'               => $item->id,
+                'agentName'        => $item->agentName ?? "",
+                'agentCode'        => $item->agentCode ?? "",
+                'beneficiaryName'  => $item->beneficiaryName,
+                'beneficiaryPhone' => $item->beneficiaryPhone,
+                'charges'          => $item->charges,
+                'fee'              => $item->fee,
+                'totalAmount'      => $item->totalAmount,
+                'receiving_money'  => $item->receiving_money,
+                'sendingMoney'     => $item->sendingMoney,
+                'walletName'       => $item->walletName ?? '',
+                'walletrate'       => $rate,
+                'bankRate'         => $item->bankRate,
+                'bankName'         => $item->bankName ?? '',
+                'branchName'       => $item->branchName ?? '',
+                'branchCode'       => $item->branchCode ?? '',
+                'accountNo'        => $item->accountNo ?? '',
+                'description'      => $item->description ?? '',
+                'buyingRate'       => number_format($buyRateValue, 2),
+                'agentsettlement'  => number_format((($item->sendingMoney ?? 0) + ($item->fee ?? 0)), 2),
+                'totalCollection'  => number_format((($item->sendingMoney ?? 0) + ($item->fee ?? 0)), 2),
+                'deposit_balance'  => number_format($running, 2),
+                'status'           => ucfirst($item->status),
+                'paymentMethod'    => ucfirst($item->paymentMethod),
+                'ourProfit'        => "00",
+                'createdBy'        => $item->createdBy ?? 'N/A',
+                'created_at'       => Carbon::parse($item->created_at)
                     ->timezone('Asia/Dhaka')
-                    ->format('M d, Y h:i A'),
+                    ->format('d-m-Y'),
             ];
         });
+        */
+
+
         return response()->json([
             'data' => $modifiedCollection,
             'total' => $total,

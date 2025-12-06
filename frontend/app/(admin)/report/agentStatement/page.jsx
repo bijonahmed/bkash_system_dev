@@ -67,6 +67,13 @@ export default function GlobalReportPage() {
   };
 
   const handleFilter = async () => {
+    if (formData.agent_id == "") {
+      toast.error(
+        "Please select From date and To date, and also select an agent!"
+      );
+      return false;
+    }
+
     const query = new URLSearchParams(formData).toString();
     const url = `${process.env.NEXT_PUBLIC_API_BASE}/report/agentReport?${query}`;
 
@@ -94,6 +101,27 @@ export default function GlobalReportPage() {
       setLoading(false);
     }
   };
+
+  // Calculate totals outside JSX
+  const totalWalletrate = report
+    .reduce((sum, item) => sum + parseFloat(item.walletrate || 0), 0)
+    .toFixed(2);
+
+  const totalFee = report
+    .reduce((sum, item) => sum + parseFloat(item.fee || 0), 0)
+    .toFixed(2);
+
+  const totalReceiving = report
+    .reduce((sum, item) => sum + parseFloat(item.receiving_money || 0), 0)
+    .toFixed(2);
+
+  const totalDebit = report
+    .reduce((sum, item) => sum + parseFloat(item.debit || 0), 0)
+    .toFixed(2);
+
+  const totalCredit = report
+    .reduce((sum, item) => sum + parseFloat(item.credit || 0), 0)
+    .toFixed(2);
 
   if (!permissions.includes("view report")) {
     router.replace("/dashboard");
@@ -168,7 +196,7 @@ export default function GlobalReportPage() {
                     value={formData.paymentMethod}
                     onChange={handleChange}
                   >
-                    <option value="">===Select===</option>
+                    <option value="">=====All Payment Method=====</option>
                     <option value="wallet">Wallet</option>
                     <option value="bank">Bank</option>
                   </select>
@@ -236,8 +264,9 @@ export default function GlobalReportPage() {
                     className="form-select"
                     value={formData.agent_id}
                     onChange={handleChange}
+                    required
                   >
-                    <option value="">=========Select=========</option>
+                    <option value="">=========Select Agent=========</option>
                     {agentData.map((ag) => (
                       <option key={ag.id} value={ag.id}>
                         {ag.name}
@@ -280,13 +309,13 @@ export default function GlobalReportPage() {
                             <th>Date</th>
                             <th>Sender</th>
                             <th>Reciver</th>
-                            <th>Method</th>
+                            <th className="text-center">Method</th>
                             <th>Mobile</th>
-                            <th>Agent Rate</th>
-                            <th>Sending Charge</th>
-                            <th>Reciving Amount</th>
-                            <th>Debit (£)</th>
-                            <th>Credit (£)</th>
+                            <th className="text-end">Agent Rate</th>
+                            <th className="text-end">Sending Charge</th>
+                            <th className="text-end">Reciving Amount</th>
+                            <th className="text-end">Debit (£)</th>
+                            <th className="text-end">Credit (£)</th>
                           </tr>
                         </thead>
 
@@ -295,65 +324,86 @@ export default function GlobalReportPage() {
                             <>
                               {report.map((item, index) => (
                                 <tr key={index + 1}>
-                                  <td className="text-center">{index+1}</td>
+                                  <td className="text-center">{index + 1}</td>
                                   <td>{item.created_at}</td>
 
                                   {item.debit === 0 ? (
                                     <>
                                       <td
                                         colSpan="7"
-                                        className="text-center text-primary fw-bold"
+                                        className="text-center text-primary fw-bold bg-solid"
                                       >
                                         BANKING
                                       </td>
                                     </>
                                   ) : (
-                                    // Debit row: show normal transaction info
                                     <>
                                       <td>{item.senderName}</td>
                                       <td>{item.beneficiaryName}</td>
-                                      <td>{item.paytMethod}</td>
-                                      <td>{item.beneficiaryPhone}</td>
-                                      <td>{item.walletrate}</td>
-                                      <td>{item.fee}</td>
-                                      <td>{item.receiving_money}</td>
+                                      <td className="text-center">
+                                        {item.paytMethod}
+                                      </td>
+                                      <td className="text-center">
+                                        {item.beneficiaryPhone}
+                                      </td>
+                                      <td className="text-end">
+                                        {item.walletrate}
+                                      </td>
+                                      <td className="text-end">{item.fee}</td>
+                                      <td className="text-end">
+                                        {item.receiving_money}
+                                      </td>
                                     </>
                                   )}
-
-                                  {/* Debit column */}
-                                  <td>{item.debit}</td>
-
-                                  {/* Credit column */}
-                                  <td>{item.credit}</td>
+                                  <td className="text-end">{item.debit}</td>
+                                  <td className="text-end">{item.credit}</td>
                                 </tr>
                               ))}
 
                               {/* ==== TOTAL ROW ==== */}
                               <tr className="fw-bold bg-light">
-                                <td colSpan="3" className="text-end">
+                                <td colSpan="6" className="text-end">
                                   Total →
                                 </td>
-                                <td className="text-center">
-                                  GBP{" "}
+                                <td className="text-end">
                                   {report.reduce(
                                     (sum, item) =>
-                                      sum + Number(item.charges || 0),
+                                      sum + Number(item.walletrate || 0),
                                     0
                                   )}
+                                  Tk.
                                 </td>
-                                <td className="text-center">
+                                <td className="text-end">
                                   GBP{" "}
                                   {report.reduce(
                                     (sum, item) => sum + Number(item.fee || 0),
                                     0
                                   )}
+                                  £
                                 </td>
-                                <td className="text-center">
+                                <td className="text-end">
                                   {report.reduce(
                                     (sum, item) =>
-                                      sum + Number(item.agentsettlement || 0),
+                                      sum + Number(item.receiving_money || 0),
+                                    0
+                                  )}{" "}
+                                  BDT.
+                                </td>
+                                <td className="text-end">
+                                  {report.reduce(
+                                    (sum, item) =>
+                                      sum + Number(item.debit || 0),
                                     0
                                   )}
+                                  £
+                                </td>
+                                <td className="text-end">
+                                  {report.reduce(
+                                    (sum, item) =>
+                                      sum + Number(item.credit || 0),
+                                    0
+                                  )}
+                                  £
                                 </td>
                               </tr>
                             </>
@@ -367,6 +417,39 @@ export default function GlobalReportPage() {
                               </td>
                             </tr>
                           )}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="summary mt-3 p-0 border rounded shadow-sm overflow-hidden">
+                      <h5 className="mb-0 p-2 bg-light border-bottom text-center">
+                        Summary
+                      </h5>
+                      <table className="table table-hover table-sm mb-0">
+                        <tbody>
+                          <tr>
+                            <td>Total Wallet Rate:</td>
+                            <td className="text-end">{totalWalletrate} Tk.</td>
+                          </tr>
+                          <tr>
+                            <td>Total Fee:</td>
+                            <td className="text-end">GBP {totalFee} £</td>
+                          </tr>
+                          <tr>
+                            <td>Total Receiving Amount:</td>
+                            <td className="text-end">{totalReceiving} BDT</td>
+                          </tr>
+                          <tr>
+                            <td>Total Debit:</td>
+                            <td className="text-end">{totalDebit} £</td>
+                          </tr>
+                          <tr>
+                            <td>Total Credit:</td>
+                            <td className="text-end">{totalCredit} £</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Calculate Balance:</strong></td>
+                            <td className="text-end"><b>{totalCredit - totalDebit}</b></td>
+                          </tr>
                         </tbody>
                       </table>
                     </div>

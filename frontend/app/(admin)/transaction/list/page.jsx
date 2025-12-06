@@ -552,7 +552,8 @@ export default function listPage() {
                           <tr key={item.id} className="table-row bg-light">
                             {/* or bg-info, bg-warning, bg-success, etc. */}
                             <td>
-                              {index + 1 + (currentPage - 1) * filters.limit}
+                              {/* {index + 1 + (currentPage - 1) * filters.limit} */}
+                              {item.id}
                             </td>
                             <td>
                               {item.createdBy}

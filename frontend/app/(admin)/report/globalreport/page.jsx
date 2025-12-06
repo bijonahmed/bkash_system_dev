@@ -277,11 +277,18 @@ export default function GlobalReportPage() {
                         <thead>
                           <tr>
                             <th className="text-center">#</th>
+                            <th>Date</th>
                             <th>Agent Name</th>
-                            <th className="text-center">Status</th>
-                            <th className="text-center">Charges</th>
+                            <th>Agent Code</th>
+                            <th>Method</th>
+                            <th className="text-center">Buying Rate</th>
+                            <th className="text-center">Agent Rate</th>
+                            <th className="text-center">Receiving Amount</th>
                             <th className="text-center">Admin Fee</th>
+                            <th className="text-center">Total Collection</th>
                             <th className="text-center">Agent Settlement</th>
+                            <th className="text-center">Our Profit</th>
+                            <th className="text-center">Deposit Balance</th>
                           </tr>
                         </thead>
 
@@ -290,52 +297,93 @@ export default function GlobalReportPage() {
                             <>
                               {report.map((item, index) => (
                                 <tr key={item.id}>
-                                  <td className="text-center">{index + 1}</td>
-                                  <td>
-                                    {item.createdBy}
-                                    <small className="text-muted">
-                                      &nbsp;({item.created_at})
-                                    </small>
-                                  </td>
-
-                                  <td className="text-center">{item.status}</td>
+                                  <td className="text-center">{item.id}</td>
+                                  <td>{item.created_at}</td>
+                                  <td>{item.agentName}</td>
+                                  <td>{item.agentCode}</td>
+                                  <td>{item.paymentMethod}</td>
 
                                   <td className="text-center">
-                                    GBP {item.charges}
+                                    {item.buyingRate}
                                   </td>
                                   <td className="text-center">
-                                    GBP {item.fee}
+                                    {item.walletrate}
                                   </td>
+                                  <td className="text-center">
+                                    {item.receiving_money}
+                                  </td>
+                                  <td className="text-center">
+                                    {item.fee}
+                                  </td>
+                                 
+                                  <td className="text-center">
+                                    {item.totalCollection}
+                                  </td>
+
                                   <td className="text-center">
                                     {item.agentsettlement}
+                                  </td>
+                                
+                                  <td className="text-center">
+                                    {item.ourProfit}
+                                  </td>
+                                  <td className="text-center">
+                                    {item.deposit_balance}
                                   </td>
                                 </tr>
                               ))}
 
-                              {/* ==== TOTAL ROW ==== */}
+                              {/* TOTAL ROW */}
                               <tr className="fw-bold bg-light">
-                                <td colSpan="3" className="text-end">
+                                <td colSpan="6" className="text-end">
                                   Total →
                                 </td>
+
                                 <td className="text-center">
-                                  GBP{" "}
                                   {report.reduce(
-                                    (sum, item) =>
-                                      sum + Number(item.charges || 0),
-                                    0
-                                  )}
-                                </td>
-                                <td className="text-center">
-                                  GBP{" "}
-                                  {report.reduce(
-                                    (sum, item) => sum + Number(item.fee || 0),
+                                    (sum, i) => sum + Number(i.ourCharge || 0),
                                     0
                                   )}
                                 </td>
                                 <td className="text-center">
                                   {report.reduce(
-                                    (sum, item) =>
-                                      sum + Number(item.agentsettlement || 0),
+                                    (sum, i) =>
+                                      sum + Number(i.dailyChargeProfit || 0),
+                                    0
+                                  )}
+                                </td>
+                                <td className="text-center">
+                                  {report.reduce(
+                                    (sum, i) =>
+                                      sum + Number(i.totalCollection || 0),
+                                    0
+                                  )}
+                                </td>
+
+                                <td className="text-center">
+                                  {report.reduce(
+                                    (sum, i) =>
+                                      sum + Number(i.agentSettlement || 0),
+                                    0
+                                  )}
+                                </td>
+                                <td className="text-center">
+                                  {report.reduce(
+                                    (sum, i) =>
+                                      sum + Number(i.ourSettlement || 0),
+                                    0
+                                  )}
+                                </td>
+                                <td className="text-center">
+                                  {report.reduce(
+                                    (sum, i) => sum + Number(i.ourProfit || 0),
+                                    0
+                                  )}
+                                </td>
+                                <td className="text-center">
+                                  {report.reduce(
+                                    (sum, i) =>
+                                      sum + Number(i.depositBalance || 0),
                                     0
                                   )}
                                 </td>
@@ -344,7 +392,7 @@ export default function GlobalReportPage() {
                           ) : (
                             <tr>
                               <td
-                                colSpan="6"
+                                colSpan="15"
                                 className="text-center text-muted"
                               >
                                 No transactions found

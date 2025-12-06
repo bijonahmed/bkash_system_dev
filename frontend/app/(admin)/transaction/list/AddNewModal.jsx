@@ -32,7 +32,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     accountNo: "",
     sendingMoney: 0,
     walletrate: 0,
-    bankRate: 0,
+    bankRate: 1,
     receivingMoney: "",
     charges: "",
     fee: "",
@@ -154,7 +154,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       (name === "sendingMoney" || name === "bankRate")
     ) {
       const receiving = (sendingMoney * bankRate).toString();
-
       setFormData((prev) => ({
         ...prev,
         receiving_money: receiving,
@@ -178,11 +177,54 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         );
 
         const data = await res.json();
+        console.log("Response:" + data.fee);
 
         setFormData((prev) => ({
           ...prev,
           fee: data.fee || 0,
-          totalAmount: Math.floor((sendingMoney + (data.fee || 0)) * 100) / 100, //sendingMoney + (data.fee || 0),
+          totalAmount:
+            parseFloat(sendingMoney || 0) + (parseFloat(data.fee) || 0),
+        }));
+      } catch (error) {
+        console.error("Fee calc failed:", error);
+      }
+      return;
+    }
+
+    if (formData.paymentMethod === "bank" && name === "receiving_money") {
+      const newReceiving = parseFloat(value) || 0;
+      const sending = bankRate ? (newReceiving / bankRate).toString() : "0";
+
+      // update sendingMoney
+      setFormData((prev) => ({
+        ...prev,
+        sendingMoney: sending,
+      }));
+
+      // fee API call
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              paymentMethod: "bank",
+              receiving_money: newReceiving,
+            }),
+          }
+        );
+
+        const data = await res.json();
+        console.log("Response:" + data.fee);
+
+        setFormData((prev) => ({
+          ...prev,
+          fee: data.fee || 0,
+          totalAmount: parseFloat(sending || 0) + (parseFloat(data.fee) || 0),
         }));
       } catch (error) {
         console.error("Fee calc failed:", error);
