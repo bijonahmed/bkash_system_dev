@@ -18,6 +18,8 @@ class Transaction extends Model
         'bank_id',
         'branch_id',
         'branchCode',
+        'admin_fund_deposit_id',
+        'admin_buying_rate',
         'accountNo',
         'sendingMoney',
         'walletrate',

@@ -12,6 +12,7 @@ class AdminFundDeposit extends Model
     protected $fillable = [
         'deposit_by',
         'buying_rate',
+        'reason',
         'depsoit_amount',
         'status',
     ];

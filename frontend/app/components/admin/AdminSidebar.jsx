@@ -72,7 +72,7 @@ export default function AdminSidebar() {
             href: "/transaction/list",
             icon: "bi-arrow-left-right",
           },
-           {
+          {
             label: "Agent Statement",
             href: "/report/agentStatement",
             icon: "bi bi-person-circle",
@@ -155,7 +155,11 @@ export default function AdminSidebar() {
               { label: "Wallet", href: "/setting/wallet", icon: "bi-circle" },
               { label: "Bank", href: "/setting/bank", icon: "bi-circle" },
               { label: "Branch", href: "/setting/branch", icon: "bi-circle" },
-
+              {
+                label: "Admin Fund Deposit",
+                href: "/setting//adminFundDeposit",
+                icon: "bi-circle",
+              },
               { label: "Company Setting", href: "/setting", icon: "bi-circle" },
             ],
           },

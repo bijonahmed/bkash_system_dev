@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
@@ -9,34 +8,28 @@ import useSetting from "../../../hooks/getSetting.js";
 import useWallets from "../../../hooks/getWallet";
 import useAgents from "../../../hooks/getAgents.js";
 import useBank from "../../../hooks/getBanks";
-
+import "../../transaction/list/transactionFilter.css";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 export default function GlobalReportPage() {
   const router = useRouter();
   const { token, permissions } = useAuth();
-
   const [loading, setLoading] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
   const [showBank, setShowBank] = useState(false);
-
   const { settingData } = useSetting();
   const { walletData } = useWallets();
   const { bankData } = useBank();
   const { agentData } = useAgents();
-
+  const pathname = usePathname();
+  const title = "Global Report";
   const perms = Array.isArray(permissions)
     ? permissions
     : permissions?.split(",") || [];
-
-  const pathname = usePathname();
-
-  const title = "Global Report";
-
   useEffect(() => {
     document.title = title;
   }, [title]);
-
   const [report, setReportData] = useState([]);
-
   const [formData, setFormData] = useState({
     fromDate: "",
     toDate: "",
@@ -46,8 +39,6 @@ export default function GlobalReportPage() {
     status: "",
     agent_id: "",
   });
-
-  // Toggle Wallet/Bank inputs
   useEffect(() => {
     if (formData.paymentMethod === "wallet") {
       setShowWallet(true);
@@ -60,46 +51,89 @@ export default function GlobalReportPage() {
       setShowBank(false);
     }
   }, [formData.paymentMethod]);
-
-  // Form input handler
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
   const handleFilter = async () => {
     const query = new URLSearchParams(formData).toString();
     const url = `${process.env.NEXT_PUBLIC_API_BASE}/report/getGlobalReport?${query}`;
-
     try {
       setLoading(true);
-
       const res = await fetch(url, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = await res.json();
-
       if (res.ok) {
         toast.success("Loading...");
         setReportData(data.data);
       } else {
         toast.error(data.message || "Something went wrong!");
       }
-    } catch (error) {
+    } catch {
       toast.error("Network or server error!");
     } finally {
       setLoading(false);
     }
   };
-
+  // 📌 TABLE REF HERE — IMPORTANT
+  const tableRef = useRef();
+  // 🎯 EXCEL EXPORT WITH BORDER, AUTO WIDTH, CLEAN FORMAT
+  const exportToExcel = async () => {
+    if (!tableRef.current) {
+      toast.error("No table to export");
+      return;
+    }
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Report");
+    const table = tableRef.current;
+    const rows = Array.from(table.querySelectorAll("tr"));
+    rows.forEach((tr, rowIndex) => {
+      const cells = Array.from(tr.querySelectorAll("th,td"));
+      const rowValues = cells.map((cell) => {
+        const text = cell.innerText.trim();
+        const number = Number(text.replace(/,/g, ""));
+        return isFinite(number) && text !== "" ? number : text;
+      });
+      const excelRow = worksheet.addRow(rowValues);
+      // Header formatting
+      if (rowIndex === 0) {
+        excelRow.eachCell((cell) => {
+          cell.font = { bold: true };
+          cell.alignment = { vertical: "middle", horizontal: "center" };
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFEFEFEF" },
+          };
+        });
+      }
+      // Add borders for ALL cells
+      excelRow.eachCell((cell) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+      });
+    });
+    // Auto column width
+    worksheet.columns.forEach((col) => {
+      let maxWidth = 10;
+      col.eachCell({ includeEmpty: true }, (cell) => {
+        const len = cell.value ? cell.value.toString().length : 10;
+        if (len > maxWidth) maxWidth = len;
+      });
+      col.width = maxWidth + 3;
+    });
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), "Global-Report.xlsx");
+  };
   if (!permissions.includes("view report")) {
     router.replace("/dashboard");
     return null;
   }
-
   return (
     <main className="app-main" id="main" tabIndex={-1}>
       <div className="app-content-header">
@@ -129,9 +163,7 @@ export default function GlobalReportPage() {
           </div>
         </div>
       </div>
-
       <Toaster position="top-right" />
-
       <div className="app-content">
         <div className="container-fluid">
           <div className="card card-primary card-outline mb-4">
@@ -148,7 +180,6 @@ export default function GlobalReportPage() {
                     onChange={handleChange}
                   />
                 </div>
-
                 <div className="col-md-2">
                   <label>To Date</label>
                   <input
@@ -159,7 +190,6 @@ export default function GlobalReportPage() {
                     onChange={handleChange}
                   />
                 </div>
-
                 <div className="col-md-2">
                   <label>Payment Method</label>
                   <select
@@ -173,8 +203,6 @@ export default function GlobalReportPage() {
                     <option value="bank">Bank</option>
                   </select>
                 </div>
-
-                {/* Wallet Dropdown */}
                 {showWallet && (
                   <div className="col-md-2">
                     <label>Wallet</label>
@@ -193,8 +221,6 @@ export default function GlobalReportPage() {
                     </select>
                   </div>
                 )}
-
-                {/* Bank Dropdown */}
                 {showBank && (
                   <div className="col-md-2">
                     <label>Bank</label>
@@ -204,7 +230,7 @@ export default function GlobalReportPage() {
                       value={formData.bank_id}
                       onChange={handleChange}
                     >
-                      <option value="">Select Bank</option>
+                      <option value="">===Select===</option>
                       {bankData.map((b) => (
                         <option key={b.id} value={b.id}>
                           {b.bank_name}
@@ -213,7 +239,6 @@ export default function GlobalReportPage() {
                     </select>
                   </div>
                 )}
-
                 <div className="col-md-1">
                   <label>Status</label>
                   <select
@@ -228,7 +253,6 @@ export default function GlobalReportPage() {
                     <option value="cancel">Cancel</option>
                   </select>
                 </div>
-
                 <div className="col-md-2">
                   <label>Agent</label>
                   <select
@@ -245,7 +269,6 @@ export default function GlobalReportPage() {
                     ))}
                   </select>
                 </div>
-
                 <div className="col-md-1 d-flex align-items-end">
                   <button
                     type="button"
@@ -257,153 +280,114 @@ export default function GlobalReportPage() {
                 </div>
               </form>
             </div>
-
-            {/* Report Table */}
+            {report.length > 0 ? (
+              <center>
+                <button
+                  onClick={exportToExcel}
+                  className="btn btn-success mb-3"
+                >
+                  Export to Excel
+                </button>
+              </center>
+            ) : null}
+            {/* TABLE SECTION */}
             <div className="card-body">
-              <h6 className="fw-bold mb-3 text-dark">{title}</h6>
-
-              <div className="table-responsive">
-                {loading ? (
-                  <div
-                    className="d-flex justify-content-center align-items-center"
-                    style={{ minHeight: "200px" }}
-                  >
-                    <div className="spinner-border text-primary"></div>
-                  </div>
-                ) : (
-                  <div className="bg-light p-3 rounded shadow-sm">
-                    <div className="overflow-auto">
-                      <table className="table table-sm table-bordered table-hover">
-                        <thead>
-                          <tr>
-                            <th className="text-center">#</th>
-                            <th>Date</th>
-                            <th>Agent Name</th>
-                            <th>Agent Code</th>
-                            <th>Method</th>
-                            <th className="text-center">Buying Rate</th>
-                            <th className="text-center">Agent Rate</th>
-                            <th className="text-center">Receiving Amount</th>
-                            <th className="text-center">Admin Fee</th>
-                            <th className="text-center">Total Collection</th>
-                            <th className="text-center">Agent Settlement</th>
-                            <th className="text-center">Our Profit</th>
-                            <th className="text-center">Deposit Balance</th>
+              {/* <h6 className="fw-bold mb-3 text-dark">{title}</h6> */}
+              <div className="table-responsive bg-light p-3 rounded shadow-sm">
+                <table
+                  ref={tableRef}
+                  className="table table-sm table-hover table-bordered table-colorful"
+                  border="1"
+                  style={{ width: "100%", borderCollapse: "collapse" }}
+                >
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Date</th>
+                      <th>Agent Name</th>
+                      <th>Agent Code</th>
+                      <th>Method</th>
+                      <th>Buying Rate</th>
+                      <th>Agent Rate</th>
+                      <th>Receiving Amount</th>
+                      <th>Admin Fee</th>
+                      <th>Agent Settlement</th>
+                      <th>Our Profit</th>
+                      <th>Deposit Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {report.length > 0 ? (
+                      <>
+                        {report.map((item) => (
+                          <tr key={item.id}>
+                            <td>{item.id}</td>
+                            <td>{item.created_at}</td>
+                            <td>{item.agentName}</td>
+                            <td>{item.agentCode}</td>
+                            <td>{item.paymentMethod}</td>
+                            <td>{item.buyingRate}</td>
+                            <td>{item.walletrate}</td>
+                            <td>{item.receiving_money}</td>
+                            <td>{item.fee}</td>
+                            <td>{item.agentsettlement}</td>
+                            <td>{item.ourProfit}</td>
+                            <td>{item.deposit_balance}</td>
                           </tr>
-                        </thead>
-
-                        <tbody>
-                          {report.length > 0 ? (
-                            <>
-                              {report.map((item, index) => (
-                                <tr key={item.id}>
-                                  <td className="text-center">{item.id}</td>
-                                  <td>{item.created_at}</td>
-                                  <td>{item.agentName}</td>
-                                  <td>{item.agentCode}</td>
-                                  <td>{item.paymentMethod}</td>
-
-                                  <td className="text-center">
-                                    {item.buyingRate}
-                                  </td>
-                                  <td className="text-center">
-                                    {item.walletrate}
-                                  </td>
-                                  <td className="text-center">
-                                    {item.receiving_money}
-                                  </td>
-                                  <td className="text-center">
-                                    {item.fee}
-                                  </td>
-                                 
-                                  <td className="text-center">
-                                    {item.totalCollection}
-                                  </td>
-
-                                  <td className="text-center">
-                                    {item.agentsettlement}
-                                  </td>
-                                
-                                  <td className="text-center">
-                                    {item.ourProfit}
-                                  </td>
-                                  <td className="text-center">
-                                    {item.deposit_balance}
-                                  </td>
-                                </tr>
-                              ))}
-
-                              {/* TOTAL ROW */}
-                              <tr className="fw-bold bg-light">
-                                <td colSpan="6" className="text-end">
-                                  Total →
-                                </td>
-
-                                <td className="text-center">
-                                  {report.reduce(
-                                    (sum, i) => sum + Number(i.ourCharge || 0),
-                                    0
-                                  )}
-                                </td>
-                                <td className="text-center">
-                                  {report.reduce(
-                                    (sum, i) =>
-                                      sum + Number(i.dailyChargeProfit || 0),
-                                    0
-                                  )}
-                                </td>
-                                <td className="text-center">
-                                  {report.reduce(
-                                    (sum, i) =>
-                                      sum + Number(i.totalCollection || 0),
-                                    0
-                                  )}
-                                </td>
-
-                                <td className="text-center">
-                                  {report.reduce(
-                                    (sum, i) =>
-                                      sum + Number(i.agentSettlement || 0),
-                                    0
-                                  )}
-                                </td>
-                                <td className="text-center">
-                                  {report.reduce(
-                                    (sum, i) =>
-                                      sum + Number(i.ourSettlement || 0),
-                                    0
-                                  )}
-                                </td>
-                                <td className="text-center">
-                                  {report.reduce(
-                                    (sum, i) => sum + Number(i.ourProfit || 0),
-                                    0
-                                  )}
-                                </td>
-                                <td className="text-center">
-                                  {report.reduce(
-                                    (sum, i) =>
-                                      sum + Number(i.depositBalance || 0),
-                                    0
-                                  )}
-                                </td>
-                              </tr>
-                            </>
-                          ) : (
-                            <tr>
-                              <td
-                                colSpan="15"
-                                className="text-center text-muted"
-                              >
-                                No transactions found
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
+                        ))}
+                        {/* TOTAL ROW */}
+                        <tr className="fw-bold bg-light">
+                          <td colSpan="5" className="text-end">
+                            Total →
+                          </td>
+                          <td>
+                            {report.reduce(
+                              (sum, i) => sum + Number(i.buyingRate || 0),
+                              0
+                            )}
+                          </td>
+                          <td>
+                            {report.reduce(
+                              (sum, i) => sum + Number(i.walletrate || 0),
+                              0
+                            )}
+                          </td>
+                          <td>
+                            {report.reduce(
+                              (sum, i) => sum + Number(i.receiving_money || 0),
+                              0
+                            )}
+                          </td>
+                          <td>
+                            {report.reduce(
+                              (sum, i) => sum + Number(i.fee || 0),
+                              0
+                            )}
+                          </td>
+                          <td>
+                            {report.reduce(
+                              (sum, i) => sum + Number(i.agentsettlement || 0),
+                              0
+                            )}
+                          </td>
+                          <td>
+                            {report.reduce(
+                              (sum, i) => sum + Number(i.ourProfit || 0),
+                              0
+                            )}
+                          </td>
+                          <td></td>
+                        </tr>
+                      </>
+                    ) : (
+                      <tr>
+                        <td colSpan="12" className="text-center text-muted">
+                          No transactions found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

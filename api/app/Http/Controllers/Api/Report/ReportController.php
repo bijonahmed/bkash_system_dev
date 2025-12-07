@@ -311,96 +311,97 @@ class ReportController extends Controller
 
 
         $getFundBalance = AdminFundDeposit::where('status', 1)->get();
-$depositAmt = (float) $getFundBalance->sum('depsoit_amount'); // total deposit
+        $depositAmt = (float) $getFundBalance->sum('depsoit_amount'); // total deposit
 
-$modifiedCollection = collect(); // empty collection to append rows
+        $modifiedCollection = collect(); // empty collection to append rows
 
-// 1️⃣ Add the initial Deposit row
-$modifiedCollection->push([
-    'id'                => '',
-    'agentName'         => 'Deposit Amount',
-    'agentCode'         => '',
-    'beneficiaryName'   => '',
-    'beneficiaryPhone'  => '',
-    'charges'           => '',
-    'fee'               => '',
-    'totalAmount'       => '',
-    'receiving_money'   => '',
-    'sendingMoney'      => '',
-    'walletName'        => '',
-    'walletrate'        => '',
-    'bankRate'          => '',
-    'bankName'          => '',
-    'branchName'        => '',
-    'branchCode'        => '',
-    'accountNo'         => '',
-    'description'       => '',
-    'agentsettlement'   => '',
-    'totalCollection'   => '',
-    'status'            => '',
-    'paytMethod'        => '',
-    'ourProfit'         => '',
-    'senderName'        => '',
-    'paymentMethod'     => '',
-    'buyingRate'        => '',
-    'deposit_balance'   => number_format($depositAmt, 2), // show full deposit
-    'createdBy'         => '',
-    'created_at'        => '',
-]);
+        // 1️⃣ Add the initial Deposit row
+        $modifiedCollection->push([
+            'id'                => '',
+            'agentName'         => 'Deposit Amount',
+            'agentCode'         => '',
+            'beneficiaryName'   => '',
+            'beneficiaryPhone'  => '',
+            'charges'           => '',
+            'fee'               => '',
+            'totalAmount'       => '',
+            'receiving_money'   => '',
+            'sendingMoney'      => '',
+            'walletName'        => '',
+            'walletrate'        => '',
+            'bankRate'          => '',
+            'bankName'          => '',
+            'branchName'        => '',
+            'branchCode'        => '',
+            'accountNo'         => '',
+            'description'       => '',
+            'agentsettlement'   => '',
+            'totalCollection'   => '',
+            'status'            => '',
+            'paytMethod'        => '',
+            'ourProfit'         => '',
+            'senderName'        => '',
+            'paymentMethod'     => '',
+            'buyingRate'        => '',
+            'deposit_balance'   => number_format($depositAmt, 2), // show full deposit
+            'createdBy'         => '',
+            'created_at'        => '',
+        ]);
 
-// 2️⃣ Add transaction rows with running balance
-$runningBalance = $depositAmt; // initialize running balance
+        // 2️⃣ Add transaction rows with running balance
+        $runningBalance = $depositAmt; // initialize running balance
 
-$results->each(function ($item) use (&$runningBalance, $modifiedCollection) {
+        $results->each(function ($item) use (&$runningBalance, $modifiedCollection) {
 
-    $paymentMethod = strtolower((string)$item->paymentMethod ?? '');
-    $rate = 0;
-    if ($paymentMethod === 'wallet') {
-        $rate = (float) ($item->walletrate ?? 0);
-    } elseif ($paymentMethod === 'bank') {
-        $rate = (float) ($item->bankRate ?? 0);
-    }
+            $paymentMethod = strtolower((string)$item->paymentMethod ?? '');
+            $rate = 0;
+            if ($paymentMethod === 'wallet') {
+                $rate = (float) ($item->walletrate ?? 0);
+            } elseif ($paymentMethod === 'bank') {
+                $rate = (float) ($item->bankRate ?? 0);
+            }
 
-    $buyingRate = $rate;
 
-    // Subtract receiving money from running balance
-    $runningBalance -= (float) ($item->receiving_money ?? 0);
+            // Subtract receiving money from running balance
+            $buyingRate = $item->admin_buying_rate ?? 0;
+            $runningBalance -= (float) ($item->receiving_money ?? 0);
+            $ourProfit = ($buyingRate ?? 0) - ($rate ?? 0);
 
-    $modifiedCollection->push([
-        'id'                => $item->id,
-        'agentName'         => $item->agentName ?? "",
-        'agentCode'         => $item->agentCode ?? "",
-        'beneficiaryName'   => $item->beneficiaryName,
-        'beneficiaryPhone'  => $item->beneficiaryPhone,
-        'charges'           => $item->charges,
-        'fee'               => $item->fee,
-        'totalAmount'       => $item->totalAmount,
-        'receiving_money'   => $item->receiving_money,
-        'sendingMoney'      => $item->sendingMoney,
-        'walletName'        => $item->walletName ?? '',
-        'walletrate'        => $rate,
-        'bankRate'          => $item->bankRate,
-        'bankName'          => $item->bankName ?? '',
-        'branchName'        => $item->branchName ?? '',
-        'branchCode'        => $item->branchCode ?? '',
-        'accountNo'         => $item->accountNo ?? '',
-        'description'       => $item->description ?? '',
-        'agentsettlement'   => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
-        'totalCollection'   => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
-        'status'            => ucfirst($item->status),
-        'paytMethod'        => $item->paymentMethod,
-        'ourProfit'         => "00",
-        'senderName'        => ucfirst($item->senderName),
-        'paymentMethod'     => ucfirst($item->paymentMethod),
-        'buyingRate'        => $buyingRate,
-        'deposit_balance'   => number_format($runningBalance, 2),
-        'createdBy'         => $item->createdBy ?? 'N/A',
-        'created_at'        => Carbon::parse($item->created_at)
-                                ->timezone('Asia/Dhaka')
-                                ->format('d-m-Y'),
-    ]);
-});
-    
+            $modifiedCollection->push([
+                'id'                => $item->id,
+                'agentName'         => $item->agentName ?? "",
+                'agentCode'         => $item->agentCode ?? "",
+                'beneficiaryName'   => $item->beneficiaryName,
+                'beneficiaryPhone'  => $item->beneficiaryPhone,
+                'charges'           => $item->charges,
+                'fee'               => $item->fee,
+                'totalAmount'       => $item->totalAmount,
+                'receiving_money'   => $item->receiving_money,
+                'sendingMoney'      => $item->sendingMoney,
+                'walletName'        => $item->walletName ?? '',
+                'walletrate'        => $rate,
+                'bankRate'          => $item->bankRate,
+                'bankName'          => $item->bankName ?? '',
+                'branchName'        => $item->branchName ?? '',
+                'branchCode'        => $item->branchCode ?? '',
+                'accountNo'         => $item->accountNo ?? '',
+                'description'       => $item->description ?? '',
+                'agentsettlement'   => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
+                'totalCollection'   => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
+                'status'            => ucfirst($item->status),
+                'paytMethod'        => $item->paymentMethod,
+                'ourProfit'         => $ourProfit,
+                'senderName'        => ucfirst($item->senderName),
+                'paymentMethod'     => ucfirst($item->paymentMethod),
+                'buyingRate'        => $buyingRate,
+                'deposit_balance'   => number_format($runningBalance, 2),
+                'createdBy'         => $item->createdBy ?? 'N/A',
+                'created_at'        => Carbon::parse($item->created_at)
+                    ->timezone('Asia/Dhaka')
+                    ->format('d-m-Y'),
+            ]);
+        });
+
 
         /*
         $getFundBalance = AdminFundDeposit::where('status', 1)->get();

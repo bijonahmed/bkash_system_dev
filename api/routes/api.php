@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdminFundDeposit\AdminFundDepositController;
 use App\Http\Controllers\Api\AgentSendRquest\AgentRequestSendController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Bank\BankController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Api\Report\ReportController;
 use App\Http\Controllers\Api\Settings\SettingsController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
 use App\Http\Controllers\Api\Wallet\WalletController;
+use App\Models\AdminFundDeposit;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('api')->group(function () {
@@ -73,6 +75,17 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/checkrow/{id}', [BankController::class, 'checkrow']);
         Route::DELETE('/delete/{id}', [BankController::class, 'destroy']);
     });
+
+ Route::prefix('adminFundDeposit')->group(function () {
+        Route::get('/index', [AdminFundDepositController::class, 'index']);
+        Route::post('/create', [AdminFundDepositController::class, 'store']);
+        Route::post('/update', [AdminFundDepositController::class, 'update']);
+        Route::get('/checkrow/{id}', [AdminFundDepositController::class, 'checkrow']);
+        Route::DELETE('/delete/{id}', [AdminFundDepositController::class, 'destroy']);
+    });
+
+
+
 
     Route::prefix('branch')->group(function () {
         Route::get('/index', [BranchController::class, 'index']);

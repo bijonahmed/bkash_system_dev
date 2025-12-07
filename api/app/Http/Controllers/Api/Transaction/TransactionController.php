@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Transaction;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminFundDeposit;
 use App\Models\Banks;
 use App\Models\Branch;
 use App\Models\Deposit;
@@ -234,6 +235,11 @@ class TransactionController extends Controller
         $data['agent_id'] = $user->id;
         $data['status'] = "unpaid";
 
+        $chkAdminFund= AdminFundDeposit::where('status',1)->orderBy('id','desc')->first();
+
+        $data['admin_fund_deposit_id'] = !empty($chkAdminFund) ? $chkAdminFund->id : "";
+        $data['admin_buying_rate']     = !empty($chkAdminFund) ? $chkAdminFund->buying_rate : "";
+        //dd($data);
         $transaction      = Transaction::create($data);
 
         Transactionlog::create(array_merge($data, [
