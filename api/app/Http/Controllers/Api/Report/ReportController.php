@@ -130,7 +130,111 @@ class ReportController extends Controller
         ], 200);
     }
 
+    public function agentReport(Request $request)
+    {
+        $fromDate      = $request->input('fromDate');
+        $toDate        = $request->input('toDate');
+        $wallet_id     = $request->input('wallet_id');
+        $bank_id       = $request->input('bank_id');
+        $status        = $request->input('status');
+        $agent_id      = $request->input('agent_id');
+        $paymentMethod = $request->input('paymentMethod');
 
+        $sl = 1;
+
+        // Prepare Transactions query
+        $query = Transaction::leftJoin('users as creators', 'transactions.entry_by', '=', 'creators.id')
+            ->leftJoin('wallet', 'transactions.wallet_id', '=', 'wallet.id')
+            ->leftJoin('banks', 'transactions.bank_id', '=', 'banks.id')
+            ->leftJoin('branches', 'transactions.branch_id', '=', 'branches.id')
+            ->leftJoin(
+                DB::raw('(SELECT agent_id, DATE(payment_date) as pay_date, SUM(amount_gbp) as total_deposit
+                             FROM deposit 
+                             WHERE approval_status = 1
+                             GROUP BY agent_id, DATE(payment_date)) as deposit_summary'),
+                function ($join) {
+                    $join->on('transactions.agent_id', '=', 'deposit_summary.agent_id')
+                        ->on(DB::raw('DATE(transactions.created_at)'), '=', 'deposit_summary.pay_date');
+                }
+            )
+            ->where('transactions.transection_status', 1)
+            ->where('transactions.status', '!=', 'cancel')
+            ->selectRaw('transactions.id, transactions.agent_id, transactions.senderName, transactions.beneficiaryName, transactions.beneficiaryPhone,
+                     transactions.paymentMethod, transactions.sendingMoney, transactions.receiving_money, transactions.fee,
+                     transactions.walletrate, transactions.bankRate,
+                     creators.name as createdBy,
+                     wallet.name as walletName,
+                     banks.bank_name as bankName,
+                     branches.branch_name as branchName,
+                     branches.branch_code as branchCode,
+                     DATE_FORMAT(transactions.created_at, "%d-%m-%Y") as created_at_formatted,
+                     COALESCE(deposit_summary.total_deposit,0) as deposit_amount');
+
+        // Apply filters
+        if (!empty($wallet_id)) $query->where('transactions.wallet_id', $wallet_id);
+        if (!empty($bank_id)) $query->where('transactions.bank_id', $bank_id);
+        if (!empty($status)) $query->where('transactions.status', $status);
+        if (!empty($agent_id)) $query->where('transactions.agent_id', $agent_id);
+        if (!empty($paymentMethod)) $query->where('transactions.paymentMethod', $paymentMethod);
+        if (!empty($fromDate)) $query->whereDate('transactions.created_at', '>=', $fromDate);
+        if (!empty($toDate)) $query->whereDate('transactions.created_at', '<=', $toDate);
+
+        $total = $query->count();
+
+        $transactions = $query->orderBy('transactions.created_at', 'asc')
+            ->orderBy('transactions.id', 'asc')
+            ->get();
+
+        // Prepare report
+        $report = collect();
+        foreach ($transactions as $tx) {
+            $rate = $tx->paymentMethod == 'wallet' ? $tx->walletrate : ($tx->paymentMethod == 'bank' ? $tx->bankRate : 0);
+
+            // Debit row (transaction)
+            $report->push([
+                'sl'               => $sl++,
+                'id'               => $tx->id,
+                'created_at'       => $tx->created_at_formatted,
+                'senderName'       => ucfirst($tx->senderName),
+                'beneficiaryName'  => $tx->beneficiaryName,
+                'paytMethod'       => ucfirst($tx->paymentMethod),
+                'beneficiaryPhone' => $tx->beneficiaryPhone,
+                'walletrate'       => $rate,
+                'fee'              => $tx->fee,
+                'receiving_money'  => $tx->receiving_money,
+                'debit'            => (float) $tx->sendingMoney,
+                'credit'           => 0,
+            ]);
+
+            // Credit row (deposit)
+            if ($tx->deposit_amount > 0) {
+                $report->push([
+                    'sl'               => $sl++,
+                    'id'               => $tx->id,
+                    'created_at'       => $tx->created_at_formatted,
+                    'senderName'       => '',
+                    'beneficiaryName'  => '',
+                    'paytMethod'       => '',
+                    'beneficiaryPhone' => '',
+                    'walletrate'       => '',
+                    'fee'              => '',
+                    'receiving_money'  => '',
+                    'debit'            => 0,
+                    'credit'           => $tx->deposit_amount,
+                ]);
+            }
+        }
+
+        // Sort by date and serial if needed
+        $report = $report->sortBy('created_at')->values();
+
+        return response()->json([
+            'data'  => $report,
+            'total' => $total,
+        ]);
+    }
+
+    /*
     public function agentReport(Request $request)
     {
         $fromDate      = $request->input('fromDate');
@@ -144,11 +248,13 @@ class ReportController extends Controller
         $sl = 1;
         $report = collect();
 
-        // 1️⃣ Fetch Transactions
+       
         $query = Transaction::leftJoin('users as creators', 'transactions.entry_by', '=', 'creators.id')
             ->leftJoin('wallet', 'transactions.wallet_id', '=', 'wallet.id')
             ->leftJoin('banks', 'transactions.bank_id', '=', 'banks.id')
             ->leftJoin('branches', 'transactions.branch_id', '=', 'branches.id')
+            ->where('transactions.transection_status', 1)
+            ->where('transactions.status', '!=', 'cancel')
             ->select([
                 'transactions.*',
                 'creators.name as createdBy',
@@ -200,7 +306,6 @@ class ReportController extends Controller
             } else if ($tx->paymentMethod == 'bank') {
                 $rate = $tx->bankRate;
             }
-
 
             $report->push([
                 'sl'              => $sl++,
@@ -268,6 +373,7 @@ class ReportController extends Controller
             'total' => $total,
         ]);
     }
+        */
 
 
 

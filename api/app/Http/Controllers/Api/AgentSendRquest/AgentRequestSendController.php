@@ -35,7 +35,8 @@ class AgentRequestSendController extends Controller
         $pageSize        = $request->input('pageSize', 10);
         $selectedFilter  = $request->selectedFilter;
 
-
+        $agent_id  = $request->agent_id;
+        $status    = $request->status;
 
 
         $query = Deposit::select(
@@ -57,11 +58,20 @@ class AgentRequestSendController extends Controller
                 ->orderBy('deposit.id', 'desc');
         }
 
+        if ($agent_id !== null) {
+            $query->where('deposit.agent_id', $agent_id);
+        }
 
+         if ($status !== null) {
+            $query->where('deposit.status', $status);
+        }
 
         if ($selectedFilter !== null) {
             $query->where('deposit.approval_status', $selectedFilter);
         }
+
+
+
 
         $paginator = $query->paginate($pageSize, ['*'], 'page', $page);
 
@@ -70,7 +80,7 @@ class AgentRequestSendController extends Controller
             return [
                 'id'              => $item->id,
                 'payment_method'  => ucfirst($item->payment_method),
-                'payment_date'    => date("d-m-Y",strtotime($item->payment_date)),
+                'payment_date'    => date("d-m-Y", strtotime($item->payment_date)),
                 'approval_status' => $item->approval_status,
                 'amount_gbp'      => $item->amount_gbp,
                 'agent_name'      => $item->agent_name,

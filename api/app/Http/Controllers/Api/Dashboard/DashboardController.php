@@ -20,6 +20,7 @@ use PhpParser\Node\Stmt\Catch_;
 use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Support\Str;
 use Validator;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -37,9 +38,18 @@ class DashboardController extends Controller
 
             $data['agentList']           = User::where('role_type', 2)->where('status', 1)->count();
             if ($user->hasRole('admin')) {
+                $agentSettlement = Transaction::sum(DB::raw('sendingMoney + fee'));
+                $sumDepositApproved = Deposit::where('approval_status', 1)->sum('amount_gbp');
+                $data['balance'] = $agentSettlement - $sumDepositApproved;
+
                 $data['depositApproved'] = Deposit::where('approval_status', 1)
                     ->sum('amount_gbp');
             } else if ($user->hasRole('agent')) {
+
+                $agentSettlement = Transaction::where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
+                $sumDepositApproved = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
+                $data['balance'] = $sumDepositApproved - $agentSettlement;
+
                 $data['depositApproved'] = Deposit::where('approval_status', 1)
                     ->where('agent_id', $user->id)
                     ->sum('amount_gbp');

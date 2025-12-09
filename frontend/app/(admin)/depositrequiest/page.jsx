@@ -7,6 +7,7 @@ import Link from "next/link";
 import { customStyles } from "../../components/styles/customDataTable";
 import { useAuth } from "../../context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
+import useAgents from "../../hooks/getAgents.js";
 
 export default function DepositRequestPage() {
   const router = useRouter();
@@ -34,17 +35,65 @@ export default function DepositRequestPage() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  const { agentData } = useAgents();
+  const [formData, setFormData] = useState({
+    id: "",
+    payment_method: "",
+    payment_date: "",
+    approval_status: "",
+    amount_gbp: "",
+    agent_id: "",
+    status: "",
+    attachment: null,
+  });
+  const handleFilter = async () => {
+    if (formData.agent_id == "") {
+      toast.error(
+        "Please select From date and To date, and also select an agent!"
+      );
+      return false;
+    }
+
+    const query = new URLSearchParams(formData).toString();
+    const url = `${process.env.NEXT_PUBLIC_API_BASE}/report/agentReport?${query}`;
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Loading...");
+        setReportData(data.data);
+      } else {
+        toast.error(data.message || "Something went wrong!");
+      }
+    } catch (error) {
+      toast.error("Network or server error!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchData = async (
     page = 1,
     pageSize = 10,
     searchQuery = "",
-    selectedFilter = statusFilter !== "" ? statusFilter : ""
+    selectedFilter = statusFilter !== "" ? statusFilter : "",
+    agent_id = formData.agent_id,
+    status = formData.status
   ) => {
     setLoading(true);
 
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/deposit-request/index?page=${page}&pageSize=${pageSize}&searchQuery=${searchQuery}&selectedFilter=${selectedFilter}`;
+      const url = `${process.env.NEXT_PUBLIC_API_BASE}/deposit-request/index?page=${page}&pageSize=${pageSize}&searchQuery=${searchQuery}&selectedFilter=${selectedFilter}&agent_id=${agent_id}&status=${status}`;
 
       const res = await fetch(url, {
         method: "GET",
@@ -82,15 +131,6 @@ export default function DepositRequestPage() {
   useEffect(() => {
     fetchData(page, perPage, search);
   }, [page, perPage, search]);
-
-  const [formData, setFormData] = useState({
-    id: "",
-    payment_method: "",
-    payment_date: "",
-    approval_status: "",
-    amount_gbp: "",
-    attachment: null,
-  });
 
   useEffect(() => {
     if (selectedRow) {
@@ -159,6 +199,7 @@ export default function DepositRequestPage() {
       data.append("payment_date", formData.payment_date);
       data.append("approval_status", 0);
       data.append("amount_gbp", formData.amount_gbp);
+
       if (formData.attachment) {
         data.append("attachment", formData.attachment);
       }
@@ -296,7 +337,12 @@ export default function DepositRequestPage() {
           {/*begin::Row*/}
           <div className="row">
             <div className="col-sm-6">
-              <h3 className="mb-0">{title} <span className="text-success">(Approval Amount GBP {approvalAmount})</span></h3>
+              <h3 className="mb-0">
+                {title}{" "}
+                <span className="text-success">
+                  (Approval Amount GBP {approvalAmount})
+                </span>
+              </h3>
             </div>
             <div className="col-sm-6">
               <ol className="breadcrumb float-sm-end">
@@ -311,6 +357,11 @@ export default function DepositRequestPage() {
           </div>
           {/*end::Row*/}
         </div>
+
+        {/* Start */}
+         
+        {/* END */}
+
         {/*end::Container*/}
       </div>
 
@@ -319,8 +370,6 @@ export default function DepositRequestPage() {
       <div className="app-content">
         {/*begin::Container*/}
         <div className="container-fluid">
-          
-
           {/*begin::Row*/}
           <div className="card card-primary card-outline mb-4">
             {/* Header */}
@@ -330,7 +379,26 @@ export default function DepositRequestPage() {
                   {/* Column 1: Search input */}
 
                   {/* Status Filter */}
-                  <div className="col-8 col-md-8 col-lg-9">
+
+                    <div className="col-md-4">
+              <select
+                name="agent_id"
+                className="form-select"
+                value={formData.agent_id}
+                onChange={handleChange}
+                required
+              >
+                <option value="">All Agent</option>
+                {agentData.map((ag) => (
+                  <option key={ag.id} value={ag.id}>
+                    {ag.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+
+                  <div className="col-4 col-md-4 col-lg-4">
                     <select
                       className="form-control"
                       value={statusFilter}

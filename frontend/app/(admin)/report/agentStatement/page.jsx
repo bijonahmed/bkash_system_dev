@@ -185,6 +185,7 @@ export default function GlobalReportPage() {
                     className="form-control"
                     value={formData.toDate}
                     onChange={handleChange}
+                    lang="en-GB"
                   />
                 </div>
 
@@ -312,7 +313,7 @@ export default function GlobalReportPage() {
                             <th className="text-center">Method</th>
                             <th>Mobile</th>
                             <th className="text-end">Agent Rate</th>
-                            <th className="text-end">Sending Charge</th>
+                            <th className="text-end">Admin Fee</th>
                             <th className="text-end">Reciving Amount</th>
                             <th className="text-end">Debit (£)</th>
                             <th className="text-end">Credit (£)</th>
@@ -355,17 +356,20 @@ export default function GlobalReportPage() {
                                       </td>
                                     </>
                                   )}
-                                  <td className="text-end">{item.debit}</td>
+                                  <td className="text-end">
+                                    {/* {item.debit} */}
+                                    {Number(item.debit) + Number(item.fee)}
+                                  </td>
                                   <td className="text-end">{item.credit}</td>
                                 </tr>
                               ))}
 
                               {/* ==== TOTAL ROW ==== */}
                               <tr className="fw-bold bg-light">
-                                <td colSpan="6" className="text-end">
+                                <td colSpan="7" className="text-end">
                                   Total →
                                 </td>
-                                <td className="text-end">
+                                <td className="text-end d-none">
                                   {report.reduce(
                                     (sum, item) =>
                                       sum + Number(item.walletrate || 0),
@@ -390,11 +394,15 @@ export default function GlobalReportPage() {
                                   BDT.
                                 </td>
                                 <td className="text-end">
-                                  {report.reduce(
-                                    (sum, item) =>
-                                      sum + Number(item.debit || 0),
-                                    0
-                                  )}
+                                  {report
+                                    .reduce(
+                                      (sum, item) =>
+                                        sum +
+                                        (Number(item.debit || 0) +
+                                          Number(item.fee || 0)),
+                                      0
+                                    )
+                                    .toFixed(2)}{" "}
                                   £
                                 </td>
                                 <td className="text-end">
@@ -427,8 +435,8 @@ export default function GlobalReportPage() {
                       <table className="table table-hover table-sm mb-0">
                         <tbody>
                           <tr>
-                            <td>Total Wallet Rate:</td>
-                            <td className="text-end">{totalWalletrate} Tk.</td>
+                            <td>Number of Transaction:</td>
+                            <td className="text-end">{report.length}</td>
                           </tr>
                           <tr>
                             <td>Total Fee:</td>
@@ -440,15 +448,30 @@ export default function GlobalReportPage() {
                           </tr>
                           <tr>
                             <td>Total Debit:</td>
-                            <td className="text-end">{totalDebit} £</td>
+                            <td className="text-end">
+                              {report
+                                .reduce(
+                                  (sum, item) =>
+                                    sum +
+                                    (Number(item.debit || 0) +
+                                      Number(item.fee || 0)),
+                                  0
+                                )
+                                .toFixed(2)}{" "}
+                              £
+                            </td>
                           </tr>
                           <tr>
                             <td>Total Credit:</td>
                             <td className="text-end">{totalCredit} £</td>
                           </tr>
                           <tr>
-                            <td><strong>Calculate Balance:</strong></td>
-                            <td className="text-end"><b>{totalCredit - totalDebit}</b></td>
+                            <td>
+                              <strong>Calculate Balance:</strong>
+                            </td>
+                            <td className="text-end">
+                              <b>{totalCredit - totalDebit}</b>
+                            </td>
                           </tr>
                         </tbody>
                       </table>

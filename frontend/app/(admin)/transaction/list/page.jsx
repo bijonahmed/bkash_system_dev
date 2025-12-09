@@ -572,36 +572,42 @@ export default function listPage() {
                               <br />
                               <span
                                 className={`badge ${
-                                  item.paymentMethod.toLowerCase() === "bank"
+                                  (item.paytMethod || "").toLowerCase() ===
+                                  "bank"
                                     ? "bg-primary"
                                     : "bg-danger"
                                 }`}
                               >
-                                {item.paymentMethod.charAt(0).toUpperCase() +
-                                  item.paymentMethod.slice(1)}
+                                {(item.paytMethod || "N/A")
+                                  .charAt(0)
+                                  .toUpperCase() +
+                                  (item.paytMethod || "N/A").slice(1)}
 
-                                {item?.paymentMethod?.toLowerCase() ===
+                                {item?.paytMethod?.toLowerCase() ===
                                 "wallet" ? (
-                                  <>&nbsp;({item.walletName})</>
+                                  <>&nbsp;({item.walletName || ""})</>
                                 ) : (
-                                  <>&nbsp;({item.bankName})</>
+                                  <>&nbsp;({item.bankName || ""})</>
                                 )}
                               </span>
                             </td>
+
                             <td>
                               <span
                                 className={`badge ${
-                                  item.status.toLowerCase() === "paid"
+                                  (item.status || "").toLowerCase() === "paid"
                                     ? "bg-success"
-                                    : item.status.toLowerCase() === "unpaid"
+                                    : (item.status || "").toLowerCase() ===
+                                      "unpaid"
                                     ? "bg-warning"
                                     : "bg-danger"
                                 }`}
                               >
-                                {item.status.charAt(0).toUpperCase() +
-                                  item.status.slice(1)}
+                                {(item.status || "").charAt(0).toUpperCase() +
+                                  (item.status || "").slice(1)}
                               </span>
                             </td>
+
                             <td>
                               {item.paytMethod === "wallet" ? (
                                 <>
@@ -682,7 +688,9 @@ export default function listPage() {
                                   <>
                                     <button
                                       className="btn btn-sm btn-danger"
-                                      onClick={() => restoreTransaction(item.id)}
+                                      onClick={() =>
+                                        restoreTransaction(item.id)
+                                      }
                                     >
                                       <i className="bi bi-arrow-counterclockwise"></i>
                                     </button>
