@@ -359,7 +359,7 @@ export default function DepositRequestPage() {
         </div>
 
         {/* Start */}
-         
+
         {/* END */}
 
         {/*end::Container*/}
@@ -379,24 +379,24 @@ export default function DepositRequestPage() {
                   {/* Column 1: Search input */}
 
                   {/* Status Filter */}
-
+                  {roles.includes("admin") && (
                     <div className="col-md-4">
-              <select
-                name="agent_id"
-                className="form-select"
-                value={formData.agent_id}
-                onChange={handleChange}
-                required
-              >
-                <option value="">All Agent</option>
-                {agentData.map((ag) => (
-                  <option key={ag.id} value={ag.id}>
-                    {ag.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+                      <select
+                        name="agent_id"
+                        className="form-select"
+                        value={formData.agent_id}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="">All Agent</option>
+                        {agentData.map((ag) => (
+                          <option key={ag.id} value={ag.id}>
+                            {ag.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
 
                   <div className="col-4 col-md-4 col-lg-4">
                     <select

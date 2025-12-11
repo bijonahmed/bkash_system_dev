@@ -130,6 +130,7 @@ class ReportController extends Controller
         ], 200);
     }
 
+    /*
     public function agentReport(Request $request)
     {
         $fromDate      = $request->input('fromDate');
@@ -233,8 +234,56 @@ class ReportController extends Controller
             'total' => $total,
         ]);
     }
+*/
 
-    /*
+    public function allAgentReport(Request $request)
+    {
+        $agent_id = $request->input('agent_id');
+
+        // ===== AGENT BALANCES =====
+        $allAgents = User::where('role_type', 2)
+            ->where('status', 1)
+            ->when($agent_id, function ($query, $agent_id) {
+                return $query->where('id', $agent_id);
+            })
+            ->get();
+
+        $agentBalances = [];
+
+        foreach ($allAgents as $agent) {
+
+            // Transactions sum
+            $agentSettlement = Transaction::where('agent_id', $agent->id)
+                ->where('transection_status', 1)
+                //->where('status', '!=', 'cancel')
+                ->sum(DB::raw('sendingMoney + fee'));
+
+            // Deposits sum
+            $sumDepositApproved = Deposit::where('agent_id', $agent->id)
+                ->where('approval_status', 1)
+                ->sum('amount_gbp');
+
+            // Calculate balance
+            $getBalance = $sumDepositApproved - $agentSettlement;
+
+            $agentBalances[] = [
+                'agent_id'        => $agent->id,
+                'agent_name'      => $agent->name,
+                'phone_number'    => $agent->phone_number,
+                'agentCode'       => $agent->agentCode,
+                'settlement'      => number_format($agentSettlement, 2),
+                'depositApproved' => number_format($sumDepositApproved, 2),
+                'balance'         => number_format($getBalance, 2),
+            ];
+        }
+
+        // Return JSON
+        return response()->json([
+            'data' => $agentBalances,
+        ]);
+    }
+
+
     public function agentReport(Request $request)
     {
         $fromDate      = $request->input('fromDate');
@@ -248,7 +297,7 @@ class ReportController extends Controller
         $sl = 1;
         $report = collect();
 
-       
+
         $query = Transaction::leftJoin('users as creators', 'transactions.entry_by', '=', 'creators.id')
             ->leftJoin('wallet', 'transactions.wallet_id', '=', 'wallet.id')
             ->leftJoin('banks', 'transactions.bank_id', '=', 'banks.id')
@@ -373,7 +422,7 @@ class ReportController extends Controller
             'total' => $total,
         ]);
     }
-        */
+
 
 
 

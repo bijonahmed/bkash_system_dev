@@ -61,6 +61,20 @@ export default function AdminSidebar() {
             href: "/depositrequiest",
             icon: "bi-arrow-left-right",
           },
+          {
+            label: "Transaction Setting",
+            href: "#",
+            icon: "bi-clipboard-fill",
+            children: [
+              // { label: "Rate", href: "/transaction/rate", icon: "bi-circle" },
+              { label: "Fee", href: "/transaction/fee", icon: "bi-circle" },
+              {
+                label: "Limit",
+                href: "/transaction/limit",
+                icon: "bi-circle",
+              },
+            ],
+          },
         ]
       : []),
 
@@ -93,21 +107,6 @@ export default function AdminSidebar() {
             icon: "bi-box-seam-fill",
             children: [
               { label: "User List", href: "/user", icon: "bi-circle" },
-            ],
-          },
-
-          {
-            label: "Transaction Setting",
-            href: "#",
-            icon: "bi-clipboard-fill",
-            children: [
-              { label: "Rate", href: "/transaction/rate", icon: "bi-circle" },
-              { label: "Fee", href: "/transaction/fee", icon: "bi-circle" },
-              {
-                label: "Limit",
-                href: "/transaction/limit",
-                icon: "bi-circle",
-              },
             ],
           },
 
@@ -151,7 +150,8 @@ export default function AdminSidebar() {
                 href: "/permission",
                 icon: "bi-circle",
               },
-
+              { label: "Fee", href: "/transaction/fee", icon: "bi-circle" },
+              { label: "Limit", href: "/transaction/limit", icon: "bi-circle" },
               { label: "Wallet", href: "/setting/wallet", icon: "bi-circle" },
               { label: "Bank", href: "/setting/bank", icon: "bi-circle" },
               { label: "Branch", href: "/setting/branch", icon: "bi-circle" },

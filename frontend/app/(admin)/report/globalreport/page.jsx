@@ -130,6 +130,9 @@ export default function GlobalReportPage() {
     const buffer = await workbook.xlsx.writeBuffer();
     saveAs(new Blob([buffer]), "Global-Report.xlsx");
   };
+
+
+  
   if (!permissions.includes("view report")) {
     router.replace("/dashboard");
     return null;

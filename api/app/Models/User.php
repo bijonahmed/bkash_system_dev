@@ -24,6 +24,7 @@ class User extends Authenticatable implements JWTSubject
         'twitter',
         'instagram',
         'role_type',
+        'agentCode',
         'phone_number',
         'status',
         'entry_by',

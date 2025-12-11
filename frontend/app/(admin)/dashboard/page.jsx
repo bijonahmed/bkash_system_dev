@@ -27,6 +27,10 @@ export default function DashboardPage() {
   const depositApproved = dashboardData?.depositApproved ?? 0;
   const agentList = dashboardData?.agentList ?? 0;
   const balance = dashboardData?.balance ?? 0;
+
+  const agentbalance = balance;
+  const formattedBalance = Number(agentbalance).toFixed(2); // "965.12" (string)
+
   return (
     <main className="app-main">
       <div className="app-content mt-3">
@@ -39,7 +43,10 @@ export default function DashboardPage() {
                   <h3>{transactionAll}</h3>
                   <p>My Transaction</p>
                 </div>
-                <Link href="/transaction/list" className="small-box-footer text-decoration-none text-white">
+                <Link
+                  href="/transaction/list"
+                  className="small-box-footer text-decoration-none text-white"
+                >
                   More info
                 </Link>
               </div>
@@ -52,35 +59,43 @@ export default function DashboardPage() {
                   <h3>{depositApproved}</h3>
                   <p>Agent Deposit</p>
                 </div>
-                <Link href="/depositrequiest" className="small-box-footer text-decoration-none text-white">
+                <Link
+                  href="/depositrequiest"
+                  className="small-box-footer text-decoration-none text-white"
+                >
                   More info
                 </Link>
               </div>
             </div>
 
-             <div className="col-lg-2 col-6">
-                  <div className="small-box text-bg-success">
-                    <div className="inner">
-                      <h3>{balance}</h3>
-                      <p>Balance</p>
-                    </div>
-                    <svg
-                      className="small-box-icon"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-                      <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z" />
-                    </svg>
-                    <Link
-                      href="/transaction/list"
-                      className="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover"
-                    >
-                      More info <i className="bi bi-link-45deg" />
-                    </Link>
-                  </div>
+            <div className="col-lg-2 col-6">
+              <div className="small-box text-bg-success">
+                <div className="inner">
+                  <h3>{formattedBalance}</h3>
+                  <p>Balance</p>
                 </div>
+                <svg
+                  className="small-box-icon"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z" />
+                </svg>
+
+                <Link
+                  href={
+                    roles == "admin"
+                      ? "/report/allAgentBalance"
+                      : "/transaction/list"
+                  }
+                  className="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover"
+                >
+                  More info <i className="bi bi-link-45deg" />
+                </Link>
+              </div>
+            </div>
 
             {/* Admin Only */}
             {roles == "admin" && (
@@ -92,13 +107,14 @@ export default function DashboardPage() {
                       <h3>{agentList}</h3>
                       <p>Agent List</p>
                     </div>
-                    <Link href="/user" className="small-box-footer text-decoration-none text-white">
+                    <Link
+                      href="/user"
+                      className="small-box-footer text-decoration-none text-white"
+                    >
                       More info
                     </Link>
                   </div>
                 </div>
-
-               
 
                 {/* Additional admin boxes */}
               </>
