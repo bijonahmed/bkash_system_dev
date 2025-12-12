@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers\Api\Settings;
-
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\Fees;
@@ -15,13 +13,13 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Contracts\Permission;
 use Validator;
 use App\Helpers\PermissionHelper;
+use App\Models\AssignWallet;
 use App\Models\Banks;
 use App\Models\Branch;
 use App\Models\FeesLog;
 use App\Models\Limit;
 use App\Models\LimitLog;
 use App\Models\Wallet;
-
 class SettingsController extends Controller
 {
     public function settingrow()
@@ -118,8 +116,6 @@ class SettingsController extends Controller
                 'fee_gbp'       => $request->fee_gbp,
                 'created_by'    => $user->id, // optional audit
             ]);
-
-
             FeesLog::create([
                 'fees_id'       => $newFee->id,
                 'type'          => 'create',
@@ -129,7 +125,6 @@ class SettingsController extends Controller
                 'fee_gbp'       => $request->fee_gbp,
                 'created_by'    => $user->name,
             ]);
-
             return response()->json([
                 'message' => 'Successfully added!',
             ], 201);
@@ -166,17 +161,14 @@ class SettingsController extends Controller
                     'message' => 'Duplicate entry: this Payment Method and Wallet Type already exist.',
                 ], 409); // 409 = Conflict
             }
-
             $limit = Limit::create([
                 'paymentMethod' => $request->paymentMethod,
                 'walletTypeId'  => $request->walletType,
                 'maxLimit'      => $request->maxLimit,
                 'created_by'    => $user->id, // optional audit
             ]);
-
             $walletCheck = Wallet::find($request->walletType);
             //  dd($walletCheck->name);
-
             LimitLog::create([
                 'limit_id'      => $limit->id,
                 'type'          => 'create',
@@ -185,8 +177,6 @@ class SettingsController extends Controller
                 'maxLimit'      => $request->maxLimit,
                 'created_by'    => $user->name,
             ]);
-
-
             return response()->json([
                 'message' => 'Successfully added!',
                 'data'    => $limit,
@@ -219,7 +209,6 @@ class SettingsController extends Controller
             'fee_gbp'        => $request->fee_gbp,
             'update_by'      => $user->id, // optional audit
         ]);
-
         FeesLog::create([
             'fees_id'       => $chkedData->id,
             'type'          => 'update',
@@ -229,10 +218,6 @@ class SettingsController extends Controller
             'fee_gbp'       => $chkedData->fee_gbp,
             'update_by'     => $user->name,
         ]);
-
-
-
-
         return response()->json(['message' => 'Fees updated successfully']);
     }
     public function updateLimit(Request $request, $id)
@@ -259,7 +244,6 @@ class SettingsController extends Controller
             'walletTypeId'   => $request->walletType,
             'maxLimit'       => $request->maxLimit,
         ]);
-
         $walletCheck = Wallet::find($request->walletType);
         LimitLog::create([
             'limit_id'      => $id,
@@ -269,8 +253,6 @@ class SettingsController extends Controller
             'maxLimit'      => $request->maxLimit,
             'update_by'     => $user->name,
         ]);
-
-
         return response()->json(['message' => 'Limit updated successfully']);
     }
     public function getLimits()
@@ -299,6 +281,25 @@ class SettingsController extends Controller
             'message' => 'success',
         ]);
     }
+    public function checkedWalletforAgent()
+    {
+        $user  = Auth::user();
+        $agent_id = $user->id;
+        // Check if agent has assigned wallet
+        $assignedWallet = AssignWallet::where('wallet_id', 2)
+            ->where('agent_id', $agent_id)
+            ->first(['amount']);
+        // Determine amount
+        $amount = $assignedWallet
+            ? $assignedWallet->amount
+            : Wallet::where('id', 2)
+            ->where('status', 1)
+            ->value('amount'); // simpler than first()->amount
+        return response()->json([
+            'amount' => $amount,
+            'message' => 'success',
+        ]);
+    }
     public function getwallet()
     {
         $data = Wallet::where('status', 1)->get();
@@ -307,8 +308,6 @@ class SettingsController extends Controller
             'message' => 'success',
         ]);
     }
-
-
     public function getBanks()
     {
         $data = Banks::where('status', 1)->get();
@@ -317,11 +316,8 @@ class SettingsController extends Controller
             'message' => 'success',
         ]);
     }
-
-
     public function bankUnderBranch(Request $request)
     {
-
         $data = Branch::where('bank_id', $request->bank_id)->where('status', 1)->get();
         return response()->json([
             'data' => $data,

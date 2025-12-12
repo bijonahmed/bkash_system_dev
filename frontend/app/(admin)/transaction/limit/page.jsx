@@ -11,7 +11,7 @@ import toast, { Toaster } from "react-hot-toast";
 
 export default function UserPage() {
   const router = useRouter();
-  const { token, permissions } = useAuth();
+  const { token, permissions, roles } = useAuth();
   const perms = Array.isArray(permissions)
     ? permissions
     : permissions?.split(",") || [];
@@ -105,6 +105,15 @@ export default function UserPage() {
     }
   };
 
+  const handleLogClick = () => {
+    try {
+      router.push("/report/limit/");
+    } catch (err) {
+      toast.error("Navigation failed!");
+      console.error(err);
+    }
+  };
+
   if (!permissions.includes("view limit")) {
     router.replace("/dashboard");
     return false;
@@ -158,15 +167,25 @@ export default function UserPage() {
               <div className="card-title w-100">
                 <div className="row g-2 align-items-center">
                   {/* Column 3: Add User button */}
-                  <div className="col-6 col-md-3 col-lg-1 ms-auto">
-                    {perms.includes("create limit") ? (
-                      <button
-                        className="btn btn-primary w-100"
-                        onClick={() => setShowModal(true)}
-                      >
-                        Add New
-                      </button>
-                    ) : null}{" "}
+                  <div className="col-6 col-md-3 col-lg-2 ms-auto d-flex justify-content-end gap-2">
+                    {perms.includes("create limit") && (
+                      <>
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => setShowModal(true)}
+                        >
+                          Add New
+                        </button>
+                        {roles == "admin" && (
+                          <button
+                            className="btn btn-danger"
+                            onClick={() => handleLogClick()}
+                          >
+                            Log
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

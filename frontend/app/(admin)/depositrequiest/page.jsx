@@ -46,6 +46,17 @@ export default function DepositRequestPage() {
     status: "",
     attachment: null,
   });
+
+  const handleLogClick = () => {
+    try {
+      router.push("/report/deposit/");
+    } catch (err) {
+      toast.error("Navigation failed!");
+      console.error(err);
+    }
+  };
+
+  /*
   const handleFilter = async () => {
     if (formData.agent_id == "") {
       toast.error(
@@ -81,6 +92,8 @@ export default function DepositRequestPage() {
       setLoading(false);
     }
   };
+
+  */
 
   const fetchData = async (
     page = 1,
@@ -433,6 +446,15 @@ export default function DepositRequestPage() {
                         Add New
                       </button>
                     ) : null}
+
+                    {roles.includes("admin") && (
+                      <button
+                        className="btn btn-danger"
+                        onClick={() => handleLogClick()}
+                      >
+                        Log
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

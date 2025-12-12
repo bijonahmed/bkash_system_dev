@@ -44,11 +44,13 @@ class TransactionController extends Controller
             'paymentMethod',
             'wallet_id',
             'agent_id',
+            'days',
             'status'
         ]);
 
         $limit = $request->input('limit', 50);
         $page  = $request->input('page', 1);
+        $days  = $request->input('days', null);
         $offset = ($page - 1) * $limit;
 
         // Base query
@@ -73,7 +75,14 @@ class TransactionController extends Controller
         if (!empty($filters['wallet_id'])) $query->where('wallet_id', $filters['wallet_id']);
         if (!empty($filters['agent_id'])) $query->where('agent_id', $filters['agent_id']);
         if (isset($filters['transection_status'])) $query->where('transection_status', $filters['transection_status']);
-
+        if ($days !== null) {
+            if ($days == -1) {
+                $query->whereDate('created_at', now()->subDay()->toDateString());
+            } else {
+                $query->where('created_at', '>=', now()->subDays($days)->startOfDay());
+                $query->where('created_at', '<=', now()->endOfDay());
+            }
+        }
         // Total count (simple)
         $total = $query->count();
 
@@ -106,6 +115,7 @@ class TransactionController extends Controller
                 'agentsettlement'  => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
                 'status'           => ucfirst($item->status),
                 'paytMethod'       => ucfirst($item->paymentMethod),
+                'paymentMethod'   => $item->paymentMethod,
                 'senderName'       => ucfirst($item->senderName),
                 'transection_status' => $item->transection_status,
                 'createdBy'        => $item->creator->name ?? 'N/A',
@@ -366,6 +376,34 @@ class TransactionController extends Controller
     }
 
 
+    public function updateStatusForTransaction(Request $request)
+    {
+
+        $validated = $request->validate([
+            'id'     => 'required|integer|exists:transactions,id',
+            'status' => 'required',
+        ]);
+
+
+        $transaction = Transaction::find($validated['id']);
+
+        if (!$transaction) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Transaction not found'
+            ], 404);
+        }
+
+        // ✅ Update status
+        $transaction->status = $validated['status'];
+        $transaction->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction status updated successfully',
+            'data' => $transaction
+        ]);
+    }
 
     public function walletcalculate(Request $request)
     {

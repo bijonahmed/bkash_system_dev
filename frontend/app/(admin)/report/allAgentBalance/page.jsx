@@ -10,8 +10,8 @@ import useWallets from "../../../hooks/getWallet";
 import useAgents from "../../../hooks/getAgents.js";
 import useBank from "../../../hooks/getBanks";
 import "../../transaction/list/transactionFilter.css";
-import ExcelJS from "exceljs";
-import { saveAs } from "file-saver";
+import { exportAgentExcel } from "../../../../lib/exportExcel";
+import { apiGet } from "../../../../lib/apiGet";
 
 export default function GlobalReportPage() {
   const router = useRouter();
@@ -61,6 +61,29 @@ export default function GlobalReportPage() {
   };
 
   const handleFilter = async () => {
+    setLoading(true);
+    const query = new URLSearchParams(formData).toString();
+    try {
+      const result = await apiGet({
+        endpoint: "/report/allAgentReport",
+        params: query,
+        token: token,
+      });
+
+      if (result.success) {
+        toast.success("Loading...");
+        setReportData(result.data.data); // Use result.data, not undefined 'data'
+      } else {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      toast.error(error.message || "Something went wrong!");
+    } finally {
+      setLoading(false);
+    }
+  };
+  /*
+  const handleFilter = async () => {
     const query = new URLSearchParams(formData).toString();
     const url = `${process.env.NEXT_PUBLIC_API_BASE}/report/allAgentReport?${query}`;
 
@@ -88,20 +111,20 @@ export default function GlobalReportPage() {
       setLoading(false);
     }
   };
+*/
   useEffect(() => {
     handleFilter();
   }, [token]);
 
   const tableRef = useRef();
   // 🎯 EXCEL EXPORT WITH BORDER, AUTO WIDTH, CLEAN FORMAT
-  const exportToExcel = async () => {
-    if (!report || report.length === 0) {
-      toast.error("No data to export");
-      return;
+  const downloadExcel = async () => {
+    try {
+      await exportAgentExcel(report, "agent_list");
+      toast.success("Excel exported!");
+    } catch (error) {
+      toast.error(error.message);
     }
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Agent Statement");
   };
 
   if (!permissions.includes("view report")) {
@@ -156,7 +179,7 @@ export default function GlobalReportPage() {
                     onChange={handleChange}
                     required
                   >
-                    <option value="">=========Select Agent=========</option>
+                    <option value="">All Agent</option>
                     {agentData.map((ag) => (
                       <option key={ag.id} value={ag.id}>
                         {ag.name}
@@ -182,7 +205,7 @@ export default function GlobalReportPage() {
                     <button
                       type="button"
                       className="btn btn-success w-100"
-                      onClick={exportToExcel}
+                      onClick={downloadExcel}
                     >
                       Export to Excel
                     </button>

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
@@ -12,10 +11,12 @@ import useTransactions from "../../../hooks/getTransactions";
 import useWallets from "../../../hooks/getWallet";
 import useAgents from "../../../hooks/getAgents.js";
 import BootstrapPagination from "../../../components/pagination.jsx";
-import "../../../../app/style/loader.css";
-
+import SpinnerLoader from "../../../components/admin/SpinnerLoader.jsx";
+// import "../../../../app/style/loader.css";
+import { apiDelete } from "../../../../lib/apiDelete";
+import { apiUpdate } from "../../../../lib/apiUpdate";
 export default function listPage() {
-  const { token, permissions, role } = useAuth();
+  const { token, permissions, roles } = useAuth();
   const searchBtnRef = useRef(null);
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,109 +28,103 @@ export default function listPage() {
   const contentRef = useRef(null);
   const { walletData } = useWallets();
   const { agentData } = useAgents();
-  const stickyTh = {
-    position: "sticky",
-    top: 0,
-    zIndex: 10,
-    background: "#343a40",
-    color: "#fff",
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [filtersByDay, setFiltersByDay] = useState({ days: "" });
+
+  const handleLogClick = () => {
+    try {
+      router.push("/report/transaction");
+    } catch (err) {
+      toast.error("Navigation failed!");
+      console.error(err);
+    }
   };
+  // const [loading, setLoading] = useState(false);
+  const handleChange = async (e) => {
+    const value = e.target.value;
+    setFiltersByDay({ days: value });
+    if (!value) return;
+    refetch({ filters: { days: value } });
+  };
+  const handleStatusClick = (item) => {
+    setSelectedStatus((item.status || "").toLowerCase());
+    setSelectedItem(item);
+    // Open Bootstrap modal using JS
+    const modalEl = document.getElementById("statusModal");
+    const modal = new window.bootstrap.Modal(modalEl);
+    modal.show();
+  };
+  const handleUpdateStatus = async () => {
+    if (!selectedStatus) {
+      toast.error("Please select a status!");
+      return;
+    }
+    const result = await apiUpdate({
+      endpoint: "/transaction/updateStatusForTransaction",
+      data: { status: selectedStatus, id: selectedItem.id },
+      token: token,
+      onSuccess: () => {
+        refetch();
+        const modalEl = document.getElementById("statusModal");
+        const modal = window.bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+      },
+    });
+    if (!result.success) {
+      console.error(result.error);
+    }
+  };
+  const timeOptions = [
+    { label: "Yesterday (-1)", value: "-1" },
+    { label: "Last 7 days (7)", value: "7" },
+    { label: "Last 30 days (30)", value: "30" },
+  ];
   // update document title
   useEffect(() => {
     if (title) {
       document.title = title;
     }
   }, [title]);
-
   const [createdFrom, setCreatedFrom] = useState("");
   const [createdTo, setCreatedTo] = useState("");
-
-  const deleteTransaction = async (transactionId) => {
-    console.log("TransactionID" + transactionId);
-
-    if (!confirm("Are you sure you want to delete this transaction?")) return;
-
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/transaction/delete/${transactionId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // আপনার AuthContext থেকে token নিন
-          },
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || "Delete failed");
-        return;
-      }
-      toast.success("Deleted successfully");
-      // Refresh table / remove deleted row from state
-      refetch();
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong");
-    }
+  const deleteTransaction = (transactionId) => {
+    apiDelete({
+      endpoint: "/transaction/delete",
+      id: transactionId,
+      token: token,
+      onSuccess: () => {
+        // Refresh table or remove deleted item from state
+        refetch();
+      },
+    });
   };
-
   const restoreTransaction = async (transactionId) => {
     if (!confirm("Are you sure you want to restore this transaction?")) return;
-
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/transaction/restoreTransaction/${transactionId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || "Delete failed");
-        return;
-      }
-      toast.success("Restore successfully");
-      // Refresh table / remove deleted row from state
-      refetch();
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong");
-    }
+    apiDelete({
+      endpoint: "/transaction/restoreTransaction",
+      id: transactionId,
+      token: token,
+      onSuccess: () => {
+        // Refresh table or update UI
+        refetch();
+      },
+    });
   };
-
   useEffect(() => {
     const today = new Date();
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
-
     const pad = (n) => String(n).padStart(2, "0");
-
     const toISODate = (date) =>
       `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
         date.getDate()
       )}`;
-
     setCreatedFrom(toISODate(yesterday)); // always yesterday
     setCreatedTo(toISODate(today)); // today
   }, []);
-
-  if (!permissions.includes("view transaction")) {
-    router.replace("/dashboard");
-    return false;
-  }
-
   const today = new Date().toISOString().split("T")[0];
   const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-
   const [filters, setFilters] = useState({
     beneficiaryName: "",
     beneficiaryPhone: "",
@@ -146,34 +141,32 @@ export default function listPage() {
     agent: "",
     limit: 50, // 50 records per page
   });
-
   // Fetch transactions on page load or filter change
   useEffect(() => {
     refetch({ filters, page: currentPage });
   }, [filters, currentPage, refetch]);
-
   const filterByTransaction = () => {
     setCurrentPage(1); // reset to first page when filtering
     refetch({ filters, page: 1 });
   };
-
   const goToPage = (page) => {
     setCurrentPage(page);
   };
-
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
-
   useEffect(() => {
     if (searchBtnRef.current) {
       searchBtnRef.current.click();
     }
   }, []);
-
+  if (!permissions.includes("view transaction")) {
+    router.replace("/dashboard");
+    return false;
+  }
   return (
     <main className="app-main" id="main" tabIndex={-1}>
       {/*begin::App Content Header*/}
@@ -196,7 +189,6 @@ export default function listPage() {
                       Home
                     </Link>
                   </li>
-
                   <li className="breadcrumb-item">
                     <span
                       onClick={() => router.back()}
@@ -216,7 +208,6 @@ export default function listPage() {
                       </span>
                     </li>
                   )}
-
                   <li className="breadcrumb-item">
                     <span
                       className="text-warning fw-bold hover:underline cursor-pointer"
@@ -225,11 +216,20 @@ export default function listPage() {
                       {showFilters ? "Hide Filters" : "Show Filters"}
                     </span>
                   </li>
+                  {roles.includes("admin") && (
+                    <li className="breadcrumb-item">
+                      <span
+                        onClick={() => handleLogClick()}
+                        className="text-danger fw-bold hover:underline cursor-pointer"
+                      >
+                        Log
+                      </span>
+                    </li>
+                  )}
                 </ol>
               </nav>
             </div>
           </div>
-
           <AddNewModal
             show={showModal}
             onClose={() => setShowModal(false)}
@@ -238,7 +238,6 @@ export default function listPage() {
         </div>
         {/*end::Container*/}
       </div>
-
       {/*begin::App Content*/}
       <div className="app-content">
         {/*begin::Container*/}
@@ -247,13 +246,7 @@ export default function listPage() {
           <Toaster position="top-right" />
           <div className="row g-4">
             {/*begin::Col*/}
-            {loading && (
-              <div className="loader-overlay">
-                <div className="spinner-border text-light" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-              </div>
-            )}
+            {loading && <SpinnerLoader />}
             <div className="col-lg-12">
               {showFilters && (
                 <div
@@ -284,7 +277,6 @@ export default function listPage() {
                             }
                           />
                         </div>
-
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
                             Beneficiary Phone #
@@ -302,7 +294,6 @@ export default function listPage() {
                             }
                           />
                         </div>
-
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
                             Sender Name
@@ -320,7 +311,6 @@ export default function listPage() {
                             }
                           />
                         </div>
-
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">Account #</label>
                           <input
@@ -336,7 +326,6 @@ export default function listPage() {
                             }
                           />
                         </div>
-
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
                             Created From
@@ -353,7 +342,6 @@ export default function listPage() {
                             }
                           />
                         </div>
-
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">Created To</label>
                           <input
@@ -368,10 +356,9 @@ export default function listPage() {
                             }
                           />
                         </div>
-
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
-                            Payment Method
+                            Pay. Method
                           </label>
                           <select
                             className="form-control"
@@ -383,12 +370,11 @@ export default function listPage() {
                               })
                             }
                           >
-                            <option value="">Choose Payment Method</option>
+                            <option value="">Pay Method</option>
                             <option value="wallet">Wallet</option>
                             <option value="bank">Bank</option>
                           </select>
                         </div>
-
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">Wallet</label>
                           <select
@@ -409,8 +395,7 @@ export default function listPage() {
                             ))}
                           </select>
                         </div>
-
-                        <div className="col-md-2 mb-1">
+                        <div className="col-md-1 mb-1">
                           <label className="mb-0 fw-semibold">Status</label>
                           <select
                             className="form-control"
@@ -422,16 +407,14 @@ export default function listPage() {
                               })
                             }
                           >
-                            <option value="">Choose Status</option>
+                            <option value="">Status</option>
                             <option value="paid">Paid</option>
                             <option value="unpaid">Unpaid</option>
                             <option value="cancel">Cancel</option>
                           </select>
                         </div>
-
-                        <div className="col-md-3 mb-1">
+                        <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">Agent</label>
-
                           <select
                             className="form-select"
                             value={filters.agent_id}
@@ -450,7 +433,23 @@ export default function listPage() {
                             ))}
                           </select>
                         </div>
-
+                        <div className="col-md-2 mb-1">
+                          <label className="mb-0 fw-semibold">
+                            Filter by Days
+                          </label>
+                          <select
+                            className="form-select"
+                            value={filtersByDay.days}
+                            onChange={handleChange}
+                          >
+                            <option value="">Select Date Range</option>
+                            {timeOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
                             Transation Status
@@ -465,12 +464,11 @@ export default function listPage() {
                               })
                             }
                           >
-                            <option value="">Choose Transation Status</option>
+                            <option value="">Transation Status</option>
                             <option value="1">Active</option>
                             <option value="0">Delete</option>
                           </select>
                         </div>
-
                         <div className="col-md-1 mb-1 d-flex align-items-end">
                           <button
                             ref={searchBtnRef}
@@ -485,7 +483,6 @@ export default function listPage() {
                   </div>
                 </div>
               )}
-
               {/* 🔹 Transactions Card */}
               <div className="card-body p-0 mt-2">
                 <div className="overflow-auto">
@@ -534,7 +531,6 @@ export default function listPage() {
                         <th style={{ width: "4%" }} colSpan={2}></th>
                       </tr>
                     </thead>
-
                     <tbody>
                       <tr className="balance-row">
                         <td
@@ -544,9 +540,7 @@ export default function listPage() {
                           Balance: {depositApproved || 0}
                         </td>
                       </tr>
-
                       {/* Example row */}
-
                       {transactionData && transactionData.length > 0 ? (
                         transactionData.map((item, index) => (
                           <tr key={item.id} className="table-row bg-light">
@@ -568,7 +562,6 @@ export default function listPage() {
                             </td>
                             <td>
                               {item.senderName}
-
                               <br />
                               <span
                                 className={`badge ${
@@ -582,7 +575,6 @@ export default function listPage() {
                                   .charAt(0)
                                   .toUpperCase() +
                                   (item.paytMethod || "N/A").slice(1)}
-
                                 {item?.paytMethod?.toLowerCase() ===
                                 "wallet" ? (
                                   <>&nbsp;({item.walletName || ""})</>
@@ -591,7 +583,6 @@ export default function listPage() {
                                 )}
                               </span>
                             </td>
-
                             <td>
                               <span
                                 className={`badge ${
@@ -602,27 +593,31 @@ export default function listPage() {
                                     ? "bg-warning"
                                     : "bg-danger"
                                 }`}
+                                style={{ cursor: "pointer" }}
+                                onClick={() => handleStatusClick(item)}
                               >
                                 {(item.status || "").charAt(0).toUpperCase() +
                                   (item.status || "").slice(1)}
                               </span>
                             </td>
-
                             <td>
-                              {item.paytMethod === "wallet" ? (
+                              {item.paymentMethod == "wallet" ? (
                                 <>
                                   Name: {item.walletName} <br />
                                   Phone #: {item.beneficiaryPhone}
                                 </>
-                              ) : (
+                              ) : item.paymentMethod == "bank" ? (
                                 <>
                                   Bank Name: {item.bankName} <br />
                                   Branch Name: {item.branchName} <br />
                                   Branch Code: {item.branchCode} <br />
                                   Account #: {item.accountNo}
                                 </>
+                              ) : (
+                                <>N/A</>
                               )}
                             </td>
+
                             <td>
                               <small>GBP&nbsp;{item.sendingMoney}</small>
                               <br />
@@ -672,7 +667,6 @@ export default function listPage() {
                                 </Link>
                               </td>
                             )}
-
                             {permissions.includes("delete transaction") && (
                               <td>
                                 {item.transection_status == 1 ? (
@@ -728,6 +722,77 @@ export default function listPage() {
         {/*end::Container*/}
       </div>
       {/*end::App Content*/}
+      {/* Start Modal */}
+      {/* Bootstrap Modal */}
+      <div
+        className="modal fade"
+        id="statusModal"
+        tabIndex="-1"
+        aria-labelledby="statusModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">
+                Transaction ID: ({selectedItem?.id || ""})
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              {roles == "admin" ? (
+                <>
+                  <label className="form-label">Select Status</label>
+                  <select
+                    className="form-select"
+                    value={selectedStatus || ""}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                  >
+                    <option value="">Select Status</option>
+                    <option value="paid">Paid</option>
+                    <option value="hold">Hold</option>
+                    <option value="unpaid">Unpaid</option>
+                    <option value="cancel">Cancel</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </>
+              ) : (
+                <>
+                  <span className="d-flex justify-content-center text-danger">
+                    Permission not allowed
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+              {roles == "admin" && (
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleUpdateStatus}
+                  >
+                    Update Status
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* END Modal */}
     </main>
   );
 }

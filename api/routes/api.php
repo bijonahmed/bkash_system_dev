@@ -34,6 +34,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/upateSetting', [SettingsController::class, 'upateSetting']);
         Route::post('/updateRate', [SettingsController::class, 'updateRate']);
         Route::get('/getwallet', [SettingsController::class, 'getwallet']);
+        Route::get('/checkedWalletforAgent', [SettingsController::class, 'checkedWalletforAgent']);
         Route::get('/getBanks', [SettingsController::class, 'getBanks']);
         Route::POST('/bankUnderBranch', [SettingsController::class, 'bankUnderBranch']);
         Route::post('/createLimit', [SettingsController::class, 'createLimit']);
@@ -77,7 +78,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::DELETE('/delete/{id}', [BankController::class, 'destroy']);
     });
 
- Route::prefix('adminFundDeposit')->group(function () {
+    Route::prefix('adminFundDeposit')->group(function () {
         Route::get('/index', [AdminFundDepositController::class, 'index']);
         Route::post('/create', [AdminFundDepositController::class, 'store']);
         Route::post('/update', [AdminFundDepositController::class, 'update']);
@@ -106,6 +107,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::DELETE('/restoreTransaction/{id}', [TransactionController::class, 'restoreTransaction']);
         Route::get('/checkrow/{id}', [TransactionController::class, 'checkrow']);
         Route::post('/walletcalculate', [TransactionController::class, 'walletcalculate']);
+        Route::post('/updateStatusForTransaction', [TransactionController::class, 'updateStatusForTransaction']);
     });
 
     Route::prefix('dashbaord')->group(function () {

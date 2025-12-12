@@ -11,7 +11,7 @@ import useRoles from "../../hooks/useRoles"; // adjust import path
 
 export default function UserPage() {
   const router = useRouter();
-  const { token, permissions } = useAuth();
+  const { token, permissions, roles } = useAuth();
   const { rolesData, fetchRoles } = useRoles();
   const perms = Array.isArray(permissions)
     ? permissions
@@ -27,6 +27,14 @@ export default function UserPage() {
   const [perPage, setPerPage] = useState(10);
   const [search, setSearch] = useState("");
 
+  const handleLogClick = () => {
+    try {
+      router.push("/report/users/");
+    } catch (err) {
+      toast.error("Navigation failed!");
+      console.error(err);
+    }
+  };
   //const title = pathname ? pathname.replace("/", "").charAt(0).toUpperCase() + pathname.slice(2) : "";
   // update document title
   useEffect(() => {
@@ -290,7 +298,7 @@ export default function UserPage() {
               <div className="card-title w-100">
                 <div className="row g-2 align-items-center">
                   {/* Column 1: Search input */}
-                  <div className="col-12 col-md-4 col-lg-4">
+                  <div className="col-12 col-md-3 col-lg-3">
                     <input
                       type="text"
                       placeholder="Search users..."
@@ -337,15 +345,25 @@ export default function UserPage() {
                   </div>
 
                   {/* Column 3: Add User button */}
-                  <div className="col-6 col-md-3 col-lg-1 ms-auto">
-                    {perms.includes("create users") ? (
-                      <button
-                        className="btn btn-primary w-100"
-                        onClick={() => router.push(`/user/add/`)}
-                      >
-                        Add New
-                      </button>
-                    ) : null}{" "}
+                  <div className="col-6 col-md-3 col-lg-2 ms-auto d-flex justify-content-end gap-2">
+                    {perms.includes("create users") && (
+                      <>
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => router.push(`/user/add/`)}
+                        >
+                          Add New
+                        </button>
+                        {roles == "admin" && (
+                          <button
+                            className="btn btn-danger"
+                            onClick={() => handleLogClick()}
+                          >
+                            Log
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

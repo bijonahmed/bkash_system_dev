@@ -10,7 +10,7 @@ import toast, { Toaster } from "react-hot-toast";
 
 export default function UserPage() {
   const router = useRouter();
-  const { token, permissions } = useAuth();
+  const { token, permissions, roles } = useAuth();
   const perms = Array.isArray(permissions)
     ? permissions
     : permissions?.split(",") || [];
@@ -24,7 +24,14 @@ export default function UserPage() {
 
   const { feesData, loading, refetch } = getFees();
   const [showModal, setShowModal] = useState(false);
-
+  const handleLogClick = () => {
+    try {
+      router.push("/report/fee/");
+    } catch (err) {
+      toast.error("Navigation failed!");
+      console.error(err);
+    }
+  };
   const [formData, setFormData] = useState({
     paymentMethod: "",
     from_bdt: "",
@@ -158,15 +165,25 @@ export default function UserPage() {
               <div className="card-title w-100">
                 <div className="row g-2 align-items-center">
                   {/* Column 3: Add User button */}
-                  <div className="col-6 col-md-3 col-lg-1 ms-auto">
-                    {perms.includes("create fee") ? (
-                      <button
-                        className="btn btn-primary w-100"
-                        onClick={() => setShowModal(true)}
-                      >
-                        Add New
-                      </button>
-                    ) : null}{" "}
+                  <div className="col-6 col-md-3 col-lg-2 ms-auto d-flex justify-content-end gap-2">
+                    {perms.includes("create fee") && (
+                      <>
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => setShowModal(true)}
+                        >
+                          Add New
+                        </button>
+                        {roles == "admin" && (
+                          <button
+                            className="btn btn-danger"
+                            onClick={() => handleLogClick()}
+                          >
+                            Log
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -244,12 +261,8 @@ export default function UserPage() {
                               return (
                                 <tr key={limit.id} className={rowBgClass}>
                                   <td className="text-center">{index + 1}</td>
-                                  <td className="text-end">
-                                    {limit.from_bdt}
-                                  </td>
-                                  <td className="text-end">
-                                    {limit.to_bdt}
-                                  </td>
+                                  <td className="text-end">{limit.from_bdt}</td>
+                                  <td className="text-end">{limit.to_bdt}</td>
                                   <td className="text-end">
                                     <span
                                       className={`badge me-1 ${
@@ -268,9 +281,7 @@ export default function UserPage() {
                                       : ""}
                                   </td>
 
-                                  <td className="text-end">
-                                    {limit.fee_gbp}
-                                  </td>
+                                  <td className="text-end">{limit.fee_gbp}</td>
                                   <td className="text-center">
                                     {limit.created_by_name}
                                   </td>

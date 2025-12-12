@@ -51,6 +51,9 @@ export default function GlobalReportPage() {
       setShowBank(false);
     }
   }, [formData.paymentMethod]);
+
+
+  
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };

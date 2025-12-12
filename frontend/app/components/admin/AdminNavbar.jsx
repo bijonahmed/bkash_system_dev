@@ -1,14 +1,16 @@
 "use client";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
+import { apiGet } from "../../../lib/apiGet";
+
 import Link from "next/link";
 export default function AdminNavbar() {
-  const { logout, username, roles } = useAuth();
+  const { token, logout, username, roles } = useAuth();
   const router = useRouter();
-  const [open, setOpen] = useState(false); // track dropdown
+  const [open, setOpen] = useState(false);
+  const [user, setUser] = useState(null);
 
-  
   const handleLogout = (e) => {
     e.preventDefault();
     logout();
@@ -16,32 +18,65 @@ export default function AdminNavbar() {
   };
 
   const capitalizeFirst = (value) => {
-    if (!value) return ""; // null, undefined, or empty
-    const str = String(value); // convert to string if not already
+    if (!value) return "";
+    const str = String(value);
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
+  const fetchData = async () => {
+    const result = await apiGet({
+      endpoint: "/setting/checkedWalletforAgent",
+      token,
+    });
+
+    if (result.success) {
+      setUser(result.data);
+    } else {
+      console.error("Fetch failed:", result.error);
+    }
+  };
+
+  useEffect(() => {
+    if (token) fetchData();
+  }, [token]);
 
   return (
     <nav className="app-header navbar navbar-expand bg-body">
       <div className="container-fluid">
         {/* Left side */}
-        <ul className="navbar-nav">
-          <li className="nav-item">
-            <a
-              className="nav-link"
-              data-lte-toggle="sidebar"
-              href="#"
-              role="button"
-            >
-              <i className="bi bi-list" />
-            </a>
-          </li>
-          <li className="nav-item d-none d-md-block">
-            <a href="/dashboard" className="nav-link">
-              Refresh
-            </a>
-          </li>
-        </ul>
+       <ul className="navbar-nav align-items-center">
+  {/* Sidebar toggle */}
+  <li className="nav-item">
+    <a
+      className="nav-link"
+      data-lte-toggle="sidebar"
+      href="#"
+      role="button"
+    >
+      <i className="bi bi-list" />
+    </a>
+  </li>
+
+  {/* Refresh link */}
+  <li className="nav-item d-none d-md-block">
+    <a href="/dashboard" className="nav-link">
+      Refresh
+    </a>
+  </li>
+
+  {/* Wallet Amount */}
+  <li className="nav-item ms-md-3">
+    <div className="d-flex align-items-center">
+      <span className="fw-bold me-2">Wallet Amount:</span>
+      <span
+        className="d-flex justify-content-center align-items-center rounded-circle bg-danger text-white fw-bold animate__animated animate__pulse"
+        style={{ width: "50px", height: "50px", fontSize: "1.2rem" }}
+      >
+        {user?.amount ? `${user.amount}/=` : ""}
+      </span>
+    </div>
+  </li>
+</ul>
+
         {/* Right side */}
         <ul className="navbar-nav ms-auto">
           {/* User Dropdown */}

@@ -87,29 +87,11 @@ export default function AdminSidebar() {
             icon: "bi-arrow-left-right",
           },
           {
-            label: "Agent Statement",
-            href: "/report/agentStatement",
-            icon: "bi bi-person-circle",
-          },
-          {
-            label: "Global Report",
-            href: "/report/globalreport",
-            icon: "bi-circle",
-          },
-          {
             label: "Agent Deposit Request",
             href: "/depositrequiest",
             icon: "bi-arrow-left-right",
           },
-          {
-            label: "Users",
-            href: "#",
-            icon: "bi-box-seam-fill",
-            children: [
-              { label: "User List", href: "/user", icon: "bi-circle" },
-            ],
-          },
-
+          /*
           {
             label: "Report Management",
             href: "#",
@@ -117,28 +99,13 @@ export default function AdminSidebar() {
             children: [
               { label: "Rate", href: "/report/rate", icon: "bi-circle" },
               { label: "Fee", href: "/report/fee", icon: "bi-circle" },
-              {
-                label: "Limit",
-                href: "/report/limit",
-                icon: "bi-circle",
-              },
-              {
-                label: "User",
-                href: "/report/users",
-                icon: "bi-circle",
-              },
-              {
-                label: "Deposit",
-                href: "/report/deposit",
-                icon: "bi-circle",
-              },
-              {
-                label: "Transaction",
-                href: "/report/transaction",
-                icon: "bi-circle",
-              },
+              { label: "Limit", href: "/report/limit",icon: "bi-circle",},
+              { label: "User", href: "/report/users", icon: "bi-circle"},
+              { label: "Deposit", href: "/report/deposit", icon: "bi-circle"},
+              { label: "Transaction", href: "/report/transaction", icon: "bi-circle"},
             ],
           },
+          */
           {
             label: "System Management",
             href: "#",
@@ -150,6 +117,7 @@ export default function AdminSidebar() {
                 href: "/permission",
                 icon: "bi-circle",
               },
+              { label: "User List", href: "/user", icon: "bi-circle" },
               { label: "Fee", href: "/transaction/fee", icon: "bi-circle" },
               { label: "Limit", href: "/transaction/limit", icon: "bi-circle" },
               { label: "Wallet", href: "/setting/wallet", icon: "bi-circle" },
@@ -161,6 +129,28 @@ export default function AdminSidebar() {
                 icon: "bi-circle",
               },
               { label: "Company Setting", href: "/setting", icon: "bi-circle" },
+            ],
+          },
+          {
+            label: "Report",
+            href: "#",
+            icon: "bi-clipboard-fill",
+            children: [
+              {
+                label: "Agent Statement",
+                href: "/report/agentStatement/",
+                icon: "bi-circle",
+              },
+              {
+                label: "Global Statement",
+                href: "/report/globalreport",
+                icon: "bi-circle",
+              },
+              {
+                label: "Agent Balances",
+                href: "/report/allAgentBalance",
+                icon: "bi-circle",
+              },
             ],
           },
         ]

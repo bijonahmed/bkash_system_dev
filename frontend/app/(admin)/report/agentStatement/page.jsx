@@ -10,8 +10,8 @@ import useWallets from "../../../hooks/getWallet";
 import useAgents from "../../../hooks/getAgents.js";
 import useBank from "../../../hooks/getBanks";
 import "../../transaction/list/transactionFilter.css";
-import ExcelJS from "exceljs";
-import { saveAs } from "file-saver";
+import { exportAgentStatement } from "../../../../lib/agentStatement";
+import { apiGet } from "../../../../lib/apiGet";
 
 export default function GlobalReportPage() {
   const router = useRouter();
@@ -51,19 +51,7 @@ export default function GlobalReportPage() {
     agent_id: "",
   });
 
-  // Toggle Wallet/Bank inputs
-  useEffect(() => {
-    if (formData.paymentMethod === "wallet") {
-      setShowWallet(true);
-      setShowBank(false);
-    } else if (formData.paymentMethod === "bank") {
-      setShowWallet(false);
-      setShowBank(true);
-    } else {
-      setShowWallet(false);
-      setShowBank(false);
-    }
-  }, [formData.paymentMethod]);
+ 
 
   // Form input handler
   // const handleChange = (e) => {
@@ -84,42 +72,27 @@ export default function GlobalReportPage() {
     });
   };
 
+
   const handleFilter = async () => {
-    if (formData.agent_id == "") {
-      toast.error(
-        "Please select From date and To date, and also select an agent!"
-      );
-      return false;
+    if (!formData.agent_id) {
+      toast.error("Please select agent!");
+      return;
     }
 
-    const query = new URLSearchParams(formData).toString();
-    const url = `${process.env.NEXT_PUBLIC_API_BASE}/report/agentReport?${query}`;
+    const result = await apiGet({
+      endpoint: "/report/agentReport",
+      params: formData,
+      token: token,
+    });
 
-    try {
-      setLoading(true);
-
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success("Loading...");
-        setReportData(data.data);
-      } else {
-        toast.error(data.message || "Something went wrong!");
-      }
-    } catch (error) {
-      toast.error("Network or server error!");
-    } finally {
-      setLoading(false);
+    if (result.success) {
+      toast.success("Loading...");
+      setReportData(result.data.data);
+    } else {
+      toast.error(result.error);
     }
   };
-
+  
   // Calculate totals outside JSX
   const totalWalletrate = report
     .reduce((sum, item) => sum + parseFloat(item.walletrate || 0), 0)
@@ -144,161 +117,13 @@ export default function GlobalReportPage() {
 
   const tableRef = useRef();
   // 🎯 EXCEL EXPORT WITH BORDER, AUTO WIDTH, CLEAN FORMAT
-  const exportToExcel = async () => {
-    if (!report || report.length === 0) {
-      toast.error("No data to export");
-      return;
+  const downloadStatement = async () => {
+    try {
+      await exportAgentStatement(report);
+      toast.success("Excel exported!");
+    } catch (error) {
+      toast.error(error.message);
     }
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Agent Statement");
-
-    // ===== Header Row =====
-    const headers = [
-      "#",
-      "Date",
-      "Sender",
-      "Receiver",
-      "Method",
-      "Mobile",
-      "Agent Rate",
-      "Admin Fee",
-      "Receiving Amount",
-      "Debit (£)",
-      "Credit (£)",
-      "Balance (£)",
-    ];
-
-    const headerRow = worksheet.addRow(headers);
-    headerRow.eachCell((cell) => {
-      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FF1976D2" }, // Blue header
-      };
-      cell.border = {
-        top: { style: "thin" },
-        left: { style: "thin" },
-        bottom: { style: "thin" },
-        right: { style: "thin" },
-      };
-    });
-
-    // ===== Data Rows =====
-    let runningBalance = 0;
-    report.forEach((item, index) => {
-      let debitTotal = Number(item.debit || 0) + Number(item.fee || 0);
-      let creditTotal = Number(item.credit || 0);
-      runningBalance += creditTotal - debitTotal;
-
-      const rowValues = [
-        index + 1,
-        item.created_at,
-        item.debit === 0 ? "" : item.senderName,
-        item.debit === 0 ? "" : item.beneficiaryName,
-        item.debit === 0 ? "" : item.paytMethod,
-        item.debit === 0 ? "" : item.beneficiaryPhone,
-        item.debit === 0 ? "" : item.walletrate,
-        item.debit === 0 ? "" : item.fee,
-        item.debit === 0 ? "" : item.receiving_money,
-        debitTotal || 0,
-        creditTotal || 0,
-        runningBalance.toFixed(2),
-      ];
-
-      const row = worksheet.addRow(rowValues);
-
-      // Add borders
-      row.eachCell((cell) => {
-        cell.border = {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
-        };
-        cell.alignment = { vertical: "middle", horizontal: "center" };
-      });
-
-      // Highlight BANKING row
-      if (item.debit === 0) {
-        worksheet.mergeCells(`C${row.number}:I${row.number}`);
-        row.getCell(3).value = "BANKING";
-        row.getCell(3).alignment = { horizontal: "center" };
-        row.getCell(3).font = { bold: true, color: { argb: "FF1976D2" } };
-        for (let i = 1; i <= headers.length; i++) {
-          row.getCell(i).fill = {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: { argb: "FFBBDEFB" },
-          };
-        }
-      }
-    });
-
-    // ===== Totals Row =====
-    const totalDebit = report.reduce(
-      (sum, item) => sum + Number(item.debit || 0) + Number(item.fee || 0),
-      0
-    );
-    const totalCredit = report.reduce(
-      (sum, item) => sum + Number(item.credit || 0),
-      0
-    );
-    const totalFee = report.reduce(
-      (sum, item) => sum + Number(item.fee || 0),
-      0
-    );
-    const totalReceiving = report.reduce(
-      (sum, item) => sum + Number(item.receiving_money || 0),
-      0
-    );
-
-    const totalRow = worksheet.addRow([
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      totalFee,
-      totalReceiving,
-      totalDebit.toFixed(2),
-      totalCredit,
-      runningBalance.toFixed(2),
-    ]);
-
-    totalRow.eachCell((cell) => {
-      cell.font = { bold: true };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFEEEEEE" },
-      };
-      cell.border = {
-        top: { style: "thin" },
-        left: { style: "thin" },
-        bottom: { style: "thin" },
-        right: { style: "thin" },
-      };
-    });
-
-    // ===== Auto width =====
-    worksheet.columns.forEach((col) => {
-      let maxLength = 10;
-      col.eachCell({ includeEmpty: true }, (cell) => {
-        const len = cell.value ? cell.value.toString().length : 10;
-        if (len > maxLength) maxLength = len;
-      });
-      col.width = maxLength + 3;
-    });
-
-    // ===== Save File =====
-    const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), "Agent-Statement.xlsx");
   };
 
   if (!permissions.includes("view report")) {
@@ -555,7 +380,7 @@ export default function GlobalReportPage() {
               {report.length > 0 ? (
                 <center>
                   <button
-                    onClick={exportToExcel}
+                    onClick={downloadStatement}
                     className="btn btn-success mb-3 mt-2"
                   >
                     Export to Excel
