@@ -1,5 +1,4 @@
 "use client"; // Required in Next.js App Router for client-side component
-
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import DataTable from "react-data-table-component";
@@ -7,7 +6,6 @@ import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 import BootstrapPagination from "../../../components/pagination.jsx";
-
 export default function UserPage() {
   const router = useRouter();
   const { token, permissions } = useAuth();
@@ -15,7 +13,6 @@ export default function UserPage() {
   const perms = Array.isArray(permissions)
     ? permissions
     : permissions?.split(",") || [];
-
   const pathname = usePathname();
   const title = "Transaction Report";
   useEffect(() => {
@@ -23,35 +20,26 @@ export default function UserPage() {
       document.title = title;
     }
   }, [title]);
-
   const [report, setReportData] = useState([]);
-
   const [formData, setFormData] = useState({
     fromDate: "",
     toDate: "",
   });
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
   const [currentPage, setCurrentPage] = useState(1);
-
   // Fetch transactions on page load or filter change
-
   const filterByTransaction = () => {
     setCurrentPage(1); // reset to first page when filtering
     refetch({ filters, page: 1 });
   };
-
   const goToPage = (page) => {
     setCurrentPage(page);
   };
-
   const handleFilter = async () => {
     const query = new URLSearchParams(formData).toString();
     const url = `${process.env.NEXT_PUBLIC_API_BASE}/report/getTransactionReport?${query}`;
-
     try {
       setLoading(true);
       const res = await fetch(url, {
@@ -77,15 +65,12 @@ export default function UserPage() {
     } finally {
       setLoading(false);
     }
-
     // your filter logic here
   };
-
   if (!permissions.includes("view transaction")) {
     router.replace("/dashboard");
     return false;
   }
-
   return (
     <main className="app-main" id="main" tabIndex={-1}>
       {/*begin::App Content Header*/}
@@ -121,7 +106,6 @@ export default function UserPage() {
         </div>
         {/*end::Container*/}
       </div>
-
       {/*begin::App Content*/}
       <Toaster position="top-right" />
       <div className="app-content">
@@ -130,7 +114,6 @@ export default function UserPage() {
           {/*begin::Row*/}
           <div className="card card-primary card-outline mb-4">
             {/* Header */}
-
             <div className="card-header">
               <div className="card-title w-100">
                 <form className="row g-3 align-items-end mt-3">
@@ -150,7 +133,6 @@ export default function UserPage() {
                       onChange={handleChange}
                     />
                   </div>
-
                   <div className="col-md-4">
                     <label htmlFor="toDate" className="form-label fw-semibold">
                       To Date
@@ -164,7 +146,6 @@ export default function UserPage() {
                       onChange={handleChange}
                     />
                   </div>
-
                   <div className="col-md-4 d-flex align-items-end">
                     <button
                       type="button"
@@ -175,7 +156,6 @@ export default function UserPage() {
                     </button>
                   </div>
                 </form>
-
                 <div className="row g-2 align-items-center">
                   {/* Column 3: Add User button */}
                   <div className="col-6 col-md-3 col-lg-1 ms-auto">
@@ -190,9 +170,7 @@ export default function UserPage() {
                   </div>
                 </div>
               </div>
-
               {/* Start */}
-
               <div className="card-body p-0">
                 Deposit Report
                 <div className="table-responsive">
@@ -222,20 +200,36 @@ export default function UserPage() {
                               <th style={{ width: "15%" }}>Sender Details</th>
                               <th style={{ width: "5%" }}>Status</th>
                               <th style={{ width: "15%" }}>Payment Method</th>
-                              <th style={{ width: "8%" }} className="text-center">Sending Amount</th>
-                              <th style={{ width: "4%" }} className="text-center">Charges</th>
-                              <th style={{ width: "4%" }} className="text-center">Admin Fee</th>
-                              <th style={{ width: "4%" }} className="text-center">Total Amount</th>
+                              <th
+                                style={{ width: "8%" }}
+                                className="text-center"
+                              >
+                                Sending Amount
+                              </th>
+                              <th
+                                style={{ width: "4%" }}
+                                className="text-center"
+                              >
+                                Charges
+                              </th>
+                              <th
+                                style={{ width: "4%" }}
+                                className="text-center"
+                              >
+                                Admin Fee
+                              </th>
+                              <th
+                                style={{ width: "4%" }}
+                                className="text-center"
+                              >
+                                Total Amount
+                              </th>
                               <th style={{ width: "4%" }}>Agent Settlement</th>
                               <th style={{ width: "8%" }}>Description</th>
-                           
                             </tr>
                           </thead>
-
                           <tbody>
-                          
                             {/* Example row */}
-
                             {report && report.length > 0 ? (
                               report.map((item, index) => (
                                 <tr
@@ -257,7 +251,6 @@ export default function UserPage() {
                                   </td>
                                   <td>
                                     {item.senderName}
-
                                     <br />
                                     <span
                                       className={`badge ${
@@ -271,7 +264,6 @@ export default function UserPage() {
                                         .charAt(0)
                                         .toUpperCase() +
                                         item.paymentMethod.slice(1)}
-
                                       {item?.paymentMethod?.toLowerCase() ===
                                       "wallet" ? (
                                         <>&nbsp;({item.walletName})</>
@@ -349,7 +341,6 @@ export default function UserPage() {
                                     {item.agentsettlement}
                                   </td>
                                   <td>{item.description}</td>
-                                  
                                 </tr>
                               ))
                             ) : (
@@ -370,7 +361,6 @@ export default function UserPage() {
                   )}
                 </div>
               </div>
-
               {/* END */}
             </div>
           </div>

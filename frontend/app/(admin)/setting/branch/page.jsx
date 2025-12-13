@@ -37,7 +37,6 @@ export default function UserPage() {
 
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete?")) return;
-
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/users/delete/${id}`,

@@ -16,6 +16,7 @@ use Spatie\Permission\Contracts\Permission;
 use Validator;
 use App\Helpers\PermissionHelper;
 use App\Models\AdminFundDeposit;
+use App\Models\Banks;
 use App\Models\Deposit;
 use App\Models\DepositLog;
 use App\Models\FeesLog;
@@ -352,8 +353,13 @@ class ReportController extends Controller
             $rate = 0;
             if ($tx->paymentMethod == 'wallet') {
                 $rate = $tx->walletrate;
+                $chkwallet = Wallet::where('id', $tx->wallet_id)->first();
+                $walletrate_name = $chkwallet->name ?? "";  
+
             } else if ($tx->paymentMethod == 'bank') {
                 $rate = $tx->bankRate;
+                $chkBank = Banks::where('id', $tx->bank_id)->first();
+                $walletrate_name = $chkBank->name ?? "";  
             }
 
             $report->push([
@@ -364,6 +370,7 @@ class ReportController extends Controller
                 'beneficiaryName' => $tx->beneficiaryName,
                 'paytMethod'      => ucfirst($tx->paymentMethod),
                 'beneficiaryPhone' => $tx->beneficiaryPhone,
+                'walletrate_name' => $walletrate_name,
 
                 'walletrate'      => $rate,
                 'fee'             => $tx->fee,

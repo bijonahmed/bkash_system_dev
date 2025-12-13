@@ -1,47 +1,72 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 
 export default function useGetWalletAgent() {
-  const [walletAgentData, setWalletData] = useState([]);
+  const [walletAgentData, setWalletAgentData] = useState([]);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
 
-  // Memoized fetch function
+  const abortRef = useRef(null);
+
   const fetchWalletAgent = useCallback(async () => {
-    if (!token) return; // prevent unnecessary calls before token loads
+    if (!token) return;
+
+    // Cancel previous request if exists
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     setLoading(true);
 
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/wallet/getwalletAgent`;
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/wallet/getwalletAgent`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          signal: controller.signal,
+        }
+      );
 
-      const result = await res.json().catch(() => null);
+      const result = await res.json();
 
       if (!res.ok) {
-        throw new Error(result?.message || `HTTP Error: ${res.status}`);
+        throw new Error(result?.message || `HTTP ${res.status}`);
       }
 
-      setWalletData(result?.data || []);
+      setWalletAgentData(result?.data ?? []);
     } catch (err) {
-      toast.error(err?.message || "Something went wrong!");
+      if (err.name !== "AbortError") {
+        toast.error(err?.message || "Failed to load wallet agents");
+      }
     } finally {
       setLoading(false);
     }
-  }, [token]); // <-- FIXED: token added
+  }, [token]);
 
-  // Automatically fetch on load & when token changes
+  // Auto fetch on mount / token change
   useEffect(() => {
     fetchWalletAgent();
-  }, [fetchWalletAgent]); // <-- FIXED: dependency included
 
-  return { walletAgentData, refetchAgentWallet: fetchWalletAgent, loading };
+    return () => {
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+    };
+  }, [fetchWalletAgent]);
+
+  return {
+    walletAgentData,
+    refetchAgentWallet: fetchWalletAgent, // manual refresh
+    loading,
+  };
 }

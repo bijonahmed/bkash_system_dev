@@ -621,7 +621,7 @@ export default function listPage() {
                             <td>
                               <small>GBP&nbsp;{item.sendingMoney}</small>
                               <br />
-                              {item.paytMethod === "wallet" ? (
+                              {item.paymentMethod == "wallet" ? (
                                 <>
                                   <small>
                                     GBP 1 = BDT {item.walletrate} (PR)

@@ -68,6 +68,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/walletcalculateCheck', [WalletController::class, 'walletcalculateCheck']);
         Route::get('/checkrow/{id}', [WalletController::class, 'checkrow']);
         Route::DELETE('/delete/{id}', [WalletController::class, 'destroy']);
+        Route::DELETE('/deleteAgentRate/{id}', [WalletController::class, 'deleteAgentRate']);
     });
 
     Route::prefix('bank')->group(function () {

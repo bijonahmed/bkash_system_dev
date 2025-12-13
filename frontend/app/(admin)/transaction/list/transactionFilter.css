@@ -110,4 +110,24 @@
   z-index: 20;
 }
 
+/* agent statement */
+.summary-wrapper {
+  display: flex;
+  justify-content: flex-end; /* move summary to right */
+}
 
+.statement {
+  width: 420px; /* fixed width like bank summary */
+  font-size: 14px;
+}
+
+.statement-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.amount {
+  text-align: right;
+  min-width: 140px;
+}

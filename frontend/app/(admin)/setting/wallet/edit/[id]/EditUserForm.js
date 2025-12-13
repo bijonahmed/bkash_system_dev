@@ -46,7 +46,8 @@ export default function EditUserForm({ id }) {
       if (res.ok) {
         setUser(data);
         toast.success("Updated successfully "); //  success toast
-        router.push("/setting/wallet");
+        window.location.href = "/setting/wallet";
+        //router.push("/setting/wallet");
       } else if (data.errors) {
         toast.error(Object.values(data.errors).flat().join(" ")); // show backend validation errors
       } else {
@@ -79,7 +80,7 @@ export default function EditUserForm({ id }) {
   }, [id, token]);
 
   const pathname = usePathname();
-  const title = "Wallet Edit";
+  const title = "Rate Edit";
   //const title = pathname ? pathname.replace("/", "").charAt(0).toUpperCase() + pathname.slice(2) : "";
   // update document title
   useEffect(() => {

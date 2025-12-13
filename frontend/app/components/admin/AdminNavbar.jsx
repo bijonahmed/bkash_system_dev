@@ -66,7 +66,7 @@ export default function AdminNavbar() {
   {/* Wallet Amount */}
   <li className="nav-item ms-md-3">
     <div className="d-flex align-items-center">
-      <span className="fw-bold me-2">Wallet Amount:</span>
+      <span className="fw-bold me-2">Wallet Rate:</span>
       <span
         className="d-flex justify-content-center align-items-center rounded-circle bg-danger text-white fw-bold animate__animated animate__pulse"
         style={{ width: "50px", height: "50px", fontSize: "1.2rem" }}

@@ -15,7 +15,7 @@ export default function UserAddPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
-  const title = "Wallet Add"; //pathname ? pathname.replace("/", "").charAt(0).toUpperCase() + pathname.slice(2) : "";
+  const title = "Rate Add"; //pathname ? pathname.replace("/", "").charAt(0).toUpperCase() + pathname.slice(2) : "";
   // update document title
 
   useEffect(() => {

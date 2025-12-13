@@ -51,12 +51,6 @@ export default function GlobalReportPage() {
     agent_id: "",
   });
 
- 
-
-  // Form input handler
-  // const handleChange = (e) => {
-  //   setFormData({ ...formData, [e.target.name]: e.target.value });
-  // };
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -71,7 +65,6 @@ export default function GlobalReportPage() {
       [name]: value,
     });
   };
-
 
   const handleFilter = async () => {
     if (!formData.agent_id) {
@@ -92,7 +85,7 @@ export default function GlobalReportPage() {
       toast.error(result.error);
     }
   };
-  
+
   // Calculate totals outside JSX
   const totalWalletrate = report
     .reduce((sum, item) => sum + parseFloat(item.walletrate || 0), 0)
@@ -178,7 +171,7 @@ export default function GlobalReportPage() {
                     onChange={handleChange}
                     required
                   >
-                    <option value="">=========Select Agent=========</option>
+                    <option value="">All Agent</option>
                     {agentData.map((ag) => (
                       <option key={ag.id} value={ag.id}>
                         {ag.name}
@@ -206,45 +199,9 @@ export default function GlobalReportPage() {
                     className="form-control"
                     value={formData.toDate}
                     onChange={handleChange}
-                    lang="en-GB"
                   />
                 </div>
 
-                <div className="col-md-2 d-none">
-                  <label>Payment Method</label>
-                  <select
-                    name="paymentMethod"
-                    className="form-control"
-                    value={formData.paymentMethod}
-                    onChange={handleChange}
-                  >
-                    <option value="">=====All Payment Method=====</option>
-                    <option value="wallet">Wallet</option>
-                    <option value="bank">Bank</option>
-                  </select>
-                </div>
-
-                {/* Wallet Dropdown */}
-                {showWallet && (
-                  <div className="col-md-2 d-none">
-                    <label>Wallet</label>
-                    <select
-                      name="wallet_id"
-                      className="form-select"
-                      value={formData.wallet_id}
-                      onChange={handleChange}
-                    >
-                      <option value="">===Select===</option>
-                      {walletData.map((w) => (
-                        <option key={w.id} value={w.id}>
-                          {w.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* Bank Dropdown */}
                 {showBank && (
                   <div className="col-md-2">
                     <label>Bank</label>
@@ -264,22 +221,8 @@ export default function GlobalReportPage() {
                   </div>
                 )}
 
-                <div className="col-md-1 d-none">
-                  <label>Status</label>
-                  <select
-                    name="status"
-                    className="form-control"
-                    value={formData.status}
-                    onChange={handleChange}
-                  >
-                    <option value="">===Select===</option>
-                    <option value="paid">Paid</option>
-                    <option value="unpaid">Unpaid</option>
-                    <option value="cancel">Cancel</option>
-                  </select>
-                </div>
-
-                <div className="col-md-1 d-flex align-items-end">
+                {/* Filter Button */}
+                <div className="col-md-1">
                   <button
                     type="button"
                     className="btn btn-primary w-100"
@@ -288,105 +231,79 @@ export default function GlobalReportPage() {
                     Filter
                   </button>
                 </div>
+
+                {/* Export Button INLINE */}
+                {report.length > 0 && (
+                  <div className="col-md-2">
+                    <button
+                      type="button"
+                      onClick={downloadStatement}
+                      className="btn btn-success w-100"
+                    >
+                      Export Excel
+                    </button>
+                  </div>
+                )}
               </form>
             </div>
 
             {/* Report Table */}
             <div className="card-body">
-              <h6 className="fw-bold mb-3 text-dark">{selectedAgentName}</h6>
-
-              <div className="row g-3">
-                {/* Number of Transactions */}
-                <div className="col-12 col-md-6 col-lg-4">
-                  <div className="p-3 rounded shadow-sm text-white bg-primary">
-                    <div className="d-flex justify-content-between">
-                      <span>Number of Transactions:</span>
-                      <strong>{report.length}</strong>
-                    </div>
+              <div className="summary-wrapper">
+                <div className="statement">
+                  <div className="statement-row">
+                    <span>Number of Transactions</span>
+                    <span className="amount">{report.length}</span>
                   </div>
-                </div>
 
-                {/* Total Fee */}
-                <div className="col-12 col-md-6 col-lg-4">
-                  <div className="p-3 rounded shadow-sm text-white bg-success">
-                    <div className="d-flex justify-content-between">
-                      <span>Total Fee:</span>
-                      <strong>GBP {totalFee} £</strong>
-                    </div>
+                  <div className="statement-row">
+                    <span>Total Fee</span>
+                    <span className="amount">GBP {totalFee} £</span>
                   </div>
-                </div>
 
-                {/* Total Receiving */}
-                <div className="col-12 col-md-6 col-lg-4">
-                  <div className="p-3 rounded shadow-sm text-white bg-info">
-                    <div className="d-flex justify-content-between">
-                      <span>Total Receiving Amount:</span>
-                      <strong>{totalReceiving} BDT</strong>
-                    </div>
+                  <div className="statement-row">
+                    <span>Total Receiving Amount</span>
+                    <span className="amount">{totalReceiving} BDT</span>
                   </div>
-                </div>
 
-                {/* Total Debit */}
-                <div className="col-12 col-md-6 col-lg-4">
-                  <div className="p-3 rounded shadow-sm text-white bg-warning">
-                    <div className="d-flex justify-content-between">
-                      <span>Total Debit:</span>
-                      <strong>
-                        {report
-                          .reduce(
-                            (sum, item) =>
-                              sum +
-                              (Number(item.debit || 0) + Number(item.fee || 0)),
-                            0
-                          )
-                          .toFixed(2)}{" "}
-                        £
-                      </strong>
-                    </div>
+                  <div className="statement-row">
+                    <span>Total Debit</span>
+                    <span className="amount">
+                      {report
+                        .reduce(
+                          (sum, item) =>
+                            sum +
+                            (Number(item.debit || 0) + Number(item.fee || 0)),
+                          0
+                        )
+                        .toFixed(2)}{" "}
+                      £
+                    </span>
                   </div>
-                </div>
 
-                {/* Total Credit */}
-                <div className="col-12 col-md-6 col-lg-4">
-                  <div className="p-3 rounded shadow-sm text-white bg-danger">
-                    <div className="d-flex justify-content-between">
-                      <span>Total Credit:</span>
-                      <strong>{totalCredit} £</strong>
-                    </div>
+                  <div className="statement-row">
+                    <span>Total Credit</span>
+                    <span className="amount">{totalCredit} £</span>
                   </div>
-                </div>
 
-                {/* Final Balance */}
-                <div className="col-12 col-md-6 col-lg-4">
-                  <div className="p-3 rounded shadow-sm text-white bg-secondary">
-                    <div className="d-flex justify-content-between">
-                      <strong>Final Balance:</strong>
-                      <strong>
-                        {(
-                          Number(totalCredit) -
-                          report.reduce(
-                            (sum, item) =>
-                              sum +
-                              (Number(item.debit || 0) + Number(item.fee || 0)),
-                            0
-                          )
-                        ).toFixed(2)}{" "}
-                        £
-                      </strong>
-                    </div>
+                  <div className="statement-row fw-bold">
+                    <span>Final Balance</span>
+                    <span className="amount">
+                      {(
+                        Number(totalCredit) -
+                        report.reduce(
+                          (sum, item) =>
+                            sum +
+                            (Number(item.debit || 0) + Number(item.fee || 0)),
+                          0
+                        )
+                      ).toFixed(2)}{" "}
+                      £
+                    </span>
                   </div>
                 </div>
               </div>
-              {report.length > 0 ? (
-                <center>
-                  <button
-                    onClick={downloadStatement}
-                    className="btn btn-success mb-3 mt-2"
-                  >
-                    Export to Excel
-                  </button>
-                </center>
-              ) : null}
+
               <div className="table-responsive">
                 {loading ? (
                   <div
@@ -441,7 +358,7 @@ export default function GlobalReportPage() {
                                       <td>{item.senderName}</td>
                                       <td>{item.beneficiaryName}</td>
                                       <td className="text-center">
-                                        {item.paytMethod}
+                                           <small>{item.walletrate_name}</small>
                                       </td>
                                       <td className="text-center">
                                         {item.beneficiaryPhone}
@@ -458,8 +375,10 @@ export default function GlobalReportPage() {
 
                                   {/* Debit */}
                                   <td className="text-end">
-                                    {Number(item.debit || 0) +
-                                      Number(item.fee || 0)}
+                                    {(
+                                      Number(item.debit || 0) +
+                                      Number(item.fee || 0)
+                                    ).toFixed(2)}
                                   </td>
 
                                   {/* Credit */}

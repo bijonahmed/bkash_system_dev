@@ -13,12 +13,12 @@ import toast, { Toaster } from "react-hot-toast";
 
 export default function UserPage() {
   const router = useRouter();
-  const { token, permissions } = useAuth();
+  const { token, permissions, roles } = useAuth();
   const perms = Array.isArray(permissions)
     ? permissions
     : permissions?.split(",") || [];
   const pathname = usePathname();
-  const title = "Wallet List";
+  const title = "Rate List";
   //const title = pathname ? pathname.replace("/", "").charAt(0).toUpperCase() + pathname.slice(2) : "";
   // update document title
   useEffect(() => {
@@ -38,6 +38,36 @@ export default function UserPage() {
   const [perPage, setPerPage] = useState(10);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("general");
+
+  const handleDeleteAgent = async (item) => {
+    if (!confirm("Are you sure you want to delete?")) return;
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/wallet/deleteAgentRate/${item.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Delete failed");
+        return;
+      }
+      toast.success("Deleted successfully");
+      refetchAgentWallet();
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete?")) return;
 
@@ -193,31 +223,37 @@ export default function UserPage() {
       selector: (row) => (row.status == 1 ? "Active" : "Inactive"),
       sortable: true,
     },
-
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          {perms.includes("edit wallet") ? (
-            <button
-              className="btn btn-sm btn-primary"
-              onClick={() => router.push(`/setting/wallet/edit/${row.id}`)}
-            >
-              <i className="bi bi-pencil"></i> Edit
-            </button>
-          ) : null}
-          {perms.includes("delete wallet") ? (
-            <button
-              className="btn btn-sm btn-danger"
-              onClick={() => handleDelete(row.id)}
-            >
-              <i className="bi bi-trash"></i> Delete
-            </button>
-          ) : null}
-        </div>
-      ),
-      ignoreRowClick: true,
-    },
+    // Only include Actions column if admin
+    ...(roles == "admin"
+      ? [
+          {
+            name: "Actions",
+            cell: (row) => (
+              <div className="d-flex gap-2">
+                {perms.includes("edit wallet") && (
+                  <button
+                    className="btn btn-sm btn-primary"
+                    onClick={() =>
+                      router.push(`/setting/wallet/edit/${row.id}`)
+                    }
+                  >
+                    <i className="bi bi-pencil"></i> Edit
+                  </button>
+                )}
+                {perms.includes("delete wallet") && (
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => handleDelete(row.id)}
+                  >
+                    <i className="bi bi-trash"></i> Delete
+                  </button>
+                )}
+              </div>
+            ),
+            ignoreRowClick: true,
+          },
+        ]
+      : []),
   ];
 
   const handlePageChange = (newPage) => setPage(newPage);
@@ -267,16 +303,18 @@ export default function UserPage() {
                   General Wallet
                 </button>
               </li>
-              <li className="nav-item">
-                <button
-                  className={`nav-link ${
-                    activeTab === "assign" ? "active" : ""
-                  }`}
-                  onClick={() => setActiveTab("assign")}
-                >
-                  Assign Wallet
-                </button>
-              </li>
+              {roles == "admin" && (
+                <li className="nav-item">
+                  <button
+                    className={`nav-link ${
+                      activeTab === "assign" ? "active" : ""
+                    }`}
+                    onClick={() => setActiveTab("assign")}
+                  >
+                    Assign Wallet
+                  </button>
+                </li>
+              )}
             </ul>
 
             {/* Tab Content */}
@@ -323,14 +361,17 @@ export default function UserPage() {
 
                         {/* Add Wallet button */}
                         <div className="col-6 col-md-3 col-lg-1 ms-auto">
-                          {perms.includes("create wallet") && (
-                            <button
-                              className="btn btn-primary w-100"
-                              onClick={() => router.push(`/setting/wallet/add`)}
-                            >
-                              Add New
-                            </button>
-                          )}
+                          {perms.includes("create wallet") &&
+                            roles == "admin" && (
+                              <button
+                                className="btn btn-primary w-100"
+                                onClick={() =>
+                                  router.push(`/setting/wallet/add`)
+                                }
+                              >
+                                Add New
+                              </button>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -390,6 +431,12 @@ export default function UserPage() {
                                     onClick={() => handleEdit(row)}
                                   >
                                     <i className="bi bi-pencil"></i> Edit
+                                  </button>
+                                  <button
+                                    className="btn btn-sm btn-danger me-2"
+                                    onClick={() => handleDeleteAgent(row)}
+                                  >
+                                    <i className="bi bi-trash"></i> Delete
                                   </button>
                                 </td>
                               </tr>

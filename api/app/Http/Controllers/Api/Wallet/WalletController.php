@@ -42,13 +42,19 @@ class WalletController extends Controller
         }
 
         $paginator = $query->paginate($pageSize, ['*'], 'page', $page);
-        $modifiedCollection = $paginator->getCollection()->map(function ($item) {
+        $assignedWallets = AssignWallet::where('agent_id', $user->id)->get()->keyBy('wallet_id');
+
+        $modifiedCollection = $paginator->getCollection()->map(function ($item) use ($user, $assignedWallets) {
+            // Find assigned wallet for this specific item
+            $wallet = $assignedWallets->get($item->id);
 
             return [
-                'id'            => $item->id,
-                'name'          => Str::title(Str::replace('_', ' ', $item->name)),
-                'amount'        => $item->amount,
-                'status'        => $item->status,
+                'id'     => $item->id,
+                'name'   => Str::title(Str::replace('_', ' ', $item->name)),
+                'amount' => $user->role === 'admin'
+                    ? $item->amount
+                    : ($wallet ? $wallet->amount : $item->amount),
+                'status' => $item->status,
             ];
         });
         // Return the modified collection along with pagination metadata
@@ -299,6 +305,24 @@ class WalletController extends Controller
             'id' => $id,
         ], 200);
     }
+
+
+    public function deleteAgentRate($id)
+    {
+
+        $data = AssignWallet::find($id);
+        if (! $data) {
+            return response()->json([
+                'message' => 'Data not found',
+            ], 404);
+        }
+        $data->delete();
+        return response()->json([
+            'message' => 'Data deleted successfully',
+            'id' => $id,
+        ], 200);
+    }
+
 
     public function getRolesType()
     {

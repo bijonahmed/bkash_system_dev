@@ -166,7 +166,7 @@ export default function UserPage() {
                 <div className="row g-2 align-items-center">
                   {/* Column 3: Add User button */}
                   <div className="col-6 col-md-3 col-lg-2 ms-auto d-flex justify-content-end gap-2">
-                    {perms.includes("create fee") && (
+                    {perms.includes("create fee") && roles == "admin" && (
                       <>
                         <button
                           className="btn btn-primary"
@@ -174,14 +174,12 @@ export default function UserPage() {
                         >
                           Add New
                         </button>
-                        {roles == "admin" && (
-                          <button
-                            className="btn btn-danger"
-                            onClick={() => handleLogClick()}
-                          >
-                            Log
-                          </button>
-                        )}
+                        <button
+                          className="btn btn-danger"
+                          onClick={() => handleLogClick()}
+                        >
+                          Log
+                        </button>
                       </>
                     )}
                   </div>
