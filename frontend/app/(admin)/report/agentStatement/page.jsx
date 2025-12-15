@@ -119,6 +119,18 @@ export default function GlobalReportPage() {
     }
   };
 
+  const selectedAgent = agentData.find(
+    (ag) => ag.id === Number(formData.agent_id)
+  );
+
+  const transactionCount = report.filter(
+    (item) => Number(item.debit) !== 0
+  ).length;
+
+  const creditTransactionCount = report.filter(
+    (item) => Number(item.credit) !== 0
+  ).length;
+
   if (!permissions.includes("view report")) {
     router.replace("/dashboard");
     return null;
@@ -169,7 +181,6 @@ export default function GlobalReportPage() {
                     className="form-select"
                     value={formData.agent_id}
                     onChange={handleChange}
-                    required
                   >
                     <option value="">All Agent</option>
                     {agentData.map((ag) => (
@@ -249,57 +260,110 @@ export default function GlobalReportPage() {
 
             {/* Report Table */}
             <div className="card-body">
-              <div className="summary-wrapper">
-                <div className="statement">
-                  <div className="statement-row">
-                    <span>Number of Transactions</span>
-                    <span className="amount">{report.length}</span>
+              <div className="container-fluid">
+                <div className="row">
+                  {/* LEFT SIDE — Agent Details */}
+                  <div className="col-md-6 col-lg-5">
+                    <div className="card shadow-sm">
+                      <div className="card-header fw-bold bg-light">
+                        Agent Details
+                      </div>
+                      <div className="card-body">
+                        {selectedAgent ? (
+                          <>
+                            <span>
+                              <strong>Name:</strong> {selectedAgent.name}
+                              <br />
+                            </span>
+                            <span>
+                              <strong>Agent Code:</strong>{" "}
+                              {selectedAgent.agentCode}
+                              <br />
+                            </span>
+                            <span>
+                              <strong>Phone:</strong>{" "}
+                              {selectedAgent.phone_number || "N/A"}
+                              <br />
+                            </span>
+                            <span>
+                              <strong>Email:</strong>{" "}
+                              {selectedAgent.email || "N/A"}
+                              <br />
+                            </span>
+                          </>
+                        ) : (
+                          <p className="text-muted mb-0">All Agents Selected</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="statement-row">
-                    <span>Total Fee</span>
-                    <span className="amount">GBP {totalFee} £</span>
-                  </div>
+                  {/* RIGHT SIDE — Summary */}
+                  <div className="col-md-6 col-lg-5 offset-lg-2">
+                    <div className="summary-wrapper_side">
+                      <div className="card shadow-sm">
+                        <div className="card-header fw-bold bg-light">
+                          Transaction Summary
+                        </div>
 
-                  <div className="statement-row">
-                    <span>Total Receiving Amount</span>
-                    <span className="amount">{totalReceiving} BDT</span>
-                  </div>
+                        <div className="card-body">
+                          <div className="statement-row d-flex justify-content-between">
+                            <span>Number of Transactions</span>
+                            <span className="amount">{transactionCount}</span>
+                          </div>
 
-                  <div className="statement-row">
-                    <span>Total Debit</span>
-                    <span className="amount">
-                      {report
-                        .reduce(
-                          (sum, item) =>
-                            sum +
-                            (Number(item.debit || 0) + Number(item.fee || 0)),
-                          0
-                        )
-                        .toFixed(2)}{" "}
-                      £
-                    </span>
-                  </div>
+                          <div className="statement-row d-flex justify-content-between">
+                            <span>Total Fee</span>
+                            <span className="amount">GBP {totalFee} £</span>
+                          </div>
 
-                  <div className="statement-row">
-                    <span>Total Credit</span>
-                    <span className="amount">{totalCredit} £</span>
-                  </div>
+                          <div className="statement-row d-flex justify-content-between">
+                            <span>Total Receiving Amount</span>
+                            <span className="amount">{totalReceiving} BDT</span>
+                          </div>
 
-                  <div className="statement-row fw-bold">
-                    <span>Final Balance</span>
-                    <span className="amount">
-                      {(
-                        Number(totalCredit) -
-                        report.reduce(
-                          (sum, item) =>
-                            sum +
-                            (Number(item.debit || 0) + Number(item.fee || 0)),
-                          0
-                        )
-                      ).toFixed(2)}{" "}
-                      £
-                    </span>
+                          <div className="statement-row d-flex justify-content-between">
+                            <span>
+                              Total Debit&nbsp;<b>({transactionCount})</b>
+                            </span>
+                            <span className="amount">
+                              {report
+                                .reduce(
+                                  (sum, item) =>
+                                    sum +
+                                    (Number(item.debit || 0) +
+                                      Number(item.fee || 0)),
+                                  0
+                                )
+                                .toFixed(2)}{" "}
+                              £
+                            </span>
+                          </div>
+
+                          <div className="statement-row d-flex justify-content-between">
+                            <span>Total Credit&nbsp;<b>({creditTransactionCount})</b></span>
+                            <span className="amount">{totalCredit} £</span>
+                          </div>
+
+                          <div className="statement-row d-flex justify-content-between fw-bold border-top pt-2">
+                            <span>Final Balance</span>
+                            <span className="amount text-success">
+                              {(
+                                Number(totalCredit) -
+                                report.reduce(
+                                  (sum, item) =>
+                                    sum +
+                                    (Number(item.debit || 0) +
+                                      Number(item.fee || 0)),
+                                  0
+                                )
+                              ).toFixed(2)}{" "}
+                              £
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -358,7 +422,7 @@ export default function GlobalReportPage() {
                                       <td>{item.senderName}</td>
                                       <td>{item.beneficiaryName}</td>
                                       <td className="text-center">
-                                           <small>{item.walletrate_name}</small>
+                                        <small>{item.walletrate_name}</small>
                                       </td>
                                       <td className="text-center">
                                         {item.beneficiaryPhone}

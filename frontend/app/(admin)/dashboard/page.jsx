@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const depositApproved = dashboardData?.depositApproved ?? 0;
   const agentList = dashboardData?.agentList ?? 0;
   const balance = dashboardData?.balance ?? 0;
+   const depositApproved_status = dashboardData?.depositApproved_status ?? "";
 
   const agentbalance = balance;
   const formattedBalance = Number(agentbalance).toFixed(2); // "965.12" (string)
@@ -57,7 +58,7 @@ export default function DashboardPage() {
               <div className="small-box text-bg-danger">
                 <div className="inner">
                   <h3>{depositApproved}</h3>
-                  <p>Agent Deposit</p>
+                  <p>Deposit {depositApproved_status}</p>
                 </div>
                 <Link
                   href="/depositrequiest"

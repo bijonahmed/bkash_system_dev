@@ -235,7 +235,6 @@ export default function GlobalReportPage() {
                             <th className="text-center">#</th>
                             <th>Agent Name</th>
                             <th>Agent Code</th>
-                            <th>Agent Phone</th>
                             <th>Balance</th>
                           </tr>
                         </thead>
@@ -248,7 +247,6 @@ export default function GlobalReportPage() {
                                   <td className="text-center">{index + 1}</td>
                                   <td>{item.agent_name}</td>
                                   <td>{item.agentCode}</td>
-                                  <td>{item.phone_number}</td>
                                   {/* Debit */}
                                   <td className="text-center">
                                     {item.balance}

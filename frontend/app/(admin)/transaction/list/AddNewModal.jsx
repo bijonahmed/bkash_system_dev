@@ -20,6 +20,8 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   //console.log("exchange_rate_wallet :", settingData?.exchange_rate_wallet);
   //console.log("bank rate :", settingData?.exchange_rate_bank);
 
+  const { walletData, bankrate } = useWallets();
+
   const initialFormData = {
     beneficiaryName: "",
     beneficiaryPhone: "",
@@ -32,7 +34,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     accountNo: "",
     sendingMoney: 0,
     walletrate: 0,
-    bankRate: 1,
+    bankRate: bankrate ? bankrate.amount : 1,
     receivingMoney: "",
     charges: "",
     fee: "",
@@ -42,16 +44,21 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     description: "",
   };
 
-  const [formData, setFormData] = useState(initialFormData);
-  const resetForm = () => setFormData(initialFormData);
-  const { walletData } = useWallets();
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      bankRate: bankrate.amount || 1,
+    }));
+  }, [bankrate]);
 
   const { bankData } = useBank();
   const [showWallet, setShowWallet] = useState(false);
   const [showBank, setShowBank] = useState(false);
   const [branchData, setBranchData] = useState([]);
+  const [formData, setFormData] = useState(initialFormData);
+  const resetForm = () => setFormData(initialFormData);
 
-  // ✅ Automatically toggle Wallet/Bank inputs
+  // Automatically toggle Wallet/Bank inputs
   useEffect(() => {
     if (formData.paymentMethod === "wallet") {
       setFormData((prev) => ({

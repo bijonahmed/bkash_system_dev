@@ -309,7 +309,7 @@ class UserController extends Controller
 
     public function getOnlyAgentList()
     {
-        $data = User::where('role_type', 2)->select('id','name')->where('status', 1)->get();
+        $data = User::where('role_type', 2)->select('*')->where('status', 1)->get();
         $response = [
             'data' => $data,
             'message' => 'success',

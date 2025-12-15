@@ -218,14 +218,15 @@ export default function UserPage() {
   const columns = [
     { name: "Name", selector: (row) => row.name, sortable: true },
     { name: "Amount", selector: (row) => `BDT ${row.amount}`, sortable: true },
-    {
+   
+    // Only include Actions column if admin
+    ...(roles == "admin"
+      ? [
+         {
       name: "Status",
       selector: (row) => (row.status == 1 ? "Active" : "Inactive"),
       sortable: true,
     },
-    // Only include Actions column if admin
-    ...(roles == "admin"
-      ? [
           {
             name: "Actions",
             cell: (row) => (
@@ -337,16 +338,18 @@ export default function UserPage() {
                         </div>
 
                         {/* Status filter */}
-                        <div className="col-4 col-md-4 col-lg-3">
-                          <select
-                            className="form-control"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                          >
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
-                          </select>
-                        </div>
+                        {roles == "admin" && (
+                          <div className="col-4 col-md-4 col-lg-3">
+                            <select
+                              className="form-control"
+                              value={statusFilter}
+                              onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                              <option value="1">Active</option>
+                              <option value="0">Inactive</option>
+                            </select>
+                          </div>
+                        )}
 
                         {/* Fetch button */}
                         <div className="col-6 col-md-3 col-lg-2">

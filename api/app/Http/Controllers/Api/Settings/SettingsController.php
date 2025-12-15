@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers\Api\Settings;
+
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\Fees;
@@ -20,6 +22,7 @@ use App\Models\FeesLog;
 use App\Models\Limit;
 use App\Models\LimitLog;
 use App\Models\Wallet;
+
 class SettingsController extends Controller
 {
     public function settingrow()
@@ -302,10 +305,17 @@ class SettingsController extends Controller
     }
     public function getwallet()
     {
-        $data = Wallet::where('status', 1)->get();
+        $walletdata = Wallet::where('status', 1)
+            ->where('id', '!=', 4)
+            ->get();
+
+
+        $bankdata = Wallet::where('status', 1)->where('id', 4)->first();
+
         return response()->json([
-            'data' => $data,
-            'message' => 'success',
+            'data'     => $walletdata,
+            'bankrate' => $bankdata,
+            'message'  => 'success',
         ]);
     }
     public function getBanks()

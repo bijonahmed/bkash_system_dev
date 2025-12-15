@@ -43,39 +43,39 @@ export default function AdminNavbar() {
     <nav className="app-header navbar navbar-expand bg-body">
       <div className="container-fluid">
         {/* Left side */}
-       <ul className="navbar-nav align-items-center">
-  {/* Sidebar toggle */}
-  <li className="nav-item">
-    <a
-      className="nav-link"
-      data-lte-toggle="sidebar"
-      href="#"
-      role="button"
-    >
-      <i className="bi bi-list" />
-    </a>
-  </li>
+        <ul className="navbar-nav align-items-center">
+          {/* Sidebar toggle */}
+          <li className="nav-item">
+            <a
+              className="nav-link"
+              data-lte-toggle="sidebar"
+              href="#"
+              role="button"
+            >
+              <i className="bi bi-list" />
+            </a>
+          </li>
 
-  {/* Refresh link */}
-  <li className="nav-item d-none d-md-block">
-    <a href="/dashboard" className="nav-link">
-      Refresh
-    </a>
-  </li>
+          {/* Refresh link */}
+          <li className="nav-item d-none d-md-block">
+            <a href="/dashboard" className="nav-link">
+              Refresh
+            </a>
+          </li>
 
-  {/* Wallet Amount */}
-  <li className="nav-item ms-md-3">
-    <div className="d-flex align-items-center">
-      <span className="fw-bold me-2">Wallet Rate:</span>
-      <span
-        className="d-flex justify-content-center align-items-center rounded-circle bg-danger text-white fw-bold animate__animated animate__pulse"
-        style={{ width: "50px", height: "50px", fontSize: "1.2rem" }}
-      >
-        {user?.amount ? `${user.amount}/=` : ""}
-      </span>
-    </div>
-  </li>
-</ul>
+          {/* Wallet Amount */}
+          <li className="nav-item ms-md-3">
+            <div className="d-flex align-items-center">
+              <span className="fw-bold me-2">Wallet Rate:</span>
+              <span
+                className="d-flex justify-content-center align-items-center  bg-danger text-white fw-bold animate__animated animate__pulse"
+                style={{ width: "70px", height: "40px", fontSize: "1.1rem" }}
+              >
+                {user?.amount ? `${user.amount}/=` : ""}
+              </span>
+            </div>
+          </li>
+        </ul>
 
         {/* Right side */}
         <ul className="navbar-nav ms-auto">

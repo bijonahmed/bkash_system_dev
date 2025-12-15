@@ -26,7 +26,8 @@ export default function listPage() {
   const [showModal, setShowModal] = useState(false);
   const title = "Transaction List";
   const contentRef = useRef(null);
-  const { walletData } = useWallets();
+  const { walletData, bankrate } = useWallets();
+
   const { agentData } = useAgents();
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -176,7 +177,9 @@ export default function listPage() {
           {/*begin::Row*/}
           <div className="row">
             <div className="col-sm-6">
-              <h4 className="mb-0">{title}</h4>
+              <h4 className="mb-0">
+                {title}{" "}
+              </h4>
             </div>
             <div className="col-sm-6">
               <nav aria-label="breadcrumb">
@@ -481,6 +484,12 @@ export default function listPage() {
                       </div>
                     </div>
                   </div>
+                  <center className="mt-2">
+                    {" "}
+                    <span className="bg-danger text-white px-2 rounded">
+                      Balance: {depositApproved || 0}
+                    </span>
+                  </center>
                 </div>
               )}
               {/* 🔹 Transactions Card */}
@@ -488,27 +497,31 @@ export default function listPage() {
                 <div className="overflow-auto">
                   <table className="table table-sm table-hover table-bordered table-colorful">
                     <thead>
-                      <tr className="table-gradient">
+                      <tr
+                        className="table-gradient"
+                        style={{ fontSize: "13px" }}
+                      >
                         <th
                           className="text-center text-white"
                           style={{ width: "3%" }}
                         >
                           #
                         </th>
-                        <th className="text-white" style={{ width: "15%" }}>
+                        <th className="text-white" style={{ width: "10%" }}>
                           Agent Name
                         </th>
-                        <th className="text-white" style={{ width: "15%" }}>
-                          Beneficiary Details
-                        </th>
-                        <th className="text-white" style={{ width: "15%" }}>
+
+                        <th className="text-white" style={{ width: "5%" }}>
                           Sender Details
                         </th>
-                        <th className="text-white" style={{ width: "5%" }}>
+                        <th className="text-white" style={{ width: "10%" }}>
+                          Beneficiary Details
+                        </th>
+                        <th className="text-white" style={{ width: "3%" }}>
                           Status
                         </th>
-                        <th className="text-white" style={{ width: "15%" }}>
-                          Payment Method
+                        <th className="text-white" style={{ width: "10%" }}>
+                          Payment
                         </th>
                         <th className="text-white" style={{ width: "8%" }}>
                           Sending Amount
@@ -519,7 +532,7 @@ export default function listPage() {
                         <th className="text-white" style={{ width: "4%" }}>
                           Admin Fee
                         </th>
-                        <th className="text-white" style={{ width: "4%" }}>
+                        <th className="text-white" style={{ width: "8%" }}>
                           Total Amount
                         </th>
                         <th className="text-white" style={{ width: "4%" }}>
@@ -532,22 +545,14 @@ export default function listPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="balance-row">
-                        <td
-                          colSpan="12"
-                          className="text-end fw-bold text-danger"
-                        >
-                          Balance: {depositApproved || 0}
-                        </td>
-                      </tr>
                       {/* Example row */}
                       {transactionData && transactionData.length > 0 ? (
                         transactionData.map((item, index) => (
                           <tr key={item.id} className="table-row bg-light">
                             {/* or bg-info, bg-warning, bg-success, etc. */}
                             <td>
-                              {/* {index + 1 + (currentPage - 1) * filters.limit} */}
-                              {item.id}
+                              {index + 1 + (currentPage - 1) * filters.limit}
+                              {/* {item.id} */}
                             </td>
                             <td>
                               {item.createdBy}
@@ -556,32 +561,15 @@ export default function listPage() {
                                 {item.created_at}
                               </small>
                             </td>
+
                             <td>
-                              {item.beneficiaryName} <br />{" "}
-                              {item.beneficiaryPhone}
+                              <small>{item.senderName}</small>
                             </td>
                             <td>
-                              {item.senderName}
-                              <br />
-                              <span
-                                className={`badge ${
-                                  (item.paytMethod || "").toLowerCase() ===
-                                  "bank"
-                                    ? "bg-primary"
-                                    : "bg-danger"
-                                }`}
-                              >
-                                {(item.paytMethod || "N/A")
-                                  .charAt(0)
-                                  .toUpperCase() +
-                                  (item.paytMethod || "N/A").slice(1)}
-                                {item?.paytMethod?.toLowerCase() ===
-                                "wallet" ? (
-                                  <>&nbsp;({item.walletName || ""})</>
-                                ) : (
-                                  <>&nbsp;({item.bankName || ""})</>
-                                )}
-                              </span>
+                              <small>
+                                {item.beneficiaryName} <br />{" "}
+                                {item.beneficiaryPhone}
+                              </small>
                             </td>
                             <td>
                               <span
@@ -603,15 +591,18 @@ export default function listPage() {
                             <td>
                               {item.paymentMethod == "wallet" ? (
                                 <>
-                                  Name: {item.walletName} <br />
-                                  Phone #: {item.beneficiaryPhone}
+                                  <small>
+                                    {item.walletName} <br />
+                                    Phone #: {item.beneficiaryPhone}
+                                  </small>
                                 </>
                               ) : item.paymentMethod == "bank" ? (
                                 <>
-                                  Bank Name: {item.bankName} <br />
-                                  Branch Name: {item.branchName} <br />
-                                  Branch Code: {item.branchCode} <br />
-                                  Account #: {item.accountNo}
+                                  <small>
+                                    {" "}
+                                    Bank: {item.bankName} <br />
+                                    Account #: {item.accountNo}
+                                  </small>
                                 </>
                               ) : (
                                 <>N/A</>
@@ -647,16 +638,26 @@ export default function listPage() {
                                 </>
                               )}
                             </td>
-                            <td>GBP&nbsp;{item.charges}</td>
-                            <td>GBP&nbsp;{item.fee}</td>
                             <td>
-                              GBP {item.totalAmount} <br /> BDT{" "}
-                              {item.receiving_money}
+                              {" "}
+                              <small>GBP&nbsp;{item.charges}</small>
+                            </td>
+                            <td>
+                              {" "}
+                              <small>GBP&nbsp;{item.fee}</small>
+                            </td>
+                            <td>
+                              <small>
+                                GBP {item.totalAmount} <br /> BDT{" "}
+                                {item.receiving_money}
+                              </small>
                             </td>
                             <td className="text-center">
-                              {item.agentsettlement}
+                              <small> {item.agentsettlement}</small>
                             </td>
-                            <td>{item.description}</td>
+                            <td>
+                              <small>{item.description}</small>
+                            </td>
                             {permissions.includes("edit transaction") && (
                               <td>
                                 <Link

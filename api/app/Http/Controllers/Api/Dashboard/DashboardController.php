@@ -35,14 +35,16 @@ class DashboardController extends Controller
                 $agentSettlement = Transaction::sum(DB::raw('sendingMoney + fee'));
                 $sumDepositApproved = Deposit::where('approval_status', 1)->sum('amount_gbp');
                 $data['balance'] = $agentSettlement - $sumDepositApproved;
+                $data['depositApproved_status'] = 'Pending';
                 $data['depositApproved'] = Deposit::where('approval_status', 0)->count();
             } else if ($user->hasRole('agent')) {
                 $agentSettlement = Transaction::where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
                 $sumDepositApproved = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
                 $data['balance'] = $sumDepositApproved - $agentSettlement;
-                $data['depositApproved'] = Deposit::where('approval_status', 1)
-                    ->where('agent_id', $user->id)
-                    ->sum('amount_gbp');
+                $data['depositApproved_status'] = 'Pending';
+                $data['depositApproved'] = Deposit::where('approval_status', 0)
+                    ->where('agent_id', $user->id)->count();
+                    //->sum('amount_gbp');
             }
             return response()->json([
                 'success' => true,

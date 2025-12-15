@@ -136,7 +136,7 @@ export default function AdminSidebar() {
                 icon: "bi-circle",
               },
               {
-                label: "Agent Balances",
+                label: "All Agent Balances",
                 href: "/report/allAgentBalance",
                 icon: "bi-circle",
               },

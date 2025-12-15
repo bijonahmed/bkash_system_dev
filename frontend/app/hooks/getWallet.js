@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function useGetWallet() {
   const [walletData, setWalletData] = useState([]);
+  const [bankrate, setBankRate] = useState(0);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
 
@@ -31,6 +32,7 @@ export default function useGetWallet() {
       }
 
       setWalletData(result?.data || []);
+       setBankRate(result?.bankrate || 0);
     } catch (err) {
       toast.error(err?.message || "Something went wrong!");
     } finally {
@@ -43,5 +45,5 @@ export default function useGetWallet() {
     fetchWallet();
   }, [fetchWallet]); // <-- FIXED: dependency included
 
-  return { walletData, loading, fetchWallet };
+  return { walletData, bankrate, loading, fetchWallet };
 }

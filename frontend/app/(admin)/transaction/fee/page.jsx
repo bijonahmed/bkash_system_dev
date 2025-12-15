@@ -209,31 +209,48 @@ export default function UserPage() {
                         <thead className="table-primary text-center">
                           <tr>
                             <th style={{ width: "5%" }}>#</th>
-                            <th style={{ width: "15%" }} className="text-end">
+                            <th
+                              style={{ width: "15%" }}
+                              className="text-center"
+                            >
                               <i className="fa-solid fa-credit-card me-1" />
                               From (BDT)
                             </th>
-                            <th style={{ width: "15%" }} className="text-end">
+                            <th
+                              style={{ width: "15%" }}
+                              className="text-center"
+                            >
                               <i className="fa-solid fa-wallet me-1" />
                               To (BDT)
                             </th>
-                            <th style={{ width: "15%" }} className="text-end">
+                            <th
+                              style={{ width: "15%" }}
+                              className="text-center"
+                            >
                               <i className="fa-solid fa-wallet me-1" />
                               Payment Method
                             </th>
-                            <th style={{ width: "10%" }} className="text-end">
+                            <th
+                              style={{ width: "10%" }}
+                              className="text-center"
+                            >
                               <i className="fa-solid fa-wallet me-1" />
                               Fee (GBP)
                             </th>
-                            <th style={{ width: "20%" }}>
-                              <i className="fa-solid fa-user-tie me-1" />
-                              Created By
-                            </th>
-                            <th style={{ width: "20%" }}>
-                              <i className="fa-solid fa-calendar-days me-1" />
-                              Created At
-                            </th>
-                            <th style={{ width: "5%" }}>Action</th>
+
+                            {roles === "admin" && (
+                              <>
+                                <th style={{ width: "20%" }}>
+                                  <i className="fa-solid fa-user-tie me-1" />
+                                  Created By
+                                </th>
+                                <th style={{ width: "20%" }}>
+                                  <i className="fa-solid fa-calendar-days me-1" />
+                                  Created At
+                                </th>
+                                <th style={{ width: "5%" }}>Action</th>
+                              </>
+                            )}
                           </tr>
                         </thead>
 
@@ -259,9 +276,13 @@ export default function UserPage() {
                               return (
                                 <tr key={limit.id} className={rowBgClass}>
                                   <td className="text-center">{index + 1}</td>
-                                  <td className="text-end">{limit.from_bdt}</td>
-                                  <td className="text-end">{limit.to_bdt}</td>
-                                  <td className="text-end">
+                                  <td className="text-center">
+                                    {limit.from_bdt}
+                                  </td>
+                                  <td className="text-center">
+                                    {limit.to_bdt}
+                                  </td>
+                                  <td className="text-center">
                                     <span
                                       className={`badge me-1 ${
                                         limit.paymentMethod === "Bank"
@@ -279,45 +300,54 @@ export default function UserPage() {
                                       : ""}
                                   </td>
 
-                                  <td className="text-end">{limit.fee_gbp}</td>
                                   <td className="text-center">
-                                    {limit.created_by_name}
+                                    {limit.fee_gbp}
                                   </td>
-                                  <td className="text-center text-secondary">
-                                    {new Date(
-                                      limit.created_at
-                                    ).toLocaleDateString("en-US", {
-                                      month: "short",
-                                      day: "2-digit",
-                                      year: "numeric",
-                                    })}
-                                  </td>
+                                  {roles === "admin" && (
+                                    <>
+                                      <td className="text-center">
+                                        {limit.created_by_name}
+                                      </td>
 
-                                  <td className="text-center">
-                                    <div className="d-flex gap-1 justify-content-center">
-                                      {perms.includes("edit limit") && (
-                                        <button
-                                          type="button"
-                                          className="btn btn-info btn-sm"
-                                          title="Edit"
-                                          onClick={() => handleEdit(limit)}
-                                        >
-                                          <i className="bi bi-pencil"></i>
-                                        </button>
-                                      )}
+                                      <td className="text-center text-secondary">
+                                        {new Date(
+                                          limit.created_at
+                                        ).toLocaleDateString("en-US", {
+                                          month: "short",
+                                          day: "2-digit",
+                                          year: "numeric",
+                                        })}
+                                      </td>
 
-                                      {perms.includes("delete limit") && (
-                                        <button
-                                          type="button"
-                                          className="btn btn-danger btn-sm"
-                                          title="Delete"
-                                          onClick={() => handleDelete(limit.id)}
-                                        >
-                                          <i className="bi bi-trash"></i>
-                                        </button>
-                                      )}
-                                    </div>
-                                  </td>
+                                      <td className="text-center">
+                                        <div className="d-flex gap-1 justify-content-center">
+                                          {perms.includes("edit limit") && (
+                                            <button
+                                              type="button"
+                                              className="btn btn-info btn-sm"
+                                              title="Edit"
+                                              onClick={() => handleEdit(limit)}
+                                            >
+                                              <i className="bi bi-pencil"></i>
+                                            </button>
+                                          )}
+
+                                          {perms.includes("delete limit") && (
+                                            <button
+                                              type="button"
+                                              className="btn btn-danger btn-sm"
+                                              title="Delete"
+                                              onClick={() =>
+                                                handleDelete(limit.id)
+                                              }
+                                            >
+                                              <i className="bi bi-trash"></i>
+                                            </button>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </>
+                                  )}
                                 </tr>
                               );
                             })
