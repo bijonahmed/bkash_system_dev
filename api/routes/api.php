@@ -119,6 +119,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::prefix('deposit-request')->group(function () {
         Route::get('/index', [AgentRequestSendController::class, 'index']);
         Route::post('/sendDepositRequest', [AgentRequestSendController::class, 'store']);
+        Route::get('/checkrow/{id}', [AgentRequestSendController::class, 'checkrow']);
         Route::post('/depositRequestUpdate', [AgentRequestSendController::class, 'update']);
     });
 

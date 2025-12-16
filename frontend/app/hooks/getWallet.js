@@ -2,48 +2,43 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
+import { apiGet } from "../../lib/apiGet"; // adjust path
 
 export default function useGetWallet() {
   const [walletData, setWalletData] = useState([]);
-  const [bankrate, setBankRate] = useState(0);
+  const [allWalletData, setAllWalletData] = useState([]);
+  const [bankrate, setBankRate] = useState("");
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
 
-  // Memoized fetch function
   const fetchWallet = useCallback(async () => {
-    if (!token) return; // prevent unnecessary calls before token loads
+    if (!token) return;
 
     setLoading(true);
-
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/setting/getwallet`;
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await apiGet({
+        endpoint: "/setting/getwallet",
+        token,
       });
 
-      const result = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        throw new Error(result?.message || `HTTP Error: ${res.status}`);
+      if (!res.success) {
+        throw new Error(res.error || "Failed to fetch wallet data");
       }
 
-      setWalletData(result?.data || []);
-       setBankRate(result?.bankrate || 0);
+      //console.log("Bank Data:", res.data?.bankrate);
+      setWalletData(res.data?.data || []);
+      setBankRate(res.data?.bankrate || 0);
+      setAllWalletData(res.data?.allwallet || []);
     } catch (err) {
       toast.error(err?.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }
-  }, [token]); // <-- FIXED: token added
+  }, [token]);
 
-  // Automatically fetch on load & when token changes
   useEffect(() => {
     fetchWallet();
-  }, [fetchWallet]); // <-- FIXED: dependency included
+  }, [fetchWallet]);
 
-  return { walletData, bankrate, loading, fetchWallet };
+  return { walletData, bankrate, allWalletData, loading, fetchWallet };
 }

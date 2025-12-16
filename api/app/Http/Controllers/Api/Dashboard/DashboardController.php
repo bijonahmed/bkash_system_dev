@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers\Api\Dashboard;
+
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Deposit;
@@ -19,6 +21,7 @@ use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Support\Str;
 use Validator;
 use Illuminate\Support\Facades\DB;
+
 class DashboardController extends Controller
 {
     public function getDashboardData()
@@ -32,19 +35,21 @@ class DashboardController extends Controller
             }
             $data['agentList']           = User::where('role_type', 2)->where('status', 1)->count();
             if ($user->hasRole('admin')) {
-                $agentSettlement = Transaction::sum(DB::raw('sendingMoney + fee'));
+
+                $agentSettlement = Transaction::where('status', '!=', 'cancel')->sum(DB::raw('sendingMoney + fee'));
                 $sumDepositApproved = Deposit::where('approval_status', 1)->sum('amount_gbp');
                 $data['balance'] = $agentSettlement - $sumDepositApproved;
                 $data['depositApproved_status'] = 'Pending';
                 $data['depositApproved'] = Deposit::where('approval_status', 0)->count();
             } else if ($user->hasRole('agent')) {
-                $agentSettlement = Transaction::where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
+
+                $agentSettlement = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
                 $sumDepositApproved = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
                 $data['balance'] = $sumDepositApproved - $agentSettlement;
                 $data['depositApproved_status'] = 'Pending';
                 $data['depositApproved'] = Deposit::where('approval_status', 0)
                     ->where('agent_id', $user->id)->count();
-                    //->sum('amount_gbp');
+                //->sum('amount_gbp');
             }
             return response()->json([
                 'success' => true,

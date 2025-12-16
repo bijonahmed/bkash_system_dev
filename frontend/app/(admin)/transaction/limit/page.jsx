@@ -218,7 +218,7 @@ export default function UserPage() {
                             <i className="fa-solid fa-wallet me-1" />
                             Max Receive Limit (BDT)
                           </th>
-                          {roles === "admin" && (
+                          {roles == "admin" && (
                             <>
                               <th style={{ width: "15%" }}>
                                 <i className="fa-solid fa-user-tie me-1" />
@@ -286,7 +286,7 @@ export default function UserPage() {
                                 >
                                   {Number(limit.maxLimit).toLocaleString()}
                                 </td>
-                                {roles === "admin" && (
+                                {roles == "admin" && (
                                   <>
                                     <td className="fw-semibold">
                                       {limit.created_by_name}

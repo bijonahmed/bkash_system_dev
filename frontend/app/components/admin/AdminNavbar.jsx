@@ -10,6 +10,7 @@ export default function AdminNavbar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [bankrate, setBankrate] = useState("");
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -30,6 +31,7 @@ export default function AdminNavbar() {
 
     if (result.success) {
       setUser(result.data);
+      setBankrate(result.data.bankrate);
     } else {
       console.error("Fetch failed:", result.error);
     }
@@ -58,7 +60,14 @@ export default function AdminNavbar() {
 
           {/* Refresh link */}
           <li className="nav-item d-none d-md-block">
-            <a href="/dashboard" className="nav-link">
+            <a
+              href="#"
+              className="nav-link"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.reload();
+              }}
+            >
               Refresh
             </a>
           </li>
@@ -66,12 +75,15 @@ export default function AdminNavbar() {
           {/* Wallet Amount */}
           <li className="nav-item ms-md-3">
             <div className="d-flex align-items-center">
-              <span className="fw-bold me-2">Wallet Rate:</span>
+              <span className="fw-bold me-2" style={{ width: "150px" }}>
+                Todays Rate:
+              </span>
               <span
-                className="d-flex justify-content-center align-items-center  bg-danger text-white fw-bold animate__animated animate__pulse"
-                style={{ width: "70px", height: "40px", fontSize: "1.1rem" }}
+                className="d-flex justify-content-center align-items-center w-100 bg-danger text-white fw-bold animate__animated animate__pulse"
+                style={{ height: "40px", fontSize: "14px" }}
               >
-                {user?.amount ? `${user.amount}/=` : ""}
+                Wallet: {user?.amount ? `${user.amount}/=` : ""}
+                Bank: {bankrate ? `${bankrate}/=` : ""}
               </span>
             </div>
           </li>

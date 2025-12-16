@@ -15,12 +15,12 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   const { transactionData, refetch } = getTransactions();
   const { settingData } = useSetting();
   const [walletRate, setWalletRate] = useState("");
-  const [receiving, setReceiving] = useState(""); // your input value
-
-  //console.log("exchange_rate_wallet :", settingData?.exchange_rate_wallet);
-  //console.log("bank rate :", settingData?.exchange_rate_bank);
+  const [receiving, setReceiving] = useState("");
 
   const { walletData, bankrate } = useWallets();
+  //console.log("Wallet Bank:-----", bankrate);
+
+;
 
   const initialFormData = {
     beneficiaryName: "",
@@ -34,7 +34,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     accountNo: "",
     sendingMoney: 0,
     walletrate: 0,
-    bankRate: bankrate ? bankrate.amount : 1,
+    bankRate: "",
     receivingMoney: "",
     charges: "",
     fee: "",
@@ -47,7 +47,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      bankRate: bankrate.amount || 1,
+      bankRate: bankrate || 1,
     }));
   }, [bankrate]);
 

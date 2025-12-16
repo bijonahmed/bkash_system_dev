@@ -69,6 +69,7 @@ class UserController extends Controller
             return [
                 'id'            => $item->id,
                 'name'          => $item->name,
+                'agentCode'     => $item->agentCode,
                 'rulename'      => $roleName,
                 'email'         => $item->email,
                 'phone_number'  => $item->phone_number,

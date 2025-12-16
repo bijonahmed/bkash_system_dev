@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers\Api\Settings;
-
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\Fees;
@@ -22,7 +20,6 @@ use App\Models\FeesLog;
 use App\Models\Limit;
 use App\Models\LimitLog;
 use App\Models\Wallet;
-
 class SettingsController extends Controller
 {
     public function settingrow()
@@ -298,9 +295,17 @@ class SettingsController extends Controller
             : Wallet::where('id', 2)
             ->where('status', 1)
             ->value('amount'); // simpler than first()->amount
+        $walletData = Wallet::where('status', 1)->where('id', 4)->first();
+        $checkPoint = AssignWallet::where('agent_id', $agent_id)->where('wallet_id', 4)->first('amount');
+        if ($checkPoint) {
+            $bankrate = $checkPoint->amount;
+        } else {
+            $bankrate = $walletData->amount;
+        }
         return response()->json([
-            'amount' => $amount,
-            'message' => 'success',
+            'amount'    => $amount,
+            'bankrate'  => $bankrate,
+            'message'   => 'success',
         ]);
     }
     public function getwallet()
@@ -308,14 +313,21 @@ class SettingsController extends Controller
         $walletdata = Wallet::where('status', 1)
             ->where('id', '!=', 4)
             ->get();
-
-
-        $bankdata = Wallet::where('status', 1)->where('id', 4)->first();
-
+        $walletData = Wallet::where('status', 1)->where('id', 4)->first();
+        $user = Auth::user();
+        $agent_id = $user->id;
+        $checkPoint = AssignWallet::where('agent_id', $agent_id)->where('wallet_id', 4)->first('amount');
+        if ($checkPoint) {
+            $bankrate = $checkPoint->amount;
+        } else {
+            $bankrate = $walletData->amount;
+        }
+        $allwallet = Wallet::where('status', 1)->get();
         return response()->json([
-            'data'     => $walletdata,
-            'bankrate' => $bankdata,
-            'message'  => 'success',
+            'data'      => $walletdata,
+            'bankrate'  => $bankrate,
+            'allwallet' => $allwallet,
+            'message'   => 'success',
         ]);
     }
     public function getBanks()

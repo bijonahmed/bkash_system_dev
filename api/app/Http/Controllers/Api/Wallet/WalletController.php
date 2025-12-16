@@ -211,8 +211,6 @@ class WalletController extends Controller
 
     public function walletcalculateCheck(Request $request)
     {
-
-
         // dd($request->all());
         $wallet_id = $request->wallet_id;
         $user      = Auth::user();
@@ -324,58 +322,5 @@ class WalletController extends Controller
     }
 
 
-    public function getRolesType()
-    {
-        try {
-            $data = RolesType::all(); // Fetch all roles
-
-            return response()->json([
-                'data' => $data,
-                'message' => 'success',
-            ], 200);
-        } catch (\Exception $e) {
-            // Catch any error and send error response
-            return response()->json([
-                'message' => 'Something went wrong while fetching roles.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function checkRoleType(Request $request)
-    {
-
-        try {
-            $roleType = $request->input('role_type');
-            // Get all unique parent IDs
-            $parentIds = ModelsPermission::pluck('parent_id')->unique()->filter(fn($id) => $id != 0);
-            $result = [];
-
-            foreach ($parentIds as $parentId) {
-                // Get parent name
-                $parent = ModelsPermission::find($parentId);
-                $groupName = $parent ? $parent->name : 'Unknown Group';
-                // Get permissions under this parent where role_type includes $roleType
-                $permissions = ModelsPermission::where('parent_id', $parentId)
-                    ->whereRaw("FIND_IN_SET(?, role_type)", [$roleType])
-                    ->get(['id', 'name']); // ✅ important
-
-                if ($permissions->count() > 0) {
-                    $result[] = [
-                        'group_name'  => $groupName,
-                        'permissions' => $permissions
-                    ];
-                }
-            }
-            return response()->json([
-                'message' => 'success',
-                'data'    => $result
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Something went wrong while fetching permissions.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
+    
 }

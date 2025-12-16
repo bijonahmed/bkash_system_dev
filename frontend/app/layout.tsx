@@ -1,3 +1,12 @@
+"use client";
+
+import { useIdleLogout } from "../lib/idleLogout";
+
+function IdleLogoutWrapper({ children }) {
+  useIdleLogout(); // automatically handles idle logout & browser close
+  return children;
+}
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -7,14 +16,9 @@ export default function RootLayout({ children }) {
         <meta name="color-scheme" content="light dark" />
         <meta name="theme-color" content="#007bff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
-       
+
         {/* CDN CSS links */}
-        <link
-        href="/src/css/admincustom.css"
-        rel="stylesheet"
-        crossOrigin="anonymous"
-      />
-      
+        <link href="/src/css/admincustom.css" rel="stylesheet" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
@@ -27,10 +31,7 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
         />
-        <link
-          rel="stylesheet"
-          href="/dist/css/adminlte.css"
-        />
+        <link rel="stylesheet" href="/dist/css/adminlte.css" />
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
@@ -39,11 +40,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css"
         />
-      
-
       </head>
       <body className="layout-fixed sidebar-expand-lg sidebar-open bg-body-tertiary">
-        {children}
+        {/* Wrap all children with IdleLogoutWrapper to enable global idle logout */}
+        <IdleLogoutWrapper>{children}</IdleLogoutWrapper>
       </body>
     </html>
   );

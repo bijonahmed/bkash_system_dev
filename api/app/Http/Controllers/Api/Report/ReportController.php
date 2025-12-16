@@ -256,7 +256,7 @@ class ReportController extends Controller
             // Transactions sum
             $agentSettlement = Transaction::where('agent_id', $agent->id)
                 ->where('transection_status', 1)
-                //->where('status', '!=', 'cancel')
+                ->where('status', '!=', 'cancel')
                 ->sum(DB::raw('sendingMoney + fee'));
 
             // Deposits sum

@@ -125,11 +125,11 @@ class TransactionController extends Controller
 
         // Aggregate sums (single query each)
         if ($user->hasRole('agent')) {
-            $agentSettlement = Transaction::where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
+            $agentSettlement = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
             $sumDepositApproved = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
             $getBalance = $sumDepositApproved - $agentSettlement;
         } else { // admin
-            $agentSettlement = Transaction::sum(DB::raw('sendingMoney + fee'));
+            $agentSettlement = Transaction::where('status', '!=', 'cancel')->sum(DB::raw('sendingMoney + fee'));
             $sumDepositApproved = Deposit::where('approval_status', 1)->sum('amount_gbp');
             $getBalance = $agentSettlement - $sumDepositApproved;
         }

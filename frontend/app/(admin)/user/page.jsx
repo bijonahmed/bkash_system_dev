@@ -151,8 +151,8 @@ export default function UserPage() {
       ],
     },
     {
-      name: "Phone",
-      selector: (row) => row.phone_number,
+      name: "Agent Code",
+      selector: (row) => row.agentCode,
       sortable: true,
       conditionalCellStyles: [
         {

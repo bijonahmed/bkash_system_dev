@@ -27,7 +27,7 @@ export default function UserPage() {
     }
   }, [title]);
   const { agentData } = getAgents();
-  const { walletData } = getWallets();
+  const { walletData, allWalletData } = getWallets();
   const { walletAgentData, refetchAgentWallet } = getWalletAgent();
   const [errors, setErrors] = useState({});
   const [statusFilter, setStatusFilter] = useState("");
@@ -491,7 +491,7 @@ export default function UserPage() {
                             >
                               <option value="">Select Name</option>
 
-                              {walletData.map((data) => (
+                              {allWalletData.map((data) => (
                                 <option key={data.id} value={data.id}>
                                   {data.name}
                                 </option>

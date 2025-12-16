@@ -177,9 +177,7 @@ export default function listPage() {
           {/*begin::Row*/}
           <div className="row">
             <div className="col-sm-6">
-              <h4 className="mb-0">
-                {title}{" "}
-              </h4>
+              <h4 className="mb-0">{title} </h4>
             </div>
             <div className="col-sm-6">
               <nav aria-label="breadcrumb">
@@ -412,6 +410,7 @@ export default function listPage() {
                           >
                             <option value="">Status</option>
                             <option value="paid">Paid</option>
+                             <option value="hold">Hold</option>
                             <option value="unpaid">Unpaid</option>
                             <option value="cancel">Cancel</option>
                           </select>
@@ -648,8 +647,14 @@ export default function listPage() {
                             </td>
                             <td>
                               <small>
-                                GBP {item.totalAmount} <br /> BDT{" "}
-                                {item.receiving_money}
+                                GBP{" "}
+                                {(
+                                  Number(item.sendingMoney || 0) +
+                                  Number(item.charges || 0) +
+                                  Number(item.fee || 0)
+                                ).toFixed(2)}
+                                <br />
+                                {/* {item.receiving_money} */}
                               </small>
                             </td>
                             <td className="text-center">

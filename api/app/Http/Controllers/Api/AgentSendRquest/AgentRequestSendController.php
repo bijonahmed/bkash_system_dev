@@ -48,10 +48,12 @@ class AgentRequestSendController extends Controller
 
 
         if ($user->hasRole('admin')) {
+
             $query = Deposit::select('deposit.*', 'users.name as agent_name')
                 ->leftJoin('users', 'users.id', '=', 'deposit.agent_id')
                 ->orderBy('deposit.id', 'desc');
         } else if ($user->hasRole('agent')) {
+
             $query = Deposit::select('deposit.*', 'users.name as agent_name')
                 ->leftJoin('users', 'users.id', '=', 'deposit.agent_id')
                 ->where('deposit.agent_id', $user->id)
@@ -62,16 +64,13 @@ class AgentRequestSendController extends Controller
             $query->where('deposit.agent_id', $agent_id);
         }
 
-         if ($status !== null) {
-            $query->where('deposit.status', $status);
+        if ($status !== null) {
+            $query->where('deposit.approval_status', $status);
         }
 
         if ($selectedFilter !== null) {
             $query->where('deposit.approval_status', $selectedFilter);
         }
-
-
-
 
         $paginator = $query->paginate($pageSize, ['*'], 'page', $page);
 
@@ -223,6 +222,39 @@ class AgentRequestSendController extends Controller
 
         return response()->json([
             'message' => 'updated successfully.'
+        ], 200);
+    }
+
+
+    public function checkrow($id)
+    {
+        $user = Auth::user();
+        if (! $user->can('view deposit')) {
+            return response()->json([
+                'message' => 'Unauthorized: You do not have permission to view deposit',
+            ], 403);
+        }
+
+        $checkData = Deposit::find($id);
+
+        if (! $checkData) {
+            return response()->json([
+                'message' => 'Deposit not found.'
+            ], 404);
+        }
+
+        $data = [
+            'id'              => $checkData->id,
+            'payment_method'  => ucfirst($checkData->payment_method),
+            'payment_date'    => date("d-m-Y", strtotime($checkData->payment_date)),
+            'approval_status' => $checkData->approval_status,
+            'amount_gbp'      => $checkData->amount_gbp,
+            'agent_name'      => $checkData->agent_name,
+            'attachment'      => $checkData->attachment ? url($checkData->attachment) : "",
+        ];
+
+        return response()->json([
+            'data' => $data
         ], 200);
     }
 }

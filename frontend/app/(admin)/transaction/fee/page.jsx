@@ -238,7 +238,7 @@ export default function UserPage() {
                               Fee (GBP)
                             </th>
 
-                            {roles === "admin" && (
+                            {roles == "admin" && (
                               <>
                                 <th style={{ width: "20%" }}>
                                   <i className="fa-solid fa-user-tie me-1" />
@@ -303,7 +303,7 @@ export default function UserPage() {
                                   <td className="text-center">
                                     {limit.fee_gbp}
                                   </td>
-                                  {roles === "admin" && (
+                                  {roles == "admin" && (
                                     <>
                                       <td className="text-center">
                                         {limit.created_by_name}

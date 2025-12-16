@@ -1,5 +1,4 @@
 "use client"; // Required in Next.js App Router for client-side component
-
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import DataTable from "react-data-table-component";
@@ -8,7 +7,6 @@ import { customStyles } from "../../components/styles/customDataTable";
 import { useAuth } from "../../context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 import useAgents from "../../hooks/getAgents.js";
-
 export default function DepositRequestPage() {
   const router = useRouter();
   const { token, permissions, roles } = useAuth();
@@ -55,46 +53,6 @@ export default function DepositRequestPage() {
       console.error(err);
     }
   };
-
-  /*
-  const handleFilter = async () => {
-    if (formData.agent_id == "") {
-      toast.error(
-        "Please select From date and To date, and also select an agent!"
-      );
-      return false;
-    }
-
-    const query = new URLSearchParams(formData).toString();
-    const url = `${process.env.NEXT_PUBLIC_API_BASE}/report/agentReport?${query}`;
-
-    try {
-      setLoading(true);
-
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success("Loading...");
-        setReportData(data.data);
-      } else {
-        toast.error(data.message || "Something went wrong!");
-      }
-    } catch (error) {
-      toast.error("Network or server error!");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  */
-
   const fetchData = async (
     page = 1,
     pageSize = 10,
@@ -104,10 +62,19 @@ export default function DepositRequestPage() {
     status = formData.status
   ) => {
     setLoading(true);
-
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/deposit-request/index?page=${page}&pageSize=${pageSize}&searchQuery=${searchQuery}&selectedFilter=${selectedFilter}&agent_id=${agent_id}&status=${status}`;
+      const params = new URLSearchParams({
+        page,
+        pageSize,
+        searchQuery: searchQuery ?? "",
+        selectedFilter: selectedFilter ?? "",
+        agent_id: agent_id ?? "",
+        status: status ?? "",
+      });
 
+      const url = `${
+        process.env.NEXT_PUBLIC_API_BASE
+      }/deposit-request/index?${params.toString()}`;
       const res = await fetch(url, {
         method: "GET",
         headers: {
@@ -115,14 +82,12 @@ export default function DepositRequestPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-
       let result;
       try {
         result = await res.json();
       } catch (e) {
         result = null;
       }
-
       if (!res.ok) {
         if (result && result.message) {
           throw new Error(result.message);
@@ -130,21 +95,18 @@ export default function DepositRequestPage() {
           throw new Error(`HTTP Error: ${res.status}`);
         }
       }
-
       setData(result.data || []);
       setApprovalAmount(result.total_approved_amount || 0);
     } catch (err) {
-      console.error("Fetch users failed:", err.message);
+      //console.error("Fetch users failed:", err.message);
       toast.error(err.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchData(page, perPage, search);
   }, [page, perPage, search]);
-
   useEffect(() => {
     if (selectedRow) {
       setFormData({
@@ -157,92 +119,17 @@ export default function DepositRequestPage() {
       });
     }
   }, [selectedRow]);
-
   // Handle text / number / date / select change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
   // Handle file upload
   const handleFileChange = (e) => {
     setFormData((prev) => ({ ...prev, attachment: e.target.files[0] }));
   };
 
-  const handleSubmitUpdate = async (e) => {
-    e.preventDefault();
-
-    try {
-      const data = new FormData();
-      data.append("id", formData.id);
-      data.append("approval_status", formData.approval_status);
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/deposit-request/depositRequestUpdate`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: data,
-        }
-      );
-      // Reset form
-      setFormData({
-        payment_method: "",
-        payment_date: "",
-        approval_status: "",
-        amount_gbp: "",
-        attachment: null,
-      });
-      fetchData();
-      setShowModal(false);
-    } catch (error) {
-      console.error("Error:", error.response || error.message);
-    }
-  };
-
-  // Submit form
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const data = new FormData();
-      data.append("payment_method", formData.payment_method);
-      data.append("payment_date", formData.payment_date);
-      data.append("approval_status", 0);
-      data.append("amount_gbp", formData.amount_gbp);
-
-      if (formData.attachment) {
-        data.append("attachment", formData.attachment);
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/deposit-request/sendDepositRequest`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: data,
-        }
-      );
-      // Reset form
-      setFormData({
-        payment_method: "",
-        payment_date: "",
-        approval_status: "",
-        amount_gbp: "",
-        attachment: null,
-      });
-      const modalEl = document.getElementById("addNewModal");
-      const modal = window.bootstrap.Modal.getInstance(modalEl);
-      if (modal) modal.hide();
-      fetchData();
-    } catch (error) {
-      console.error("Error:", error.response || error.message);
-    }
-  };
+ 
 
   const columns = [
     {
@@ -267,7 +154,6 @@ export default function DepositRequestPage() {
       cell: (row) => {
         let statusText = "";
         let badgeClass = "";
-
         switch (row.approval_status) {
           case 0:
             statusText = "Pending";
@@ -285,11 +171,9 @@ export default function DepositRequestPage() {
             statusText = "Unknown";
             badgeClass = "badge bg-secondary"; // gray
         }
-
         return <span className={badgeClass}>{statusText}</span>;
       },
     },
-
     {
       name: "Amount GBP",
       selector: (row) => row.amount_gbp,
@@ -312,7 +196,6 @@ export default function DepositRequestPage() {
           "No File"
         ),
     },
-
     // Inside your columns array
     ...(roles.includes("admin")
       ? [
@@ -321,15 +204,12 @@ export default function DepositRequestPage() {
             cell: (row) => (
               <div className="d-flex gap-2">
                 {perms.includes("edit deposit") && (
-                  <button
+                  <Link
                     className="btn btn-sm btn-primary"
-                    onClick={() => {
-                      setSelectedRow(row); // this triggers useEffect, which fills formData
-                      setShowModal(true);
-                    }}
+                    href={`/depositrequiest/edit/${row.id}`}
                   >
                     <i className="bi bi-pencil"></i> Edit
-                  </button>
+                  </Link>
                 )}
               </div>
             ),
@@ -338,7 +218,6 @@ export default function DepositRequestPage() {
         ]
       : []),
   ];
-
   const handlePageChange = (newPage) => setPage(newPage);
   const handlePerRowsChange = (newPerPage) => setPerPage(newPerPage);
   return (
@@ -370,14 +249,10 @@ export default function DepositRequestPage() {
           </div>
           {/*end::Row*/}
         </div>
-
         {/* Start */}
-
         {/* END */}
-
         {/*end::Container*/}
       </div>
-
       {/*begin::App Content*/}
       <Toaster position="top-right" />
       <div className="app-content">
@@ -390,7 +265,6 @@ export default function DepositRequestPage() {
               <div className="card-title w-100">
                 <div className="row g-2 align-items-center">
                   {/* Column 1: Search input */}
-
                   {/* Status Filter */}
                   {roles.includes("admin") && (
                     <div className="col-md-4">
@@ -410,7 +284,6 @@ export default function DepositRequestPage() {
                       </select>
                     </div>
                   )}
-
                   <div className="col-4 col-md-4 col-lg-4">
                     <select
                       className="form-control"
@@ -433,20 +306,16 @@ export default function DepositRequestPage() {
                       Fetch
                     </button>
                   </div>
-
                   {/* Column 3: Add User button */}
-
                   <div className="col-6 col-md-3 col-lg-1 ms-auto">
                     {perms.includes("create deposit") ? (
-                      <button
+                      <Link
                         className="btn btn-primary w-100"
-                        data-bs-toggle="modal"
-                        data-bs-target="#addNewModal"
+                        href="/depositrequiest/add"
                       >
                         Add New
-                      </button>
+                      </Link>
                     ) : null}
-
                     {roles.includes("admin") && (
                       <button
                         className="btn btn-danger"
@@ -456,113 +325,6 @@ export default function DepositRequestPage() {
                       </button>
                     )}
                   </div>
-                </div>
-              </div>
-            </div>
-            <div
-              className="modal fade"
-              id="addNewModal"
-              tabIndex="-1"
-              aria-labelledby="addNewModalLabel"
-              aria-hidden="true"
-            >
-              <div className="modal-dialog modal-lg modal-dialog-centered">
-                <div className="modal-content">
-                  <div className="modal-header">
-                    <h5 className="modal-title" id="addNewModalLabel">
-                      Add New Payment
-                    </h5>
-                    <button
-                      type="button"
-                      className="btn-close"
-                      data-bs-dismiss="modal"
-                    ></button>
-                  </div>
-
-                  <form onSubmit={handleSubmit}>
-                    <div className="modal-body">
-                      <div className="mb-3">
-                        <label className="form-label">Payment Method</label>
-                        <select
-                          name="payment_method"
-                          className="form-control form-control-sm"
-                          value={formData.payment_method}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              payment_method: e.target.value,
-                            })
-                          }
-                        >
-                          <option value="">Select Method</option>
-                          <option value="cash">Cash</option>
-                          <option value="card">Card</option>
-                          <option value="cheque">Cheque</option>
-                        </select>
-                      </div>
-
-                      <div className="mb-3">
-                        <label className="form-label">Payment Date</label>
-                        <input
-                          type="date"
-                          className="form-control"
-                          name="payment_date"
-                          value={formData.payment_date}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              payment_date: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-
-                      <div className="mb-3">
-                        <label className="form-label">Amount (GBP)</label>
-                        <input
-                          type="number"
-                          className="form-control"
-                          name="amount_gbp"
-                          value={formData.amount_gbp}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              amount_gbp: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-
-                      <div className="mb-3">
-                        <label className="form-label">Attachment</label>
-                        <input
-                          type="file"
-                          className="form-control"
-                          name="attachment"
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              attachment: e.target.files[0],
-                            })
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    <div className="modal-footer">
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={() => setShowModal(false)}
-                      >
-                        Close
-                      </button>
-
-                      <button className="btn btn-primary" type="submit">
-                        Save
-                      </button>
-                    </div>
-                  </form>
                 </div>
               </div>
             </div>
@@ -582,117 +344,12 @@ export default function DepositRequestPage() {
               />
             </div>
           </div>
-
           {/*end::Body*/}
         </div>
-
         {/*end::Row*/}
       </div>
       {/*end::Container*/}
-      {showModal && (
-        <div
-          className="modal fade show"
-          style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
-        >
-          <form onSubmit={handleSubmitUpdate}>
-            <div className="modal-dialog modal-lg">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">Edit</h5>
-                  <button
-                    className="btn-close"
-                    onClick={() => setShowModal(false)}
-                  />
-                </div>
-
-                <div className="modal-body">
-                  <div className="modal-body">
-                    <div className="mb-3">
-                      <label className="form-label">Payment Method</label>
-                      <select
-                        name="payment_method"
-                        className="form-control form-control-sm"
-                        disabled
-                        value={formData.payment_method}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            payment_method: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="">Select Method</option>
-                        <option value="cash">Cash</option>
-                        <option value="card">Card</option>
-                        <option value="cheque">Cheque</option>
-                      </select>
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">Payment Date</label>
-                      <input
-                        type="date"
-                        disabled
-                        className="form-control"
-                        name="payment_date"
-                        value={formData.payment_date}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            payment_date: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">Amount (GBP)</label>
-                      <input
-                        disabled
-                        type="number"
-                        step="0.01"
-                        className="form-control"
-                        name="amount_gbp"
-                        value={formData.amount_gbp}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            amount_gbp: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">Approval Status</label>
-                      <select
-                        className="form-select"
-                        name="approval_status"
-                        value={formData.approval_status}
-                        onChange={handleChange}
-                      >
-                        <option value="0">Pending</option>
-                        <option value="1">Approved</option>
-                        <option value="2">Rejected</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="modal-footer">
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => setShowModal(false)}
-                  >
-                    Close
-                  </button>
-                  <button className="btn btn-primary">Save Changes</button>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-      )}
+      
       {/*end::App Content*/}
     </main>
   );

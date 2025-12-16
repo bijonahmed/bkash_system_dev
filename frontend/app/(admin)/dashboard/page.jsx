@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "../../context/AuthContext"; // adjust path
 import useDashboard from "../../hooks/dashboardLogic"; // adjust path
 
+
 export default function DashboardPage() {
   const { token, permissions, roles } = useAuth();
   const router = useRouter();
