@@ -1,44 +1,42 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; // adjust path
+import { useAuth } from "../context/AuthContext";
+import { apiGet } from "../../lib/apiGet";
 
 export default function useBanks() {
   const [bankData, setBankData] = useState([]);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
+  const inFlightRef = useRef(false);
 
   const fetchBanks = useCallback(async () => {
-    if (!token) return; // prevent API call if token is not ready
+    if (!token) return;
+    if (inFlightRef.current) return;
 
+    inFlightRef.current = true;
     setLoading(true);
+
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/setting/getBanks`;
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await apiGet({ endpoint: "/setting/getBanks", token });
 
-      const result = await res.json().catch(() => null);
+      if (!res?.success) throw new Error(res?.message || "Failed to fetch banks");
 
-      if (!res.ok) {
-        throw new Error(result?.message || `HTTP Error: ${res.status}`);
-      }
-
-      setBankData(result?.data || []);
+      // Extract the banks array correctly
+      const banks = Array.isArray(res.data?.data) ? res.data.data : [];
+      setBankData(banks);
     } catch (err) {
       toast.error(err?.message || "Something went wrong!");
+      setBankData([]);
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
     }
-  }, [token]); // FIXED dependency
+  }, [token]);
 
   useEffect(() => {
     fetchBanks();
-  }, [fetchBanks]); // FIXED dependency
+  }, [fetchBanks]);
 
   return { bankData, loading, refetch: fetchBanks };
 }

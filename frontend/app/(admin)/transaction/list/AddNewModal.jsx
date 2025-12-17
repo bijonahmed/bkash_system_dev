@@ -16,11 +16,8 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   const { settingData } = useSetting();
   const [walletRate, setWalletRate] = useState("");
   const [receiving, setReceiving] = useState("");
-
-  const { walletData, bankrate } = useWallets();
-  //console.log("Wallet Bank:-----", bankrate);
-
-;
+  const { walletData, bankrate, refetchWallet } = useWallets();
+  console.log("bankrate :-----", bankrate);
 
   const initialFormData = {
     beneficiaryName: "",
@@ -33,8 +30,8 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     branchCode: "",
     accountNo: "",
     sendingMoney: 0,
-    walletrate: 0,
-    bankRate: "",
+    walletrate: "",
+    bankRate: bankrate,
     receivingMoney: "",
     charges: "",
     fee: "",
@@ -45,6 +42,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   };
 
   useEffect(() => {
+    refetchWallet();
     setFormData((prev) => ({
       ...prev,
       bankRate: bankrate || 1,
@@ -63,7 +61,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     if (formData.paymentMethod === "wallet") {
       setFormData((prev) => ({
         ...prev,
-        walletrate: settingData?.exchange_rate_wallet || 1,
+        walletrate: settingData?.exchange_rate_wallet || "",
         bankRate: settingData?.exchange_rate_bank || 1,
       }));
 
@@ -462,6 +460,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                   </>
                 )}
 
+                {/* <pre>{JSON.stringify(bankData, null, 2)}</pre> */}
                 {/* Payment Method */}
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Payment Method</label>
@@ -508,6 +507,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                         className="form-select"
                         value={formData.bank_id}
                         onChange={handleChange}
+                        disabled={loading} // optional: disable while loading
                       >
                         <option value="">Select bank</option>
                         {bankData.map((r) => (

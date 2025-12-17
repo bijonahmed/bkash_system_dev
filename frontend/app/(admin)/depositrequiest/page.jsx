@@ -303,7 +303,7 @@ export default function DepositRequestPage() {
                       className="btn btn-outline-secondary w-100"
                       onClick={() => fetchData()}
                     >
-                      Fetch
+                      Search
                     </button>
                   </div>
                   {/* Column 3: Add User button */}

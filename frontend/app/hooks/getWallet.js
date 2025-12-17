@@ -1,44 +1,53 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
-import { apiGet } from "../../lib/apiGet"; // adjust path
+import { apiGet } from "../../lib/apiGet";
 
-export default function useGetWallet() {
+// Keep track of auto-fetch only
+let autoFetchedOnce = false;
+
+export default function useWallets() {
   const [walletData, setWalletData] = useState([]);
   const [allWalletData, setAllWalletData] = useState([]);
-  const [bankrate, setBankRate] = useState("");
+  const [bankrate, setBankRate] = useState(0);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
+  const inFlightRef = useRef(false); // Prevent parallel calls
 
   const fetchWallet = useCallback(async () => {
     if (!token) return;
+    if (inFlightRef.current) return;
 
+    inFlightRef.current = true;
     setLoading(true);
+
     try {
       const res = await apiGet({
         endpoint: "/setting/getwallet",
         token,
       });
 
-      if (!res.success) {
-        throw new Error(res.error || "Failed to fetch wallet data");
-      }
+      if (!res.success) throw new Error(res.error || "Failed to fetch wallet data");
 
-      //console.log("Bank Data:", res.data?.bankrate);
       setWalletData(res.data?.data || []);
-      setBankRate(res.data?.bankrate || 0);
       setAllWalletData(res.data?.allwallet || []);
+      setBankRate(res.data?.bankrate || 0);
     } catch (err) {
       toast.error(err?.message || "Something went wrong!");
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
     }
   }, [token]);
 
+  // Auto-fetch once on component mount
   useEffect(() => {
-    fetchWallet();
-  }, [fetchWallet]);
+    if (!token || autoFetchedOnce) return;
 
-  return { walletData, bankrate, allWalletData, loading, fetchWallet };
+    fetchWallet();
+    autoFetchedOnce = true; // mark that auto-fetch happened
+  }, [token, fetchWallet]);
+
+  return { walletData, allWalletData, bankrate, loading, refetchWallet: fetchWallet };
 }

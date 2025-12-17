@@ -59,7 +59,7 @@ export default function AdminNavbar() {
           </li>
 
           {/* Refresh link */}
-          <li className="nav-item d-none d-md-block">
+          {/* <li className="nav-item d-none d-md-block d-none">
             <a
               href="#"
               className="nav-link"
@@ -70,7 +70,7 @@ export default function AdminNavbar() {
             >
               Refresh
             </a>
-          </li>
+          </li> */}
 
           {/* Wallet Amount */}
           <li className="nav-item ms-md-3">

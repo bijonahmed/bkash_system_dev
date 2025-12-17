@@ -48,10 +48,10 @@ class TransactionController extends Controller
             'status'
         ]);
 
-        $limit = $request->input('limit', 50);
-        $page  = $request->input('page', 1);
+        // $limit = $request->input('limit', 50);
+        // $page  = $request->input('page', 1);
         $days  = $request->input('days', null);
-        $offset = ($page - 1) * $limit;
+        //$offset = ($page - 1) * $limit;
 
         // Base query
         $query = Transaction::query();
@@ -61,23 +61,38 @@ class TransactionController extends Controller
             $query->where('agent_id', $user->id);
         }
 
+        $defaultFrom = Carbon::yesterday()->startOfDay()->toDateTimeString();
+        $defaultTo   = Carbon::today()->endOfDay()->toDateTimeString();
+
+
         // Apply filters efficiently
         if (!empty($filters['beneficiaryPhone'])) $query->where('beneficiaryPhone', 'like', $filters['beneficiaryPhone'] . '%');
         if (!empty($filters['beneficiaryName'])) $query->where('beneficiaryName', 'like', $filters['beneficiaryName'] . '%');
         if (!empty($filters['senderName'])) $query->where('senderName', 'like', $filters['senderName'] . '%');
         if (!empty($filters['accountNo'])) $query->where('accountNo', 'like', $filters['accountNo'] . '%');
 
-        if (!empty($filters['createdFrom'])) $query->where('created_at', '>=', $filters['createdFrom'] . ' 00:00:00');
-        if (!empty($filters['createdTo'])) $query->where('created_at', '<=', $filters['createdTo'] . ' 23:59:59');
+        $createdFrom = !empty($filters['createdFrom'])
+            ? Carbon::parse($filters['createdFrom'])->startOfDay()->toDateTimeString()
+            : $defaultFrom;
+
+        $createdTo = !empty($filters['createdTo'])
+            ? Carbon::parse($filters['createdTo'])->endOfDay()->toDateTimeString()
+            : $defaultTo;
+
+        $query->where('created_at', '>=', $createdFrom)
+            ->where('created_at', '<=', $createdTo);
+        //if (!empty($filters['createdFrom'])) $query->where('created_at', '>=', $filters['createdFrom'] . ' 00:00:00');
+        //if (!empty($filters['createdTo'])) $query->where('created_at', '<=', $filters['createdTo'] . ' 23:59:59');
 
         if (!empty($filters['paymentMethod'])) $query->where('paymentMethod', $filters['paymentMethod']);
         if (!empty($filters['status'])) $query->where('status', $filters['status']);
         if (!empty($filters['wallet_id'])) $query->where('wallet_id', $filters['wallet_id']);
         if (!empty($filters['agent_id'])) $query->where('agent_id', $filters['agent_id']);
         if (isset($filters['transection_status'])) $query->where('transection_status', $filters['transection_status']);
+
         if ($days !== null) {
-            if ($days == -1) {
-                $query->whereDate('created_at', now()->subDay()->toDateString());
+            if ($days == 1) {
+                $query->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()]);
             } else {
                 $query->where('created_at', '>=', now()->subDays($days)->startOfDay());
                 $query->where('created_at', '<=', now()->endOfDay());
@@ -89,57 +104,80 @@ class TransactionController extends Controller
         // Eager load relationships (instead of leftJoin)
         $transactions = $query->with(['creator:id,name', 'wallet:id,name', 'bank:id,bank_name', 'branch:id,branch_name,branch_code'])
             ->orderByDesc('id')
-            ->offset($offset)
-            ->limit($limit)
+            // ->offset($offset)
+            //   ->limit($limit)
             ->get();
 
         // Map results with minimal PHP processing
         $modifiedCollection = $transactions->map(function ($item) {
+
+            $wallet  = $item->wallet;
+            $bank    = $item->bank;
+            $branch  = $item->branch;
+            $creator = $item->creator;
+
+            $sending = $item->sendingMoney ?? 0;
+            $fee     = $item->fee ?? 0;
+
             return [
-                'id'               => $item->id,
-                'beneficiaryName'  => $item->beneficiaryName,
-                'beneficiaryPhone' => $item->beneficiaryPhone,
-                'charges'          => $item->charges,
-                'fee'              => $item->fee,
-                'totalAmount'      => $item->totalAmount,
-                'receiving_money'  => $item->receiving_money,
-                'sendingMoney'     => $item->sendingMoney,
-                'walletName'       => $item->wallet->name ?? '',
-                'walletrate'       => $item->walletrate,
-                'bankRate'         => $item->bankRate,
-                'bankName'         => $item->bank->bank_name ?? '',
-                'branchName'       => $item->branch->branch_name ?? '',
-                'branchCode'       => $item->branch->branch_code ?? '',
-                'accountNo'        => $item->accountNo ?? '',
-                'description'      => $item->description ?? '',
-                'agentsettlement'  => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
-                'status'           => ucfirst($item->status),
-                'paytMethod'       => ucfirst($item->paymentMethod),
-                'paymentMethod'   => $item->paymentMethod,
-                'senderName'       => ucfirst($item->senderName),
+                'id'                 => $item->id,
+                'beneficiaryName'    => $item->beneficiaryName,
+                'beneficiaryPhone'   => $item->beneficiaryPhone,
+                'charges'            => $item->charges,
+                'fee'                => $fee,
+                'totalAmount'        => $item->totalAmount,
+                'receiving_money'    => $item->receiving_money,
+                'sendingMoney'       => $sending,
+                'walletName'         => $wallet->name ?? '',
+                'walletrate'         => $item->walletrate,
+                'bankRate'           => $item->bankRate,
+                'bankName'           => $bank->bank_name ?? '',
+                'branchName'         => $branch->branch_name ?? '',
+                'branchCode'         => $branch->branch_code ?? '',
+                'accountNo'          => $item->accountNo,
+                'description'        => $item->description,
+                'agentsettlement'    => $sending + $fee,
+                'status'             => ucfirst($item->status),
+                'paymentMethod'      => $item->paymentMethod,
+                'senderName'         => ucfirst($item->senderName),
                 'transection_status' => $item->transection_status,
-                'createdBy'        => $item->creator->name ?? 'N/A',
-                'created_at'       => $item->created_at->timezone('Asia/Dhaka')->format('M d, Y h:i A'),
+                'createdBy'          => $creator->name ?? 'N/A',
+                'created_at'         => $item->created_at
+                    ->timezone('Asia/Dhaka')
+                    ->format('M d, Y h:i A'),
             ];
         });
 
+
         // Aggregate sums (single query each)
-        if ($user->hasRole('agent')) {
-            $agentSettlement = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
-            $sumDepositApproved = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
-            $getBalance = $sumDepositApproved - $agentSettlement;
-        } else { // admin
-            $agentSettlement = Transaction::where('status', '!=', 'cancel')->sum(DB::raw('sendingMoney + fee'));
-            $sumDepositApproved = Deposit::where('approval_status', 1)->sum('amount_gbp');
-            $getBalance = $agentSettlement - $sumDepositApproved;
-        }
+        $agentSettlement = Transaction::selectRaw('SUM(sendingMoney + fee) as total')
+            ->where('status', '!=', 'cancel')
+            ->when(
+                $user->hasRole('agent'),
+                fn($q) =>
+                $q->where('agent_id', $user->id)
+            )
+            ->value('total') ?? 0;
+
+        $sumDepositApproved = Deposit::where('approval_status', 1)
+            ->when(
+                $user->hasRole('agent'),
+                fn($q) =>
+                $q->where('agent_id', $user->id)
+            )
+            ->sum('amount_gbp');
+
+        $getBalance = $user->hasRole('agent')
+            ? ($sumDepositApproved - $agentSettlement)
+            : ($agentSettlement - $sumDepositApproved);
+
 
         return response()->json([
             'data' => $modifiedCollection,
             'sumDepositApproved' => number_format($getBalance, 2),
             'total' => $total,
-            'page' => $page,
-            'last_page' => ceil($total / $limit),
+            //   'page' => $page,
+            // 'last_page' => ceil($total / $limit),
         ]);
     }
 

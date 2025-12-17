@@ -358,7 +358,7 @@ export default function UserPage() {
                             className="btn btn-outline-secondary w-100"
                             onClick={() => fetchWallet()}
                           >
-                            Fetch
+                            Search
                           </button>
                         </div>
 

@@ -205,7 +205,7 @@ export default function UserPage() {
                       className="btn btn-outline-secondary w-100"
                       onClick={() => fetchUsers()}
                     >
-                      Fetch
+                      Search
                     </button>
                   </div>
 

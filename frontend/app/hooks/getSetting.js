@@ -1,49 +1,46 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
+import { apiGet } from "../../lib/apiGet"; // adjust path if needed
+
+// 🔥 Global flag to prevent multiple calls
+let settingFetchedOnce = false;
 
 export default function useSettingRow() {
   const [settingData, setSettingData] = useState(null);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
 
-  const fetchSettingRow = useCallback(async () => {
-    if (!token) return; // prevent calling API without auth token
+  const inFlightRef = useRef(false); // prevent parallel requests
 
+  const fetchSettingRow = useCallback(async () => {
+    if (!token) return;
+    if (settingFetchedOnce) return; // already fetched
+    if (inFlightRef.current) return; // request in progress
+
+    inFlightRef.current = true;
     setLoading(true);
+
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/setting/settingrow`;
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await apiGet({
+        endpoint: "/setting/settingrow",
+        token,
       });
 
-      const result = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        throw new Error(result?.message || `HTTP Error: ${res.status}`);
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to fetch setting row");
       }
 
-      console.log(
-        "fetch result:",
-        result?.data?.exchange_rate_wallet ?? null
-      );
-
-      setSettingData(result?.data ?? null);
+      setSettingData(res.data ?? null);
+      settingFetchedOnce = true; // mark as fetched
     } catch (err) {
       toast.error(err?.message || "Something went wrong!");
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
     }
-  }, [token]); // FIXED: add token dependency
-
-  useEffect(() => {
-    fetchSettingRow();
-  }, [fetchSettingRow]); // FIXED: add callback to dependencies
+  }, [token]);
 
   return { settingData, loading, refetch: fetchSettingRow };
 }

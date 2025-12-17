@@ -1,44 +1,55 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../context/AuthContext"; // adjust path
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useAuth } from "../context/AuthContext";
+import { apiGet } from "../../lib/apiGet";
+
+let autoFetchedOnce = false;
 
 export default function useDashboard() {
-  const [dashboardData, setDashboardData] = useState(null);
+  console.log("calling dashboard....");
+  const [dashboardData, setDashboardData] = useState({});
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
+  const inFlightRef = useRef(false);
 
   const fetchDashboard = useCallback(async () => {
-    if (!token) return; // do nothing if token is not ready
+    if (!token) return;
+    if (inFlightRef.current) return;
+
+    inFlightRef.current = true;
     setLoading(true);
+
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/dashbaord/getDashboardData`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await apiGet({
+        endpoint: "/dashbaord/getDashboardData",
+        token,
+      });
 
-      const result = await res.json().catch(() => null);
+      if (!res?.success) throw new Error(res?.message || "Failed");
 
-      if (!res.ok) {
-        throw new Error(result?.message || `HTTP Error: ${res.status}`);
-      }
+      // FIX: extract the actual data object
+      const data = res.data?.data ?? res.data ?? {};
+      setDashboardData(data);
 
-      setDashboardData(result?.data || []);
     } catch (err) {
       console.error("Fetch failed:", err);
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
     }
   }, [token]);
 
   useEffect(() => {
-    fetchDashboard();
+    if (!token) return;
+    if (!autoFetchedOnce) {
+      fetchDashboard();
+      autoFetchedOnce = true;
+    }
+  }, [token, fetchDashboard]);
+
+  const refetchDashbaord = useCallback(async () => {
+    await fetchDashboard();
   }, [fetchDashboard]);
 
-  return { dashboardData, loading, refetch: fetchDashboard };
+  return { dashboardData, loading, refetchDashbaord };
 }

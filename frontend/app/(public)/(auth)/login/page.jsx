@@ -54,7 +54,7 @@ export default function LoginPage() {
       <div className="col-md-6 col-lg-4">
         <div className="card shadow-lg border-0 rounded-4">
           <div className="card-body">
-            <h4 className="text-center mb-4">Welcome Back 👋</h4>
+            <h4 className="text-center mb-4">Welcome Back</h4>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label htmlFor="email" className="form-label fw-bold">

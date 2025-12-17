@@ -1,7 +1,8 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
+import { apiGet } from "../../lib/apiGet";
 
 export default function useTransactions() {
   const [transactionData, setTransactionData] = useState([]);
@@ -10,11 +11,13 @@ export default function useTransactions() {
   const [totalPages, setTotalPages] = useState(0);
   const { token } = useAuth();
 
+  const inFlightRef = useRef(false);
+  const lastQueryRef = useRef("");
+
   const fetchTransactions = useCallback(
     async ({ filters = {}, page = 1 } = {}) => {
-      if (!token) return; // prevent API call if token not ready
+      if (!token) return;
 
-      // Clean filters (remove empty values)
       const cleaned = Object.fromEntries(
         Object.entries(filters).filter(([_, v]) => v !== "" && v !== null)
       );
@@ -24,35 +27,34 @@ export default function useTransactions() {
 
       const query = new URLSearchParams(cleaned).toString();
 
+   
+      if (query === lastQueryRef.current && inFlightRef.current) return;
+
+      lastQueryRef.current = query;
+      inFlightRef.current = true;
       setLoading(true);
 
       try {
-        const url = `${process.env.NEXT_PUBLIC_API_BASE}/transaction/index?${query}`;
-
-        const res = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await apiGet({
+          endpoint: `/transaction/index?${query}`,
+          token,
         });
 
-        const result = await res.json().catch(() => null);
-
-        if (!res.ok) {
-          throw new Error(result?.message || "API error");
+        if (!res?.success) {
+          throw new Error(res?.message || "API error");
         }
 
-        setTransactionData(result?.data || []);
-        setDepositApproved(result?.sumDepositApproved || 0);
-        setTotalPages(result?.last_page || 1);
+        setTransactionData(res.data?.data || []);
+        setDepositApproved(res.data?.sumDepositApproved || 0);
+        setTotalPages(res.data?.last_page || 1);
       } catch (err) {
         toast.error(err?.message || "Something went wrong!");
       } finally {
+        inFlightRef.current = false;
         setLoading(false);
       }
     },
-    [token] // FIXED missing dependency warnings
+    [token]
   );
 
   return {

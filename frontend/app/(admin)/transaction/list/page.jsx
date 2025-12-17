@@ -56,6 +56,7 @@ export default function listPage() {
     const modal = new window.bootstrap.Modal(modalEl);
     modal.show();
   };
+
   const handleUpdateStatus = async () => {
     if (!selectedStatus) {
       toast.error("Please select a status!");
@@ -77,7 +78,7 @@ export default function listPage() {
     }
   };
   const timeOptions = [
-    { label: "Yesterday (-1)", value: "-1" },
+    { label: "Today", value: "1" },
     { label: "Last 7 days (7)", value: "7" },
     { label: "Last 30 days (30)", value: "30" },
   ];
@@ -89,6 +90,7 @@ export default function listPage() {
   }, [title]);
   const [createdFrom, setCreatedFrom] = useState("");
   const [createdTo, setCreatedTo] = useState("");
+
   const deleteTransaction = (transactionId) => {
     apiDelete({
       endpoint: "/transaction/delete",
@@ -112,6 +114,7 @@ export default function listPage() {
       },
     });
   };
+  
   useEffect(() => {
     const today = new Date();
     const yesterday = new Date();
@@ -124,8 +127,10 @@ export default function listPage() {
     setCreatedFrom(toISODate(yesterday)); // always yesterday
     setCreatedTo(toISODate(today)); // today
   }, []);
+
   const today = new Date().toISOString().split("T")[0];
   const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+
   const [filters, setFilters] = useState({
     beneficiaryName: "",
     beneficiaryPhone: "",
@@ -142,10 +147,23 @@ export default function listPage() {
     agent: "",
     limit: 50, // 50 records per page
   });
+
+  const loadTransactions = () => {
+    refetch({
+      filters: {
+        ...filters,
+        createdFrom,
+        createdTo,
+      },
+    });
+  };
+  /*
   // Fetch transactions on page load or filter change
   useEffect(() => {
     refetch({ filters, page: currentPage });
   }, [filters, currentPage, refetch]);
+
+
   const filterByTransaction = () => {
     setCurrentPage(1); // reset to first page when filtering
     refetch({ filters, page: 1 });
@@ -153,17 +171,25 @@ export default function listPage() {
   const goToPage = (page) => {
     setCurrentPage(page);
   };
+*/
+
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
+
   useEffect(() => {
-    if (searchBtnRef.current) {
-      searchBtnRef.current.click();
-    }
-  }, []);
+    refetch({
+      filters: {
+        ...filters,
+        createdFrom,
+        createdTo,
+      },
+    });
+  }, [filters]);
+
   if (!permissions.includes("view transaction")) {
     router.replace("/dashboard");
     return false;
@@ -396,7 +422,7 @@ export default function listPage() {
                             ))}
                           </select>
                         </div>
-                        <div className="col-md-1 mb-1">
+                        <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">Status</label>
                           <select
                             className="form-control"
@@ -410,12 +436,12 @@ export default function listPage() {
                           >
                             <option value="">Status</option>
                             <option value="paid">Paid</option>
-                             <option value="hold">Hold</option>
+                            <option value="hold">Hold</option>
                             <option value="unpaid">Unpaid</option>
                             <option value="cancel">Cancel</option>
                           </select>
                         </div>
-                        <div className="col-md-2 mb-1">
+                        <div className="col-md-2 mb-1 d-none">
                           <label className="mb-0 fw-semibold">Agent</label>
                           <select
                             className="form-select"
@@ -473,9 +499,8 @@ export default function listPage() {
                         </div>
                         <div className="col-md-1 mb-1 d-flex align-items-end">
                           <button
-                            ref={searchBtnRef}
                             className="btn btn-sm btn-primary btn-lg"
-                            onClick={filterByTransaction}
+                            onClick={loadTransactions}
                           >
                             Search
                           </button>
@@ -654,7 +679,7 @@ export default function listPage() {
                                   Number(item.fee || 0)
                                 ).toFixed(2)}
                                 <br />
-                                {/* {item.receiving_money} */}
+                                BDT&nbsp;{item.receiving_money}
                               </small>
                             </td>
                             <td className="text-center">
@@ -710,13 +735,13 @@ export default function listPage() {
                     </tbody>
                   </table>
                   {/* Pagination Buttons */}
-                  <div className="mt-3">
+                  {/* <div className="mt-3">
                     <BootstrapPagination
                       currentPage={currentPage}
                       totalPages={totalPages}
                       goToPage={goToPage}
                     />
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

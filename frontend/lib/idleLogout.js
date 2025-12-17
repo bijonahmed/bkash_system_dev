@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-export const useIdleLogout = (timeout = 300000) => { // 5 minutes
+export const useIdleLogout = (timeout = 300000) => { // 5 min
   const router = useRouter();
   const timer = useRef();
 
@@ -20,6 +20,7 @@ export const useIdleLogout = (timeout = 300000) => { // 5 minutes
     const events = ["mousemove", "mousedown", "keydown", "touchstart", "scroll"];
     events.forEach(event => window.addEventListener(event, resetTimer));
 
+    // Clear token when tab/browser closes
     const handleUnload = () => localStorage.removeItem("token");
     window.addEventListener("beforeunload", handleUnload);
 
