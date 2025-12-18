@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
     setRoles([]);
     setPermissions([]);
     setIsLoggedIn(false);
-    alert("Expire session, please login again.");
+    //alert("Expire session, please login again.");
   };
 
   return (

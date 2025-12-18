@@ -46,7 +46,7 @@ export default function listPage() {
     const value = e.target.value;
     setFiltersByDay({ days: value });
     if (!value) return;
-    refetch({ filters: { days: value } });
+    /// refetch({ filters: { days: value } });
   };
   const handleStatusClick = (item) => {
     setSelectedStatus((item.status || "").toLowerCase());
@@ -114,7 +114,7 @@ export default function listPage() {
       },
     });
   };
-  
+
   useEffect(() => {
     const today = new Date();
     const yesterday = new Date();
@@ -128,8 +128,9 @@ export default function listPage() {
     setCreatedTo(toISODate(today)); // today
   }, []);
 
-  const today = new Date().toISOString().split("T")[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+  const getToday = () => new Date().toISOString().slice(0, 10);
+  const getYesterday = () =>
+    new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
   const [filters, setFilters] = useState({
     beneficiaryName: "",
@@ -137,8 +138,8 @@ export default function listPage() {
     senderName: "",
     accountNo: "",
     transection_status: 1,
-    createdFrom: yesterday, // previous date
-    createdTo: today, // current date
+    createdFrom: getYesterday(), // ✅ default yesterday
+    createdTo: getToday(), // ✅ today
     paymentMethod: "",
     wallet: "",
     status: "",
@@ -149,14 +150,14 @@ export default function listPage() {
   });
 
   const loadTransactions = () => {
+    console.log("====" + filters.createdFrom);
     refetch({
       filters: {
         ...filters,
-        createdFrom,
-        createdTo,
       },
     });
   };
+
   /*
   // Fetch transactions on page load or filter change
   useEffect(() => {
@@ -362,10 +363,10 @@ export default function listPage() {
                             className="form-control"
                             value={filters.createdFrom}
                             onChange={(e) =>
-                              setFilters({
-                                ...filters,
+                              setFilters((prev) => ({
+                                ...prev,
                                 createdFrom: e.target.value,
-                              })
+                              }))
                             }
                           />
                         </div>
@@ -683,7 +684,10 @@ export default function listPage() {
                               </small>
                             </td>
                             <td className="text-center">
-                              <small> {item.agentsettlement}</small>
+                              <small>
+                                {" "}
+                                {Number(item.agentsettlement || 0).toFixed(2)}
+                              </small>
                             </td>
                             <td>
                               <small>{item.description}</small>
