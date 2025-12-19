@@ -7,6 +7,7 @@ import Link from "next/link";
 import getFees from "../../../hooks/getFees";
 import { useAuth } from "../../../context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
+import { apiPost } from "../../../../lib/apiPost";
 
 export default function UserPage() {
   const router = useRouter();
@@ -21,8 +22,8 @@ export default function UserPage() {
       document.title = title;
     }
   }, [title]);
-
-  const { feesData, loading, refetch } = getFees();
+  const [loading, setLoading] = useState(false);
+  const { feesData, refetch } = getFees();
   const [showModal, setShowModal] = useState(false);
   const handleLogClick = () => {
     try {
@@ -32,6 +33,14 @@ export default function UserPage() {
       console.error(err);
     }
   };
+  const initialFormData = {
+    paymentMethod: "",
+    from_bdt: "",
+    to_bdt: "",
+    fee_gbp: "",
+    id: null, // if you have id for update
+  };
+
   const [formData, setFormData] = useState({
     paymentMethod: "",
     from_bdt: "",
@@ -67,48 +76,39 @@ export default function UserPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    const url = formData.id
-      ? `${process.env.NEXT_PUBLIC_API_BASE}/setting/updateFees/${formData.id}`
-      : `${process.env.NEXT_PUBLIC_API_BASE}/setting/createFee`;
+    const path = formData.id
+      ? `/setting/updateFees/${formData.id}`
+      : "/setting/createFee";
+
+    const method = formData.id ? "PUT" : "POST"; // decide method
 
     try {
-      const res = await fetch(url, {
-        method: formData.id ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      const { success, messages } = await apiPost(
+        path,
+        formData,
+        token,
+        method
+      );
 
-      const data = await res.json();
-
-      if (res.ok) {
+      if (success) {
         toast.success(
           formData.id ? "Updated successfully" : "Added successfully"
         );
+        setFormData(initialFormData);
         setShowModal(false);
-        setFormData({
-          paymentMethod: "",
-          from_bdt: "",
-          to_bdt: "",
-          fee_gbp: "",
-          id: null,
-        });
         refetch();
-        // Refresh your limitData here
-        // useLimits();
-      } else if (data.errors) {
-        toast.error(Object.values(data.errors).flat().join("\n"), {
-          style: { whiteSpace: "pre-line" },
-        });
       } else {
-        toast.error(data.message || "Something went wrong!");
+        messages.forEach((msg) =>
+          toast.error(msg, { style: { whiteSpace: "pre-line" } })
+        );
       }
     } catch (err) {
       console.error(err);
-      toast.error("Network or server error!");
+      toast.error("Unexpected error!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -395,7 +395,6 @@ export default function UserPage() {
                         className="form-select"
                         value={formData.paymentMethod}
                         onChange={handleChange}
-                        required
                       >
                         <option value="">Select Method</option>
                         <option value="Wallet">Wallet</option>
@@ -413,7 +412,6 @@ export default function UserPage() {
                         value={formData.from_bdt}
                         onChange={handleChange}
                         placeholder="Enter amount"
-                        required
                       />
                     </div>
 
@@ -426,7 +424,6 @@ export default function UserPage() {
                         value={formData.to_bdt}
                         onChange={handleChange}
                         placeholder="Enter amount"
-                        required
                       />
                     </div>
 
@@ -439,7 +436,6 @@ export default function UserPage() {
                         value={formData.fee_gbp}
                         onChange={handleChange}
                         placeholder="Enter amount"
-                        required
                       />
                     </div>
                   </div>

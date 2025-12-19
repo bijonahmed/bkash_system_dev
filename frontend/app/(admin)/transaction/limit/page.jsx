@@ -386,7 +386,7 @@ export default function UserPage() {
                     </div>
 
                     {/* Wallet Dropdown (Visible only if Wallet is chosen) */}
-                    {formData.paymentMethod === "Wallet" && (
+                    {/* {formData.paymentMethod === "Wallet" && (
                       <div className="mb-3">
                         <label className="form-label">Wallet Type</label>
                         <select
@@ -404,7 +404,7 @@ export default function UserPage() {
                           ))}
                         </select>
                       </div>
-                    )}
+                    )} */}
 
                     {/* Max Receive Limit */}
                     <div className="mb-3">

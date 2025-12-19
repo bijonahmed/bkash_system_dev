@@ -8,6 +8,7 @@ import useBank from "../../../hooks/getBanks";
 import getTransactions from "../../../hooks/getTransactions";
 import toast, { Toaster } from "react-hot-toast";
 import "../../../../app/style/loader.css";
+import { apiPost } from "../../../../lib/apiPost";
 
 const AddNewModal = ({ show, onClose, onSuccess }) => {
   const { token, permissions, roles } = useAuth();
@@ -17,7 +18,11 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   const [walletRate, setWalletRate] = useState("");
   const [receiving, setReceiving] = useState("");
   const { walletData, bankrate, refetchWallet } = useWallets();
-  console.log("bankrate :-----", bankrate);
+  //console.log("bankrate :-----", bankrate);
+
+  useEffect(() => {
+    if (!show) setFormData(initialFormData);
+  }, [show]);
 
   const initialFormData = {
     beneficiaryName: "",
@@ -33,7 +38,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     walletrate: "",
     bankRate: bankrate,
     receivingMoney: "",
-    charges: "",
+    charges: 0,
     fee: "",
     totalAmount: "",
     senderName: "",
@@ -62,7 +67,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       setFormData((prev) => ({
         ...prev,
         walletrate: settingData?.exchange_rate_wallet || "",
-        bankRate: settingData?.exchange_rate_bank || 1,
+        bankRate: settingData?.exchange_rate_bank || bankrate,
       }));
 
       setShowWallet(true);
@@ -85,6 +90,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       "sendingMoney",
       "walletrate",
       "receiving_money",
+      "bankRate",
       "charges",
       "beneficiaryPhone",
     ];
@@ -295,43 +301,27 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // return false; // for testing
-
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/transaction/create`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(formData),
-        }
+      const { success, messages } = await apiPost(
+        "/transaction/create",
+        formData,
+        token
       );
 
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success("Transaction added successfully ✅");
+      if (success) {
+        toast.success("Transaction added successfully");
         refetch();
-        setFormData(initialFormData); // this rest
+        setFormData(initialFormData);
         onClose();
-        onSuccess(); // ← IMPORTANT: this triggers refetch in parent
+        onSuccess();
       } else {
-        if (data.errors) {
-          // Laravel validation errors
-          Object.values(data.errors).forEach((errorArray) => {
-            errorArray.forEach((msg) => toast.error(msg));
-          });
-        } else {
-          toast.error(data.message || "Something went wrong!");
-        }
+        // Show all errors
+        messages.forEach((msg) => toast.error(msg));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Network or server error!");
+      toast.error("Unexpected error!");
     } finally {
       setLoading(false);
     }
@@ -446,6 +436,12 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                       <label className="mb-0 custom-label">Status</label>
                       <select
                         name="status"
+                        style={{
+                          appearance: "menulist", // keep native dropdown arrow
+                          WebkitAppearance: "menulist",
+                          MozAppearance: "menulist",
+                          backgroundColor: "white", // optional
+                        }}
                         value={formData.status}
                         onChange={handleChange}
                         className="form-control"
@@ -465,6 +461,12 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Payment Method</label>
                   <select
+                    style={{
+                      appearance: "menulist", // keep native dropdown arrow
+                      WebkitAppearance: "menulist",
+                      MozAppearance: "menulist",
+                      backgroundColor: "white", // optional
+                    }}
                     name="paymentMethod"
                     value={formData.paymentMethod}
                     onChange={handleChange}
@@ -577,7 +579,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Bank Rate</label>
                       <input
-                        type="number"
+                        type="text"
                         name="bankRate"
                         value={formData.bankRate}
                         onChange={handleChange}

@@ -9,11 +9,11 @@ import useDashboard from "../../hooks/dashboardLogic"; // adjust path
 export default function DashboardPage() {
   const { token, permissions, roles } = useAuth();
   const router = useRouter();
-  const { dashboardData, loading, refetchDashbaord } = useDashboard();
+  const { dashboardData, loading, refetchDashboard } = useDashboard();
 
   // redirect if no permission
   useEffect(() => {
-    refetchDashbaord();
+    refetchDashboard();
     if (!permissions?.includes("view dashboard")) {
       router.replace("/dashboard");
     }

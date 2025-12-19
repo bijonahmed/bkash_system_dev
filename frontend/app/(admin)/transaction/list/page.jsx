@@ -42,11 +42,15 @@ export default function listPage() {
     }
   };
   // const [loading, setLoading] = useState(false);
-  const handleChange = async (e) => {
+  const handleChange = (e) => {
     const value = e.target.value;
-    setFiltersByDay({ days: value });
-    if (!value) return;
-    /// refetch({ filters: { days: value } });
+    setFiltersByDay((prev) => {
+      const newFilters = { ...prev, days: value };
+
+      // Refetch with merged filters
+      refetch({ filters: newFilters });
+      return newFilters;
+    });
   };
   const handleStatusClick = (item) => {
     setSelectedStatus((item.status || "").toLowerCase());
@@ -138,8 +142,8 @@ export default function listPage() {
     senderName: "",
     accountNo: "",
     transection_status: 1,
-    createdFrom: getYesterday(), // ✅ default yesterday
-    createdTo: getToday(), // ✅ today
+    createdFrom: getYesterday(),
+    createdTo: getToday(),
     paymentMethod: "",
     wallet: "",
     status: "",
@@ -150,29 +154,14 @@ export default function listPage() {
   });
 
   const loadTransactions = () => {
-    console.log("====" + filters.createdFrom);
+    //console.log("====" + filters.createdFrom);
     refetch({
       filters: {
         ...filters,
+        ...filtersByDay,
       },
     });
   };
-
-  /*
-  // Fetch transactions on page load or filter change
-  useEffect(() => {
-    refetch({ filters, page: currentPage });
-  }, [filters, currentPage, refetch]);
-
-
-  const filterByTransaction = () => {
-    setCurrentPage(1); // reset to first page when filtering
-    refetch({ filters, page: 1 });
-  };
-  const goToPage = (page) => {
-    setCurrentPage(page);
-  };
-*/
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
@@ -511,7 +500,7 @@ export default function listPage() {
                   </div>
                   <center className="mt-2">
                     {" "}
-                    <span className="bg-danger text-white px-2 rounded">
+                    <span className="bg-danger text-white px-2 rounded" style={{ fontSize: "17px" }}>
                       Balance: {depositApproved || 0}
                     </span>
                   </center>
@@ -569,7 +558,7 @@ export default function listPage() {
                         <th style={{ width: "4%" }} colSpan={2}></th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody  style={{ fontSize: "13px" }}>
                       {/* Example row */}
                       {transactionData && transactionData.length > 0 ? (
                         transactionData.map((item, index) => (

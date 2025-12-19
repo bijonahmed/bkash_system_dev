@@ -1,11 +1,14 @@
 <?php
+
 namespace App\Http\Controllers\Api\Transaction;
+
 use App\Http\Controllers\Controller;
 use App\Models\AdminFundDeposit;
 use App\Models\Banks;
 use App\Models\Branch;
 use App\Models\Deposit;
 use App\Models\Fees;
+use App\Models\Limit;
 use App\Models\Post as PostModel;
 use App\Models\PostCategory;
 use App\Models\Setting;
@@ -20,14 +23,17 @@ use Illuminate\Support\Str;
 use Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+
 class TransactionController extends Controller
 {
     public function index(Request $request)
     {
+
         $user = Auth::user();
         if (!$user->can('view transaction')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
+
         $filters = $request->only([
             'beneficiaryName',
             'beneficiaryPhone',
@@ -42,55 +48,82 @@ class TransactionController extends Controller
             'days',
             'status'
         ]);
-        // $limit = $request->input('limit', 50);
-        // $page  = $request->input('page', 1);
-        $days  = $request->input('days', null);
-        //$offset = ($page - 1) * $limit;
-        // Base query
+
+        $days = $request->input('days', null);
+
         $query = Transaction::query();
-        // Role-based access
+
         if ($user->hasRole('agent')) {
             $query->where('agent_id', $user->id);
         }
+
+        // Default date range
         $defaultFrom = Carbon::yesterday()->startOfDay()->toDateTimeString();
         $defaultTo   = Carbon::today()->endOfDay()->toDateTimeString();
-        // Apply filters efficiently
-        if (!empty($filters['beneficiaryPhone'])) $query->where('beneficiaryPhone', 'like', $filters['beneficiaryPhone'] . '%');
-        if (!empty($filters['beneficiaryName'])) $query->where('beneficiaryName', 'like', $filters['beneficiaryName'] . '%');
-        if (!empty($filters['senderName'])) $query->where('senderName', 'like', $filters['senderName'] . '%');
-        if (!empty($filters['accountNo'])) $query->where('accountNo', 'like', $filters['accountNo'] . '%');
-        $createdFrom = !empty($filters['createdFrom'])
-            ? Carbon::parse($filters['createdFrom'])->startOfDay()->toDateTimeString()
-            : $defaultFrom;
-        $createdTo = !empty($filters['createdTo'])
-            ? Carbon::parse($filters['createdTo'])->endOfDay()->toDateTimeString()
-            : $defaultTo;
-        $query->where('created_at', '>=', $createdFrom)
-            ->where('created_at', '<=', $createdTo);
-        //if (!empty($filters['createdFrom'])) $query->where('created_at', '>=', $filters['createdFrom'] . ' 00:00:00');
-        //if (!empty($filters['createdTo'])) $query->where('created_at', '<=', $filters['createdTo'] . ' 23:59:59');
+
+        // Check if any text filter is applied
+        $hasTextFilter = !empty($filters['beneficiaryPhone'])
+            || !empty($filters['beneficiaryName'])
+            || !empty($filters['senderName'])
+            || !empty($filters['accountNo']);
+
+        // Apply text filters
+        if (!empty($filters['beneficiaryPhone'])) {
+            $query->where('beneficiaryPhone', 'like', $filters['beneficiaryPhone'] . '%');
+        }
+        if (!empty($filters['beneficiaryName'])) {
+            $query->where('beneficiaryName', 'like', $filters['beneficiaryName'] . '%');
+        }
+        if (!empty($filters['senderName'])) {
+            $query->where('senderName', 'like', $filters['senderName'] . '%');
+        }
+        if (!empty($filters['accountNo'])) {
+            $query->where('accountNo', 'like', $filters['accountNo'] . '%');
+        }
+
+        // Only apply date filters if NO text filter
+        if (!$hasTextFilter) {
+            if ($days !== null) {
+                // Days filter has priority
+                if ($days == 1) {
+                    $query->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()]);
+                } else {
+                    $query->where('created_at', '>=', now()->subDays($days)->startOfDay())
+                        ->where('created_at', '<=', now()->endOfDay());
+                }
+            } elseif (!empty($filters['createdFrom']) || !empty($filters['createdTo'])) {
+                // Use custom date range
+                $createdFrom = !empty($filters['createdFrom'])
+                    ? Carbon::parse($filters['createdFrom'])->startOfDay()->toDateTimeString()
+                    : $defaultFrom;
+                $createdTo = !empty($filters['createdTo'])
+                    ? Carbon::parse($filters['createdTo'])->endOfDay()->toDateTimeString()
+                    : $defaultTo;
+
+                $query->whereBetween('created_at', [$createdFrom, $createdTo]);
+            } else {
+                // Default to yesterday -> today
+                $query->whereBetween('created_at', [$defaultFrom, $defaultTo]);
+            }
+        }
+
+        // Apply other filters (status, wallet, paymentMethod, etc.)
         if (!empty($filters['paymentMethod'])) $query->where('paymentMethod', $filters['paymentMethod']);
         if (!empty($filters['status'])) $query->where('status', $filters['status']);
         if (!empty($filters['wallet_id'])) $query->where('wallet_id', $filters['wallet_id']);
         if (!empty($filters['agent_id'])) $query->where('agent_id', $filters['agent_id']);
         if (isset($filters['transection_status'])) $query->where('transection_status', $filters['transection_status']);
-        if ($days !== null) {
-            if ($days == 1) {
-                $query->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()]);
-            } else {
-                $query->where('created_at', '>=', now()->subDays($days)->startOfDay());
-                $query->where('created_at', '<=', now()->endOfDay());
-            }
-        }
-        // Total count (simple)
+
         $total = $query->count();
-        // Eager load relationships (instead of leftJoin)
-        $transactions = $query->with(['creator:id,name', 'wallet:id,name', 'bank:id,bank_name', 'branch:id,branch_name,branch_code'])
+
+        $transactions = $query->with([
+            'creator:id,name',
+            'wallet:id,name',
+            'bank:id,bank_name',
+            'branch:id,branch_name,branch_code'
+        ])
             ->orderByDesc('id')
-            // ->offset($offset)
-            //   ->limit($limit)
             ->get();
-        // Map results with minimal PHP processing
         $modifiedCollection = $transactions->map(function ($item) {
             $wallet  = $item->wallet;
             $bank    = $item->bank;
@@ -149,124 +182,9 @@ class TransactionController extends Controller
             'data' => $modifiedCollection,
             'sumDepositApproved' => number_format($getBalance, 2),
             'total' => $total,
-            //   'page' => $page,
-            // 'last_page' => ceil($total / $limit),
         ]);
     }
-    /*
-    public function index(Request $request)
-    {
-        $user = Auth::user();
-        if (! $user->can('view transaction')) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
-        }
-        $filters = $request->only([
-            'beneficiaryName',
-            'beneficiaryPhone',
-            'senderName',
-            'accountNo',
-            'createdFrom',
-            'createdTo',
-            'transection_status',
-            'paymentMethod',
-            'wallet_id',
-            'agent_id',
-            'status'
-        ]);
-        $limit = $request->input('limit', 50);
-        $page  = $request->input('page', 1);
-        $offset = ($page - 1) * $limit;
-        // Base query with joins
-        $query = Transaction::leftJoin('users as creators', 'transactions.entry_by', '=', 'creators.id')
-            ->leftJoin('wallet', 'transactions.wallet_id', '=', 'wallet.id')
-            ->leftJoin('banks', 'transactions.bank_id', '=', 'banks.id')
-            ->leftJoin('branches', 'transactions.branch_id', '=', 'branches.id')
-            //->where('transection_status',1)
-            ->select([
-                'transactions.*',
-                'creators.name as createdBy',
-                'wallet.name as walletName',
-                'banks.bank_name as bankName',
-                'branches.branch_name as branchName',
-                'branches.branch_code as branchCode'
-            ]);
-        // Role-based access
-        if ($user->hasRole('agent')) {
-            $query->where('transactions.agent_id', $user->id);
-        }
-        // Apply filters dynamically
-        if (!empty($filters['beneficiaryPhone'])) $query->where('beneficiaryPhone', 'like', "%{$filters['beneficiaryPhone']}%");
-        if (!empty($filters['beneficiaryName'])) $query->where('beneficiaryName', 'like', "%{$filters['beneficiaryName']}%");
-        if (!empty($filters['senderName'])) $query->where('senderName', 'like', "%{$filters['senderName']}%");
-        if (!empty($filters['accountNo'])) $query->where('accountNo', 'like', "%{$filters['accountNo']}%");
-        if (!empty($filters['createdFrom'])) $query->whereDate('transactions.created_at', '>=', $filters['createdFrom']);
-        if (!empty($filters['createdTo'])) $query->whereDate('transactions.created_at', '<=', $filters['createdTo']);
-        if (!empty($filters['paymentMethod'])) $query->where('paymentMethod', $filters['paymentMethod']);
-        if (!empty($filters['status'])) $query->where('status', $filters['status']);
-        if (!empty($filters['wallet_id'])) $query->where('wallet_id', $filters['wallet_id']);
-        if (!empty($filters['agent_id'])) $query->where('agent_id', $filters['agent_id']);
-        if (isset($filters['transection_status'])) {
-            $query->where('transection_status', $filters['transection_status']);
-        }
-        $total = $query->count();
-        $results = $query->orderByDesc('transactions.id')
-            ->offset($offset)
-            ->limit($limit)
-            ->get();
-        // Map results (no extra queries)
-        $modifiedCollection = $results->map(function ($item) {
-            return [
-                'id'                    => $item->id,
-                'beneficiaryName'       => $item->beneficiaryName,
-                'beneficiaryPhone'      => $item->beneficiaryPhone,
-                'charges'               => $item->charges,
-                'fee'                   => $item->fee,
-                'totalAmount'           => $item->totalAmount,
-                'receiving_money'       => $item->receiving_money,
-                'sendingMoney'          => $item->sendingMoney,
-                'walletName'            => $item->walletName ?? '',
-                'walletrate'            => $item->walletrate,
-                'bankRate'              => $item->bankRate,
-                'bankName'              => $item->bankName ?? '',
-                'branchName'            => $item->branchName ?? '',
-                'branchCode'            => $item->branchCode ?? '',
-                'accountNo'             => $item->accountNo ?? '',
-                'description'           => $item->description ?? '',
-                'agentsettlement'       => number_format(($item->sendingMoney ?? 0) + ($item->fee ?? 0), 2),
-                'paytMethod'            => $item->paymentMethod,
-                'transection_status'    => $item->transection_status,
-                'status'                => ucfirst($item->status),
-                'senderName'            => ucfirst($item->senderName),
-                'paymentMethod'         => ucfirst($item->paymentMethod),
-                'createdBy'             => $item->createdBy ?? 'N/A',
-                'created_at'            => Carbon::parse($item->created_at)
-                    ->timezone('Asia/Dhaka')
-                    ->format('M d, Y h:i A'),
-            ];
-        });
-        if ($user->hasRole('agent')) {
-            $agentSettlement = Transaction::selectRaw('SUM(sendingMoney + fee) as total')->where('agent_id', $user->id)
-                ->value('total');
-            $sumDepositApproved = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
-            $getBalance = $sumDepositApproved - $agentSettlement;
-        }
-        if ($user->hasRole('admin')) {
-            $agentSettlement = Transaction::selectRaw('SUM(sendingMoney + fee) as total')->value('total');
-            $depositQuery = Deposit::where('approval_status', 1);
-            $sumDepositApproved = $depositQuery->sum('amount_gbp');
-            $getBalance = $agentSettlement - $sumDepositApproved;
-        }
-        return response()->json([
-            'data' => $modifiedCollection,
-            'sumDepositApproved' => number_format($getBalance, 2),
-            'total' => $total,
-            'page' => $page,
-            'last_page' => ceil($total / $limit),
-        ]);
-    }
-*/
+
     public function checkrow($id)
     {
         $data = Transaction::find($id);
@@ -338,6 +256,31 @@ class TransactionController extends Controller
         $chkAdminFund = AdminFundDeposit::where('status', 1)->orderBy('id', 'desc')->first();
         $data['admin_fund_deposit_id'] = !empty($chkAdminFund) ? $chkAdminFund->id : "";
         $data['admin_buying_rate']     = !empty($chkAdminFund) ? $chkAdminFund->buying_rate : "";
+
+
+        // Determine payment method id
+        $chkPayMethod    = $request->paymentMethod;
+        $receiving_money = $request->receiving_money;
+
+
+        if ($chkPayMethod == 'wallet') {
+            $limitCheck = Limit::where('id', '1')->first();
+            if ($receiving_money > $limitCheck->maxLimit) {
+                return response()->json([
+                    'errors' => "You are crossing the wallet limit. Max allowed: {$limitCheck->maxLimit}"
+                ], 422);
+            }
+        }
+
+        if ($chkPayMethod == 'bank') {
+            $limitCheck = Limit::where('id', '2')->first();
+            if ($receiving_money > $limitCheck->maxLimit) {
+                return response()->json([
+                    'errors' => "You are crossing the bank limit. Max allowed: {$limitCheck->maxLimit}"
+                ], 422);
+            }
+        }
+
         //dd($data);
         $transaction      = Transaction::create($data);
         Transactionlog::create(array_merge($data, [

@@ -21,6 +21,7 @@ use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Support\Str;
 use Validator;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -29,26 +30,25 @@ class DashboardController extends Controller
         $user = Auth::user();
         try {
             if ($user->getRoleNames()->contains('admin')) {
-                $data['transaction_all'] = Transaction::count();
+                $data['transaction_all'] =  Transaction::whereDate('created_at', Carbon::today())->count();
             } else if ($user->getRoleNames()->contains('agent')) {
-                $data['transaction_all'] = Transaction::where('agent_id', $user->id)->count();
+                $data['transaction_all'] = Transaction::where('agent_id', $user->id)->whereDate('created_at', Carbon::today())->count();
             }
             $data['agentList']           = User::where('role_type', 2)->where('status', 1)->count();
             if ($user->hasRole('admin')) {
 
-                $agentSettlement = Transaction::where('status', '!=', 'cancel')->sum(DB::raw('sendingMoney + fee'));
-                $sumDepositApproved = Deposit::where('approval_status', 1)->sum('amount_gbp');
+                $agentSettlement = Transaction::where('status', '!=', 'cancel')->whereDate('created_at', Carbon::today())->sum(DB::raw('sendingMoney + fee'));
+                $sumDepositApproved = Deposit::where('approval_status', 1)->whereDate('created_at', Carbon::today())->sum('amount_gbp');
                 $data['balance'] = $agentSettlement - $sumDepositApproved;
                 $data['depositApproved_status'] = 'Pending';
-                $data['depositApproved'] = Deposit::where('approval_status', 0)->count();
+                $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->count();
             } else if ($user->hasRole('agent')) {
 
-                $agentSettlement = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
-                $sumDepositApproved = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
+                $agentSettlement = Transaction::where('status', '!=', 'cancel')->whereDate('created_at', Carbon::today())->where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
+                $sumDepositApproved = Deposit::where('agent_id', $user->id)->whereDate('created_at', Carbon::today())->where('approval_status', 1)->sum('amount_gbp');
                 $data['balance'] = $sumDepositApproved - $agentSettlement;
                 $data['depositApproved_status'] = 'Pending';
-                $data['depositApproved'] = Deposit::where('approval_status', 0)
-                    ->where('agent_id', $user->id)->count();
+                $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->where('agent_id', $user->id)->count();
                 //->sum('amount_gbp');
             }
             return response()->json([

@@ -24,9 +24,7 @@ export default function useTransactions() {
 
       cleaned.limit = filters.limit || 50;
       cleaned.page = page;
-
       const query = new URLSearchParams(cleaned).toString();
-
    
       if (query === lastQueryRef.current && inFlightRef.current) return;
 

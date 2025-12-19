@@ -59,7 +59,7 @@ export default function AdminNavbar() {
           </li>
 
           {/* Refresh link */}
-          {/* <li className="nav-item d-none d-md-block d-none">
+          <li className="nav-item d-none d-md-block d-none">
             <a
               href="#"
               className="nav-link"
@@ -70,21 +70,49 @@ export default function AdminNavbar() {
             >
               Refresh
             </a>
-          </li> */}
+          </li>
 
           {/* Wallet Amount */}
           <li className="nav-item ms-md-3">
             <div className="d-flex align-items-center">
-              <span className="fw-bold me-2" style={{ width: "150px" }}>
+              {/* Desktop only label */}
+              <span
+                className="fw-bold me-2 d-none d-md-inline"
+                style={{ width: "150px" }}
+              >
                 Todays Rate:
               </span>
-              <span
-                className="d-flex justify-content-center align-items-center w-100 bg-danger text-white fw-bold animate__animated animate__pulse"
-                style={{ height: "40px", fontSize: "14px" }}
-              >
-                Wallet: {user?.amount ? `${user.amount}/=` : ""}
-                Bank: {bankrate ? `${bankrate}/=` : ""}
-              </span>
+
+              {/* Rate boxes */}
+              <div className="d-flex gap-2 justify-content-center justify-content-md-start">
+                {/* Wallet */}
+                <div
+                  className="d-flex justify-content-center align-items-center bg-danger text-white fw-bold animate__animated animate__pulse"
+                  style={{
+                    height: "40px",
+                    fontSize: "16px", // slightly smaller for mobile
+                    borderRadius: "6px",
+                    padding: "0 10px", // instead of width
+                    whiteSpace: "nowrap", // stay inline
+                  }}
+                >
+                  Wallet: {user?.amount ?? 0}
+                </div>
+
+                {/* Bank */}
+                <div
+                  className="d-flex justify-content-center align-items-center bg-primary text-white fw-bold animate__animated animate__pulse"
+                  style={{
+                    height: "40px",
+                    fontSize: "16px",
+                    borderRadius: "6px",
+                    padding: "0 10px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Bank: {bankrate ?? 0}
+                </div>
+              </div>
             </div>
           </li>
         </ul>
