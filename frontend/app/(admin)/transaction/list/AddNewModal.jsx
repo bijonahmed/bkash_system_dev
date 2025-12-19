@@ -172,33 +172,28 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
 
       // fee API call
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              paymentMethod: "bank",
-              receiving_money: receiving,
-            }),
-          }
+        const { success, data, messages } = await apiPost(
+          "/transaction/walletcalculate",
+          { paymentMethod: "bank", receiving_money: receiving },
+          token,
+          "POST"
         );
-
-        const data = await res.json();
-        console.log("Response:" + data.fee);
-
-        setFormData((prev) => ({
-          ...prev,
-          fee: data.fee || 0,
-          totalAmount:
-            parseFloat(sendingMoney || 0) + (parseFloat(data.fee) || 0),
-        }));
-      } catch (error) {
-        console.error("Fee calc failed:", error);
+        if (success) {
+          console.log("Response fee:", data.fee);
+          setFormData((prev) => ({
+            ...prev,
+            fee: data.fee || 0,
+            totalAmount:
+              parseFloat(sendingMoney || 0) + (parseFloat(data.fee) || 0),
+          }));
+        } else {
+          messages.forEach((msg) => toast.error(msg));
+        }
+      } catch (err) {
+        console.error("Fee calc failed:", err);
+        toast.error("Failed to calculate fee");
       }
+
       return;
     }
 
@@ -214,33 +209,32 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
 
       // fee API call
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
+        const { success, data, messages } = await apiPost(
+          "/transaction/walletcalculate",
           {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              paymentMethod: "bank",
-              receiving_money: newReceiving,
-            }),
-          }
+            paymentMethod: "bank", // "bank" or "wallet"
+            receiving_money: newReceiving,
+          },
+          token, // your auth token
+          "POST"
         );
 
-        const data = await res.json();
-        console.log("Response:" + data.fee);
-
-        setFormData((prev) => ({
-          ...prev,
-          fee: data.fee || 0,
-          totalAmount: parseFloat(sending || 0) + (parseFloat(data.fee) || 0),
-        }));
-      } catch (error) {
-        console.error("Fee calc failed:", error);
+        if (success) {
+          console.log("Response fee:", data.fee);
+          setFormData((prev) => ({
+            ...prev,
+            fee: data.fee || 0,
+            totalAmount: parseFloat(sending || 0) + (parseFloat(data.fee) || 0),
+          }));
+        } else {
+          // Show any backend validation or custom errors
+          messages.forEach((msg) => toast.error(msg));
+        }
+      } catch (err) {
+        console.error("Fee calc failed:", err);
+        toast.error("Failed to calculate fee");
       }
-
+     
       return;
     }
 
@@ -266,34 +260,33 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         receiving_money:
           newReceiving !== "" ? Math.floor(newReceiving * 100) / 100 : "",
       }));
-
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/transaction/walletcalculate`,
+        const { success, data, messages } = await apiPost(
+          "/transaction/walletcalculate",
           {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              paymentMethod: "wallet",
-              receiving_money: newReceiving,
-            }),
-          }
+            paymentMethod: "wallet",
+            receiving_money: newReceiving,
+          },
+          token, // your auth token
+          "POST"
         );
 
-        const data = await res.json();
-
-        setFormData((prev) => ({
-          ...prev,
-          fee: data.fee || 0,
-          totalAmount: (
-            Math.floor((Number(newSending) + Number(data.fee || 0)) * 100) / 100
-          ).toFixed(2), //Number(newSending) + Number(data.fee || 0),
-        }));
-      } catch (error) {
-        console.error("Wallet fee calc failed:", error);
+        if (success) {
+          setFormData((prev) => ({
+            ...prev,
+            fee: data.fee || 0,
+            totalAmount: (
+              Math.floor((Number(newSending) + Number(data.fee || 0)) * 100) /
+              100
+            ).toFixed(2),
+          }));
+        } else {
+          // Show backend validation or custom errors
+          messages.forEach((msg) => toast.error(msg));
+        }
+      } catch (err) {
+        console.error("Wallet fee calc failed:", err);
+        toast.error("Failed to calculate wallet fee");
       }
     }
   };
