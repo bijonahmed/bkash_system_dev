@@ -39,18 +39,38 @@ class DashboardController extends Controller
 
                 $agentSettlement = Transaction::where('status', '!=', 'cancel')->whereDate('created_at', Carbon::today())->sum(DB::raw('sendingMoney + fee'));
                 $sumDepositApproved = Deposit::where('approval_status', 1)->whereDate('created_at', Carbon::today())->sum('amount_gbp');
-                $data['balance'] = $agentSettlement - $sumDepositApproved;
+
+                $getbalance = $agentSettlement - $sumDepositApproved;
+
                 $data['depositApproved_status'] = 'Pending';
                 $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->count();
             } else if ($user->hasRole('agent')) {
 
                 $agentSettlement = Transaction::where('status', '!=', 'cancel')->whereDate('created_at', Carbon::today())->where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
                 $sumDepositApproved = Deposit::where('agent_id', $user->id)->whereDate('created_at', Carbon::today())->where('approval_status', 1)->sum('amount_gbp');
-                $data['balance'] = $sumDepositApproved - $agentSettlement;
+
+                $getbalance = $sumDepositApproved - $agentSettlement;
+
                 $data['depositApproved_status'] = 'Pending';
                 $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->where('agent_id', $user->id)->count();
                 //->sum('amount_gbp');
             }
+            $balance = $getbalance;
+
+            if ($user->hasRole('admin')) {
+                $data['balance'] = number_format($balance, 2); // admin sees exact balance
+            }
+
+            if ($user->hasRole('agent')) {
+                if ($balance < 0) {
+                    // Negative balance → Credit
+                    $data['balance'] = number_format(abs($balance), 2) . ' Cr';
+                } else {
+                    // Positive balance → Debit
+                    $data['balance'] = number_format($balance, 2) . ' Dr';
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $data

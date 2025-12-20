@@ -9,8 +9,7 @@ import "../list/transactionFilter.css";
 import AddNewModal from "./AddNewModal.jsx";
 import useTransactions from "../../../hooks/getTransactions";
 import useWallets from "../../../hooks/getWallet";
-import useAgents from "../../../hooks/getAgents.js";
-import BootstrapPagination from "../../../components/pagination.jsx";
+
 import SpinnerLoader from "../../../components/admin/SpinnerLoader.jsx";
 // import "../../../../app/style/loader.css";
 import { apiDelete } from "../../../../lib/apiDelete";
@@ -28,7 +27,6 @@ export default function listPage() {
   const contentRef = useRef(null);
   const { walletData, bankrate } = useWallets();
 
-  const { agentData } = useAgents();
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [filtersByDay, setFiltersByDay] = useState({ days: "" });
@@ -431,26 +429,7 @@ export default function listPage() {
                             <option value="cancel">Cancel</option>
                           </select>
                         </div>
-                        <div className="col-md-2 mb-1 d-none">
-                          <label className="mb-0 fw-semibold">Agent</label>
-                          <select
-                            className="form-select"
-                            value={filters.agent_id}
-                            onChange={(e) =>
-                              setFilters({
-                                ...filters,
-                                agent_id: e.target.value,
-                              })
-                            }
-                          >
-                            <option value="">Choose Agent</option>
-                            {agentData.map((r) => (
-                              <option key={r.id} value={r.id}>
-                                {r.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                       
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
                             Filter by Days

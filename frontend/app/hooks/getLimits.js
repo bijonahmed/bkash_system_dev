@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
+import { apiGet } from "../../lib/apiGet";
 
 export default function useLimits() {
   const [limitData, setLimitData] = useState([]);
@@ -12,28 +13,17 @@ export default function useLimits() {
     if (!token) return; // prevent API call until token is ready
 
     setLoading(true);
+
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/setting/getLimits`;
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        throw new Error(result?.message || `HTTP Error: ${res.status}`);
-      }
-
-      setLimitData(result?.data || []);
+      const res = await apiGet({ endpoint: "/setting/getLimits", token });
+      //console.log("===" + res?.data.data);
+      setLimitData(res?.data.data);
     } catch (err) {
       toast.error(err?.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }
+
   }, [token]); // FIXED: add token dependency
 
   useEffect(() => {

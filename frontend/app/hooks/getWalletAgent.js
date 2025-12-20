@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
+import { apiGet } from "../../lib/apiGet";
 
 export default function useGetWalletAgent() {
   const [walletAgentData, setWalletAgentData] = useState([]);
@@ -23,27 +24,14 @@ export default function useGetWalletAgent() {
     abortRef.current = controller;
 
     setLoading(true);
-
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/wallet/getwalletAgent`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          signal: controller.signal,
-        }
+      const res = await apiGet(
+        "/wallet/getwalletAgent",
+        token,
+        controller.signal
       );
 
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result?.message || `HTTP ${res.status}`);
-      }
-
-      setWalletAgentData(result?.data ?? []);
+      setWalletAgentData(res?.data ?? []);
     } catch (err) {
       if (err.name !== "AbortError") {
         toast.error(err?.message || "Failed to load wallet agents");
@@ -51,6 +39,7 @@ export default function useGetWalletAgent() {
     } finally {
       setLoading(false);
     }
+   
   }, [token]);
 
   // Auto fetch on mount / token change

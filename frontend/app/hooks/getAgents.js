@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext"; // adjust path
+import { apiGet } from "../../lib/apiGet";
 
 export default function useAgents() {
   const [agentData, setAgentData] = useState([]);
@@ -13,27 +14,15 @@ export default function useAgents() {
 
     setLoading(true);
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_BASE}/users/getOnlyAgentList`;
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        throw new Error(result?.message || `HTTP Error: ${res.status}`);
-      }
-
-      setAgentData(result?.data || []);
+      const res = await apiGet({ endpoint: "/users/getOnlyAgentList", token });
+      //console.log("===" + res?.data.data);
+      setAgentData(res?.data.data);
     } catch (err) {
       toast.error(err?.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }
+
   }, [token]); // useCallback depends on token
 
   useEffect(() => {

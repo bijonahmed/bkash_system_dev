@@ -30,7 +30,7 @@ export default function DashboardPage() {
   const depositApproved_status = dashboardData?.depositApproved_status ?? "";
 
   const agentbalance = balance;
-  const formattedBalance = Number(agentbalance).toFixed(2); // "965.12" (string)
+  const formattedBalance = agentbalance;//Number(agentbalance).toFixed(2); // "965.12" (string)
 
   return (
     <main className="app-main">

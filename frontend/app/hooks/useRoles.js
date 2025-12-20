@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext"; // adjust path
+import { apiGet } from "../../lib/apiGet";
 
 export default function useRoles() {
   const [rolesData, setRolesData] = useState([]);
@@ -12,37 +13,22 @@ export default function useRoles() {
   const fetchRoles = useCallback(
     async (selectedFilter = 1) => {
       if (!token) return; // prevent fetch without token
-
       setLoading(true);
+
       try {
-        const url = `${process.env.NEXT_PUBLIC_API_BASE}/roles/index?selectedFilter=${selectedFilter}`;
-        const res = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await apiGet(
+          `/roles/index?selectedFilter=${selectedFilter}`,
+          token
+        );
 
-        let result = null;
-        try {
-          result = await res.json();
-        } catch (e) {
-          result = null;
-        }
-
-        if (!res.ok) {
-          throw new Error(result?.message || `HTTP Error: ${res.status}`);
-        }
-
-        setRolesData(result?.data || []);
+        setRolesData(res?.data ?? []);
       } catch (err) {
-        toast.error(err.message || "Something went wrong!");
+        toast.error(err?.message || "Something went wrong!");
       } finally {
         setLoading(false);
       }
     },
-    [token] // ← REQUIRED FIX
+    [token] 
   );
 
   // ✅ Trigger on load and when token changes
@@ -50,7 +36,7 @@ export default function useRoles() {
     if (token) {
       fetchRoles();
     }
-  }, [token, fetchRoles]); // ← REQUIRED FIX
+  }, [token, fetchRoles]);
 
   return { rolesData, loading, fetchRoles };
 }

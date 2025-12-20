@@ -1,15 +1,15 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import useWallets from "../../../hooks/getWallet";
 import useSetting from "../../../hooks/getSetting.js";
 import useBank from "../../../hooks/getBanks";
 import getTransactions from "../../../hooks/getTransactions";
+import useTranSactionAutoCoplete from "../../../hooks/getTranAutocomplete";
+
 import toast, { Toaster } from "react-hot-toast";
 import "../../../../app/style/loader.css";
 import { apiPost } from "../../../../lib/apiPost";
-
 const AddNewModal = ({ show, onClose, onSuccess }) => {
   const { token, permissions, roles } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -17,13 +17,16 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   const { settingData } = useSetting();
   const [walletRate, setWalletRate] = useState("");
   const [receiving, setReceiving] = useState("");
+  const [mobile_number, setMobileNumber] = useState("");
   const { walletData, bankrate, refetchWallet } = useWallets();
-  //console.log("bankrate :-----", bankrate);
+  const { autcompleteData } = useTranSactionAutoCoplete(mobile_number);
+  //console.log("add modal autcompleteData :-----", autcompleteData);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     if (!show) setFormData(initialFormData);
   }, [show]);
-
   const initialFormData = {
     beneficiaryName: "",
     beneficiaryPhone: "",
@@ -45,7 +48,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     receiving_money: "",
     description: "",
   };
-
   useEffect(() => {
     refetchWallet();
     setFormData((prev) => ({
@@ -53,14 +55,12 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       bankRate: bankrate || 1,
     }));
   }, [bankrate]);
-
   const { bankData } = useBank();
   const [showWallet, setShowWallet] = useState(false);
   const [showBank, setShowBank] = useState(false);
   const [branchData, setBranchData] = useState([]);
   const [formData, setFormData] = useState(initialFormData);
   const resetForm = () => setFormData(initialFormData);
-
   // Automatically toggle Wallet/Bank inputs
   useEffect(() => {
     if (formData.paymentMethod === "wallet") {
@@ -69,7 +69,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         walletrate: settingData?.exchange_rate_wallet || "",
         bankRate: settingData?.exchange_rate_bank || bankrate,
       }));
-
       setShowWallet(true);
       setShowBank(false);
     } else if (formData.paymentMethod === "bank") {
@@ -80,8 +79,18 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       setShowBank(false);
     }
   }, [formData.paymentMethod]);
-
   const allowOnlyNumbers = (value) => value.replace(/[^0-9]/g, "");
+
+  const handleSelect = (item) => {
+    setFormData((prev) => ({
+      ...prev,
+      beneficiaryPhone: item.beneficiaryPhone,
+      beneficiaryName: item.beneficiaryName,
+      senderName: item.senderName,
+    }));
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
 
   const handleChange = async (e) => {
     const { name, value } = e.target;
@@ -94,25 +103,36 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       "charges",
       "beneficiaryPhone",
     ];
-
+    if (name === "beneficiaryPhone") {
+      //set beneficiaryPhone autocomplete search
+      setMobileNumber(value);
+      if (value.length >= 1) {
+        const filtered = autcompleteData.filter(
+          (item) =>
+            item.beneficiaryPhone.includes(value) ||
+            item.beneficiaryName.toLowerCase().includes(value.toLowerCase())
+        );
+        setSuggestions(filtered.slice(0, 10)); // max 10 suggestions
+        setShowSuggestions(true);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }
     // allow only numbers
     const updatedValue = numericFields.includes(name)
       ? allowOnlyNumbers(value)
       : value;
-
-    // update this field immediately
     setFormData((prev) => ({
       ...prev,
       [name]: updatedValue,
     }));
-
     // ===== Charges Calculation =====
     if (name === "charges") {
       const charges = parseFloat(updatedValue || 0);
       const sendingMoney = parseFloat(formData.sendingMoney || 0);
       const fee = parseFloat(formData.fee || 0);
       const total = sendingMoney + fee + charges;
-
       setFormData((prev) => ({
         ...prev,
         charges: updatedValue,
@@ -120,7 +140,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       }));
       return;
     }
-
     // ===== Branch Load  =====
     if (name === "bank_id") {
       try {
@@ -135,28 +154,23 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
             body: JSON.stringify({ bank_id: updatedValue }),
           }
         );
-
         const data = await res.json();
         setBranchData(data.data || []);
       } catch (error) {
         console.error("Branch loading failed:", error);
       }
     }
-
     // Normalize numeric values
     const sendingMoney =
       name === "sendingMoney"
         ? Number(updatedValue)
         : Number(formData.sendingMoney || 0);
-
     const receivingMoneyInput =
       name === "receiving_money"
         ? Number(updatedValue)
         : Number(formData.receiving_money || 0);
-
     const bankRate = Number(formData.bankRate || 0);
     const walletRate = Number(formData.walletrate || 0);
-
     // ======================
     //  BANK CALCULATION
     // ======================
@@ -169,7 +183,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         ...prev,
         receiving_money: receiving,
       }));
-
       // fee API call
       try {
         const { success, data, messages } = await apiPost(
@@ -193,20 +206,16 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         console.error("Fee calc failed:", err);
         toast.error("Failed to calculate fee");
       }
-
       return;
     }
-
     if (formData.paymentMethod === "bank" && name === "receiving_money") {
       const newReceiving = parseFloat(value) || 0;
       const sending = bankRate ? (newReceiving / bankRate).toString() : "0";
-
       // update sendingMoney
       setFormData((prev) => ({
         ...prev,
         sendingMoney: sending,
       }));
-
       // fee API call
       try {
         const { success, data, messages } = await apiPost(
@@ -218,7 +227,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
           token, // your auth token
           "POST"
         );
-
         if (success) {
           console.log("Response fee:", data.fee);
           setFormData((prev) => ({
@@ -234,24 +242,19 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         console.error("Fee calc failed:", err);
         toast.error("Failed to calculate fee");
       }
-     
       return;
     }
-
     if (formData.paymentMethod === "wallet") {
       let newSending = sendingMoney;
       let newReceiving = receivingMoneyInput;
-
       if (name === "sendingMoney") {
         newReceiving = sendingMoney ? sendingMoney * walletRate : "";
       }
-
       if (name === "receiving_money") {
         newSending = receivingMoneyInput
           ? receivingMoneyInput / walletRate
           : "";
       }
-
       // update two-way result
       setFormData((prev) => ({
         ...prev,
@@ -270,7 +273,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
           token, // your auth token
           "POST"
         );
-
         if (success) {
           setFormData((prev) => ({
             ...prev,
@@ -290,7 +292,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       }
     }
   };
-
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -301,7 +302,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         formData,
         token
       );
-
       if (success) {
         toast.success("Transaction added successfully");
         refetch();
@@ -319,49 +319,33 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       setLoading(false);
     }
   };
-
   const selectedWallet = walletData.find(
     (wallet) => wallet.id.toString() === formData.wallet_id
   );
-
   // Watch for wallet change
   useEffect(() => {
     const calculateWalletRate = async () => {
       if (!selectedWallet) return;
-      setLoading(true);
 
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/wallet/walletcalculateCheck`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              wallet_id: formData.wallet_id,
-            }),
-          }
+        const res = await apiPost(
+          "/wallet/walletcalculateCheck",
+          { wallet_id: formData.wallet_id },
+          token
         );
 
-        const data = await res.json();
-        console.log("response: walletrate amount: " + data.walletrate);
-
+        const walletrate = Number(res?.data?.walletrate ?? 0);
+        console.log("response: walletrate amount: " + walletrate);
         setFormData((prev) => ({
           ...prev,
-          walletrate: data.walletrate,
+          walletrate,
         }));
       } catch (err) {
         console.error("Error fetching wallet rate:", err);
-      } finally {
-        setLoading(false);
       }
     };
-
     calculateWalletRate();
   }, [selectedWallet, receiving, token]); // run when selectedWallet changes
-
   return (
     <div
       className={`modal fade ${show ? "show d-block" : ""}`}
@@ -380,14 +364,12 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         >
           <div className="modal-header bg-primary text-white">
             <h5 className="modal-title">Add New Entry</h5>
-
             <button
               type="button"
               className="btn-close"
               onClick={onClose}
             ></button>
           </div>
-
           {loading && (
             <div className="loader-overlay">
               <div className="spinner-border text-light" role="status">
@@ -395,7 +377,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
               </div>
             </div>
           )}
-
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
               <div className="row">
@@ -410,18 +391,55 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     className="form-control"
                   />
                 </div>
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Beneficiary Phone</label>
-                  <input
+                  {/* <input
                     type="text"
                     name="beneficiaryPhone"
                     value={formData.beneficiaryPhone}
                     onChange={handleChange}
                     className="form-control"
-                  />
-                </div>
+                  /> */}
 
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type="text"
+                      name="beneficiaryPhone"
+                      value={formData.beneficiaryPhone}
+                      onChange={handleChange}
+                      className="form-control"
+                      placeholder="Enter mobile number"
+                      autoComplete="off"
+                    />
+
+                    {showSuggestions && suggestions.length > 0 && (
+                      <ul
+                        style={{
+                          listStyle: "none",
+                          padding: 0,
+                          margin: 0,
+                          border: "1px solid #ccc",
+                          position: "absolute",
+                          width: "100%",
+                          maxHeight: "200px",
+                          overflowY: "auto",
+                          backgroundColor: "#fff",
+                          zIndex: 1000,
+                        }}
+                      >
+                        {suggestions.map((item) => (
+                          <li
+                            key={item.id}
+                            onClick={() => handleSelect(item)}
+                            style={{ padding: "8px", cursor: "pointer" }}
+                          >
+                            {item.beneficiaryPhone} - {item.beneficiaryName}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
                 {/* Status */}
                 {roles == "admin" && (
                   <>
@@ -448,7 +466,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     </div>
                   </>
                 )}
-
                 {/* <pre>{JSON.stringify(bankData, null, 2)}</pre> */}
                 {/* Payment Method */}
                 <div className="col-md-3 mb-2">
@@ -470,12 +487,10 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     <option value="bank">Bank</option>
                   </select>
                 </div>
-
                 {/* Wallet Fields */}
                 {showWallet && (
                   <div className="col-md-3 mb-2">
                     <label className="mb-0 custom-label">Wallet</label>
-
                     <select
                       name="wallet_id"
                       className="form-select"
@@ -491,7 +506,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     </select>
                   </div>
                 )}
-
                 {/* Bank Fields */}
                 {showBank && (
                   <>
@@ -512,7 +526,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                         ))}
                       </select>
                     </div>
-
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Branch</label>
                       <select
@@ -541,7 +554,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                         ))}
                       </select>
                     </div>
-
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Routing No.</label>
                       <input
@@ -552,7 +564,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                         className="form-control"
                       />
                     </div>
-
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Account #</label>
                       <input
@@ -568,7 +579,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                         className="form-control"
                       />
                     </div>
-
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Bank Rate</label>
                       <input
@@ -581,7 +591,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     </div>
                   </>
                 )}
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">
                     Sending Money (GBP)
@@ -594,7 +603,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     className="form-control"
                   />
                 </div>
-
                 {showWallet && (
                   <div className="col-md-3 mb-2">
                     <label className="mb-0 custom-label">Wallet Rate</label>
@@ -607,7 +615,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     />
                   </div>
                 )}
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">
                     Receiving Money (BDT)
@@ -620,7 +627,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     className="form-control"
                   />
                 </div>
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Charges (GBP)</label>
                   <input
@@ -631,7 +637,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     className="form-control"
                   />
                 </div>
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Admin Fee (GBP)</label>
                   <input
@@ -642,7 +647,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     className="form-control"
                   />
                 </div>
-
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">
                     Total Amount (GBP)
@@ -655,7 +659,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     className="form-control"
                   />
                 </div>
-
                 {/* Sender & Note */}
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">Sender Name</label>
@@ -667,7 +670,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     className="form-control"
                   />
                 </div>
-
                 <div className="col-md-12 mb-2">
                   <label className="mb-0 custom-label">
                     Description / Note
@@ -682,7 +684,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                 </div>
               </div>
             </div>
-
             <div className="modal-footer">
               <button
                 type="button"
@@ -698,7 +699,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
               >
                 Close
               </button>
-
               <button type="submit" className="btn btn-primary">
                 Submit
               </button>
@@ -709,5 +709,4 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     </div>
   );
 };
-
 export default AddNewModal;

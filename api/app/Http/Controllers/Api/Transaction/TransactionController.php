@@ -185,6 +185,24 @@ class TransactionController extends Controller
         ]);
     }
 
+    public function checkedBenPhone(Request $request)
+    {
+
+        $data  = Transaction::query()
+    ->where('beneficiaryPhone', 'like', '%' . $request->beneficiaryPhone . '%')
+    ->orderBy('id', 'asc')
+    ->limit(15)
+    ->get()
+    ->unique('beneficiaryPhone') // removes duplicates in collection
+    ->values();
+
+        $response = [
+            'data' => $data,
+            'message' => 'success',
+        ];
+        return response()->json($response, 200);
+    }
+
     public function checkrow($id)
     {
         $data = Transaction::find($id);

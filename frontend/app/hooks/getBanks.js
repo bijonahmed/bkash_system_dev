@@ -19,7 +19,6 @@ export default function useBanks() {
 
     try {
       const res = await apiGet({ endpoint: "/setting/getBanks", token });
-
       if (!res?.success) throw new Error(res?.message || "Failed to fetch banks");
 
       // Extract the banks array correctly
