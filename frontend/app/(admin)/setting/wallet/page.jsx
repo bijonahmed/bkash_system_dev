@@ -8,7 +8,7 @@ import { customStyles } from "../../../components/styles/customDataTable";
 import { useAuth } from "../../../context/AuthContext";
 import getAgents from "../../../hooks/getAgents";
 import getWallets from "../../../hooks/getWallet";
-import getWalletAgent from "../../../hooks/getWalletAgent";
+import getWalletAgent from "../../../hooks/getAssignWallet";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function UserPage() {

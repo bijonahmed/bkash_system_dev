@@ -178,6 +178,10 @@ class TransactionController extends Controller
         $getBalance = $user->hasRole('agent')
             ? ($sumDepositApproved - $agentSettlement)
             : ($agentSettlement - $sumDepositApproved);
+
+
+       
+
         return response()->json([
             'data' => $modifiedCollection,
             'sumDepositApproved' => number_format($getBalance, 2),
@@ -189,12 +193,15 @@ class TransactionController extends Controller
     {
 
         $data  = Transaction::query()
-    ->where('beneficiaryPhone', 'like', '%' . $request->beneficiaryPhone . '%')
-    ->orderBy('id', 'asc')
-    ->limit(15)
-    ->get()
-    ->unique('beneficiaryPhone') // removes duplicates in collection
-    ->values();
+            ->where('beneficiaryPhone', 'like', '%' . $request->beneficiaryPhone . '%')
+            ->orderBy('id', 'asc')
+            ->limit(15)
+            ->get()
+            ->unique('beneficiaryPhone') // removes duplicates in collection
+            ->values();
+
+
+
 
         $response = [
             'data' => $data,

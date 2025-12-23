@@ -63,13 +63,14 @@ class DashboardController extends Controller
 
             if ($user->hasRole('agent')) {
                 if ($balance < 0) {
-                    // Negative balance → Credit
-                    $data['balance'] = number_format(abs($balance), 2) . ' Cr';
+                    // Negative balance → Debit (Dr)
+                    $data['balance'] = number_format(abs($balance), 2) . ' Dr';
                 } else {
-                    // Positive balance → Debit
-                    $data['balance'] = number_format($balance, 2) . ' Dr';
+                    // Positive balance → Credit (Cr)
+                    $data['balance'] = number_format(abs($balance), 2) . ' Cr';
                 }
             }
+
 
             return response()->json([
                 'success' => true,

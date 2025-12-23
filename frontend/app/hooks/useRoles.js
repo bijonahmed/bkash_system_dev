@@ -1,42 +1,40 @@
-"use client";
 import { useState, useEffect, useCallback } from "react";
-import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; // adjust path
 import { apiGet } from "../../lib/apiGet";
+import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 
-export default function useRoles() {
+export default function useRoles(endpoint = "/roles/index") {
   const [rolesData, setRolesData] = useState([]);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
 
-  // ✅ Add token in dependency (required)
   const fetchRoles = useCallback(
     async (selectedFilter = 1) => {
       if (!token) return; // prevent fetch without token
       setLoading(true);
 
       try {
-        const res = await apiGet(
-          `/roles/index?selectedFilter=${selectedFilter}`,
-          token
-        );
+        const res = await apiGet({
+          endpoint: `${endpoint}?selectedFilter=${selectedFilter}`,
+          token,
+        });
 
-        setRolesData(res?.data ?? []);
+        const roles = res?.data?.data ?? [];
+        setRolesData(roles);
+
       } catch (err) {
         toast.error(err?.message || "Something went wrong!");
       } finally {
         setLoading(false);
       }
     },
-    [token] 
+    [token, endpoint]
   );
 
-  // ✅ Trigger on load and when token changes
+  // fetch roles on mount
   useEffect(() => {
-    if (token) {
-      fetchRoles();
-    }
-  }, [token, fetchRoles]);
+    fetchRoles();
+  }, [fetchRoles]);
 
-  return { rolesData, loading, fetchRoles };
+  return { rolesData, fetchRoles, loading };
 }

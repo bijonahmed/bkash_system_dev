@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\Api\AdminFundDeposit\AdminFundDepositController;
 use App\Http\Controllers\Api\AgentSendRquest\AgentRequestSendController;
 use App\Http\Controllers\Api\AuthController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Api\Transaction\TransactionController;
 use App\Http\Controllers\Api\Wallet\WalletController;
 use App\Models\AdminFundDeposit;
 use Illuminate\Support\Facades\Route;
+
 Route::middleware('api')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('api.register');
     Route::post('/login', [AuthController::class, 'login'])->name('api.login');
@@ -28,6 +30,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/changePassword', [AuthController::class, 'changePassword']);
     Route::prefix('setting')->group(function () {
         Route::get('/settingrow', [SettingsController::class, 'settingrow']);
+        Route::get('/checkedRate', [SettingsController::class, 'checkedRate']);
         Route::post('/upateSetting', [SettingsController::class, 'upateSetting']);
         Route::post('/updateRate', [SettingsController::class, 'updateRate']);
         Route::get('/getwallet', [SettingsController::class, 'getwallet']);

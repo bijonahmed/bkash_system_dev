@@ -123,6 +123,7 @@ class UserController extends Controller
             'address'       => $request->address ?? '',
             'phone_number'  => $request->phone,
             'email'         => $request->email,
+            'change_rate'   => $request->change_rate,
             'agentCode'     => $agentCode,
             'password'      => !empty($request->password) ? Hash::make($request->password) : null,
             'status'        => $request->status,
@@ -198,10 +199,10 @@ class UserController extends Controller
         $user_id = $request->id;
         $user = User::find($user_id);
 
-        $data['name']      = $request->name;
-        $data['agentCode'] = $request->agentCode;
-        $data['status']    = $request->status;
-
+        $data['name']         = $request->name;
+        $data['agentCode']    = $request->agentCode;
+        $data['status']       = $request->status;
+        $data['change_rate']  = $request->change_rate;
 
         if (! empty($request->phone_number)) {
             $data['phone_number'] = $request->phone_number;

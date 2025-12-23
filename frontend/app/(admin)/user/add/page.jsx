@@ -12,7 +12,7 @@ import Link from "next/link";
 export default function UserAddPage() {
   const { token, permissions } = useAuth();
   const [user, setUser] = useState(null);
-  const { rolesData, loading, fetchRoles } = useRoles();
+  const { rolesData, fetchRoles } = useRoles();
   const pathname = usePathname();
   const router = useRouter();
   const [errors, setErrors] = useState({});
@@ -32,6 +32,7 @@ export default function UserAddPage() {
     address: "",
     agentCode: "",
     password: "",
+    change_rate: "no",
     password_confirmation: "",
     status: 1,
   });
@@ -263,27 +264,45 @@ export default function UserAddPage() {
                     </div>
 
                     {parseInt(formData.rules_type) === 2 && (
-                      <div className="mb-3 mt-3">
-                        <label htmlFor="agentCode" className="form-label">
-                          Agent Code
-                        </label>
-                        <input
-                          type="text"
-                          className={`form-control ${
-                            errors.agentCode ? "is-invalid" : ""
-                          }`}
-                          id="agentCode"
-                          name="agentCode"
-                          value={formData.agentCode || ""}
-                          onChange={handleChange}
-                          placeholder="Enter Agent Code"
-                        />
-                        {errors.agentCode && errors.agentCode.length > 0 && (
-                          <div className="invalid-feedback">
-                            {errors.agentCode[0]}
-                          </div>
-                        )}
-                      </div>
+                      <>
+                        <div className="mb-3 mt-3">
+                          <label htmlFor="agentCode" className="form-label">
+                            Agent Code
+                          </label>
+                          <input
+                            type="text"
+                            className={`form-control ${
+                              errors.agentCode ? "is-invalid" : ""
+                            }`}
+                            id="agentCode"
+                            name="agentCode"
+                            value={formData.agentCode || ""}
+                            onChange={handleChange}
+                            placeholder="Enter Agent Code"
+                          />
+                          {errors.agentCode && errors.agentCode.length > 0 && (
+                            <div className="invalid-feedback">
+                              {errors.agentCode[0]}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mb-3 mt-3">
+                          <label htmlFor="agentCode" className="form-label">
+                            Change Rate
+                          </label>
+                          <select
+                            className={`form-control`}
+                            name="change_rate"
+                            value={formData.change_rate}
+                            onChange={handleChange}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                          </select>
+                        </div>
+                      </>
                     )}
                   </div>
                   {/*end::Body*/}

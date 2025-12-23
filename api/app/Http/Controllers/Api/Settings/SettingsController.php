@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers\Api\Settings;
+
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\Fees;
@@ -18,8 +20,10 @@ use App\Models\Banks;
 use App\Models\Branch;
 use App\Models\FeesLog;
 use App\Models\Limit;
+use App\Models\User;
 use App\Models\LimitLog;
 use App\Models\Wallet;
+
 class SettingsController extends Controller
 {
     public function settingrow()
@@ -31,6 +35,22 @@ class SettingsController extends Controller
         ];
         return response()->json($response, 200);
     }
+
+
+    public function checkedRate()
+    {
+        $user         = Auth::user();
+        $checkedUser  = User::find($user->id);
+        $changeRate   = $checkedUser ? $checkedUser->change_rate : "";
+
+        $response = [
+            'changeRate' => $changeRate,
+            'message'    => 'success'
+        ];
+        return response()->json($response, 200);
+    }
+
+
     public function updateRate(Request $request)
     {
         $user = Auth::user();

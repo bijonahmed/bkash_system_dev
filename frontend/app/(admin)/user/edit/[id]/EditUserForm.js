@@ -26,6 +26,7 @@ export default function EditUserForm({ id }) {
     address: user?.address || "",
     agentCode: user?.agentCode || "",
     status: user?.status || "",
+    change_rate: user?.change_rate || "",
     rules_type: user?.role_type || 1,
   });
 
@@ -43,7 +44,7 @@ export default function EditUserForm({ id }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // ✅ pass token
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ ...formData }),
         }
@@ -52,7 +53,7 @@ export default function EditUserForm({ id }) {
       const data = await res.json();
       if (res.ok) {
         setUser(data);
-        toast.success("User updated successfully ✅"); // ✅ success toast
+        toast.success("User updated successfully "); 
         router.push("/user");
       } else if (data.errors) {
         toast.error(Object.values(data.errors).flat().join(" ")); // show backend validation errors
@@ -76,11 +77,12 @@ export default function EditUserForm({ id }) {
       .then((data) => {
         const user = data?.data || {};
         setFormData({
-          id: user.id, // ✅ now id will be included
+          id: user.id, 
           name: user.name ?? "",
           email: user.email ?? "", // ensure string, not undefined
           phone: user.phone_number ?? "",
           address: user.address ?? "",
+           change_rate: user?.change_rate || "",
           agentCode: user.agentCode ?? "",
           status: user.status ?? "",
           rules_type: user.role_type ?? 1,
@@ -234,27 +236,45 @@ export default function EditUserForm({ id }) {
                       </div>
                     )}
                     {parseInt(formData.rules_type) === 2 && (
-                      <div className="mb-3 mt-3">
-                        <label htmlFor="agentCode" className="form-label">
-                          Agent Code
-                        </label>
-                        <input
-                          type="text"
-                          className={`form-control ${
-                            errors.agentCode ? "is-invalid" : ""
-                          }`}
-                          id="agentCode"
-                          name="agentCode"
-                          value={formData.agentCode || ""}
-                          onChange={handleChange}
-                          placeholder="Enter Agent Code"
-                        />
-                        {errors.agentCode && errors.agentCode.length > 0 && (
-                          <div className="invalid-feedback">
-                            {errors.agentCode[0]}
-                          </div>
-                        )}
-                      </div>
+                      <>
+                        <div className="mb-3 mt-3">
+                          <label htmlFor="agentCode" className="form-label">
+                            Agent Code
+                          </label>
+                          <input
+                            type="text"
+                            className={`form-control ${
+                              errors.agentCode ? "is-invalid" : ""
+                            }`}
+                            id="agentCode"
+                            name="agentCode"
+                            value={formData.agentCode || ""}
+                            onChange={handleChange}
+                            placeholder="Enter Agent Code"
+                          />
+                          {errors.agentCode && errors.agentCode.length > 0 && (
+                            <div className="invalid-feedback">
+                              {errors.agentCode[0]}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mb-3 mt-3">
+                          <label htmlFor="agentCode" className="form-label">
+                            Change Rate
+                          </label>
+                          <select
+                            className={`form-control`}
+                            name="change_rate"
+                            value={formData.change_rate}
+                            onChange={handleChange}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                          </select>
+                        </div>
+                      </>
                     )}
 
                     <div className="mb-3">

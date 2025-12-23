@@ -7,29 +7,31 @@ import useBank from "../../../hooks/getBanks";
 import getTransactions from "../../../hooks/getTransactions";
 import useTranSactionAutoCoplete from "../../../hooks/getTranAutocomplete";
 import permissionCheckRate from "../../../hooks/checkedRate";
-import toast from "react-hot-toast";
+
+import toast, { Toaster } from "react-hot-toast";
 import "../../../../app/style/loader.css";
 import { apiPost } from "../../../../lib/apiPost";
-
 const AddNewModal = ({ show, onClose, onSuccess }) => {
   const { token, permissions, roles } = useAuth();
+  const [loading, setLoading] = useState(false);
   const { transactionData, refetch } = getTransactions();
   const { checkedRate } = permissionCheckRate();
   const { settingData } = useSetting();
-  const { walletData, bankrate, refetchWallet } = useWallets();
-  const [loading, setLoading] = useState(false);
+
+  const [walletRate, setWalletRate] = useState("");
+  const [receiving, setReceiving] = useState("");
   const [mobile_number, setMobileNumber] = useState("");
+  const { walletData, bankrate, refetchWallet } = useWallets();
+  const { autcompleteData } = useTranSactionAutoCoplete(mobile_number);
+  //console.log("add modal autcompleteData :-----", autcompleteData);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [showWallet, setShowWallet] = useState(false);
-  const [showBank, setShowBank] = useState(false);
-  const [branchData, setBranchData] = useState([]);
-  const { autcompleteData } = useTranSactionAutoCoplete(mobile_number);
-  //console.log("Autocm" + autcompleteData);
+  //console.log("checkedRate===:" + checkedRate.changeRate);
 
-  const { bankData } = useBank();
-
-  const [formData, setFormData] = useState({
+  useEffect(() => {
+    if (!show) setFormData(initialFormData);
+  }, [show]);
+  const initialFormData = {
     beneficiaryName: "",
     beneficiaryPhone: "",
     status: "",
@@ -39,29 +41,38 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     branch_id: "",
     branchCode: "",
     accountNo: "",
-    sendingMoney: "",
+    sendingMoney: 0,
     walletrate: "",
-    bankRate: bankrate || 1,
-    receiving_money: "",
-    charges: "",
+    bankRate: bankrate,
+    receivingMoney: "",
+    charges: 0,
     fee: "",
     totalAmount: "",
     senderName: "",
+    receiving_money: "",
     description: "",
-  });
-
-  useEffect(() => {
-    if (!show) resetForm();
-  }, [show]);
-
+  };
   useEffect(() => {
     refetchWallet();
-    setFormData((prev) => ({ ...prev, bankRate: bankrate || 1 }));
+    setFormData((prev) => ({
+      ...prev,
+      bankRate: bankrate || 1,
+    }));
   }, [bankrate]);
+  const { bankData } = useBank();
+  const [showWallet, setShowWallet] = useState(false);
+  const [showBank, setShowBank] = useState(false);
+  const [customWalletrate, setConditionalWalletRate] = useState(0);
+  const [branchData, setBranchData] = useState([]);
+  const [formData, setFormData] = useState(initialFormData);
+  const resetForm = () => setFormData(initialFormData);
+  // Automatically toggle Wallet/Bank inputs
+  // useEffect(() => {
+  //   console.log("checked wallets (latest state):", customWalletrate);
+  // }, [customWalletrate]);
 
   useEffect(() => {
     if (formData.paymentMethod === "wallet") {
-      
       setFormData((prev) => ({
         ...prev,
         walletrate: settingData?.exchange_rate_wallet || "",
@@ -78,43 +89,24 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     }
   }, [formData.paymentMethod]);
 
-  const resetForm = () => {
-    setFormData({
-      beneficiaryName: "",
-      beneficiaryPhone: "",
-      status: "",
-      paymentMethod: "",
-      wallet_id: "",
-      bank_id: "",
-      branch_id: "",
-      branchCode: "",
-      accountNo: "",
-      sendingMoney: "",
-      walletrate: "",
-      bankRate: bankrate || 1,
-      receiving_money: "",
-      charges: "",
-      fee: "",
-      totalAmount: "",
-      senderName: "",
-      description: "",
-    });
-  };
-
+  // const allowOnlyNumbers = (value) => value.replace(/[^0-9]/g, "");
   const allowOnlyNumbers = (value) => {
     // Remove anything except digits and dot
     let cleaned = value.replace(/[^0-9.]/g, "");
+
+    // Allow only one dot
     const firstDotIndex = cleaned.indexOf(".");
     if (firstDotIndex !== -1) {
+      // Keep only first dot
       const beforeDot = cleaned.slice(0, firstDotIndex + 1);
-      const afterDot = cleaned.slice(firstDotIndex + 1).replace(/\./g, "");
+      const afterDot = cleaned.slice(firstDotIndex + 1).replace(/\./g, ""); // remove extra dots
       cleaned = beforeDot + afterDot;
     }
+
     return cleaned;
   };
 
   const handleSelect = (item) => {
-    console.log("item" + item);
     setFormData((prev) => ({
       ...prev,
       beneficiaryPhone: item.beneficiaryPhone,
@@ -128,60 +120,66 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
   const handleChange = async (e) => {
     const { name, value } = e.target;
 
+    // List of numeric fields
     const numericFields = [
       "sendingMoney",
       "walletrate",
       "receiving_money",
       "bankRate",
       "charges",
+      "beneficiaryPhone",
     ];
 
+    // allow only numbers
     const updatedValue = numericFields.includes(name)
       ? allowOnlyNumbers(value)
       : value;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: updatedValue,
+    }));
+setFormData((prev) => {
+    let newState = { ...prev, [name]: updatedValue };
 
-    // 1️⃣ Synchronous state update for form fields
-    setFormData((prev) => {
-      const newState = { ...prev, [name]: updatedValue };
+    const sendingMoney = Number(name === "sendingMoney" ? updatedValue : prev.sendingMoney || 0);
+    const walletRate = Number(name === "walletrate" ? updatedValue : prev.walletrate || 0);
+    const receivingMoney = Number(name === "receiving_money" ? updatedValue : prev.receiving_money || 0);
 
-      const sendingMoney = Number(
-        name === "sendingMoney" ? updatedValue : prev.sendingMoney || 0
-      );
-      const receivingMoney = Number(
-        name === "receiving_money" ? updatedValue : prev.receiving_money || 0
-      );
-      const walletRate = Number(
-        name === "walletrate" ? updatedValue : prev.walletrate || 0
-      );
+    if (prev.paymentMethod === "wallet") {
+      if (name === "sendingMoney" || name === "walletrate") {
+        newState.receiving_money = sendingMoney * walletRate;
+      }
+      if (name === "receiving_money") {
+        newState.sendingMoney = receivingMoney / walletRate;
+      }
+    }
+
+    if (prev.paymentMethod === "bank") {
       const bankRate = Number(prev.bankRate || 1);
-      const charges = Number(
-        name === "charges" ? updatedValue : prev.charges || 0
-      );
-      const fee = Number(prev.fee || 0);
-
-      // Wallet calculation
-      if (prev.paymentMethod === "wallet") {
-        if (name === "sendingMoney" || name === "walletrate")
-          newState.receiving_money = (sendingMoney * walletRate).toFixed(2);
-        if (name === "receiving_money")
-          newState.sendingMoney = (receivingMoney / walletRate).toFixed(2);
+      if (name === "sendingMoney" || name === "bankRate") {
+        newState.receiving_money = sendingMoney * bankRate;
       }
-
-      // Bank calculation
-      if (prev.paymentMethod === "bank") {
-        if (name === "sendingMoney" || name === "bankRate")
-          newState.receiving_money = (sendingMoney * bankRate).toFixed(2);
-        if (name === "receiving_money")
-          newState.sendingMoney = (receivingMoney / bankRate).toFixed(2);
+      if (name === "receiving_money") {
+        newState.sendingMoney = receivingMoney / bankRate;
       }
+    }
 
-      // Update total
-      newState.totalAmount = (sendingMoney + fee + charges).toFixed(2);
+    return newState;
+  });
+    // if (name === "walletrate" && formData.paymentMethod === "wallet") {
+    //   const typedRate = Number(value);
 
-      return newState;
-    });
+    //   console.log("tpedRated:" + typedRate);
+    //   const sending = 1252;
+    //   const rate = typedRate;
+    //   const receiving = sending * rate; // float allowed
+    //   setFormData((prev) => ({
+    //     ...prev,
+    //     receiving_money: receiving.toString(),
+    //   }));
+    // }
 
-    // 2️⃣ Beneficiary autocomplete
+    // Handle beneficiaryPhone autocomplete
     if (name === "beneficiaryPhone") {
       setMobileNumber(value);
       if (value.length >= 1) {
@@ -198,7 +196,23 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       }
     }
 
-    // 3️⃣ Load branches if bank_id changes
+    // Instant log for walletrate
+
+    // Charges calculation
+    if (name === "charges") {
+      const charges = parseFloat(updatedValue || 0);
+      const sendingMoney = parseFloat(formData.sendingMoney || 0);
+      const fee = parseFloat(formData.fee || 0);
+      const total = sendingMoney + fee + charges;
+      setFormData((prev) => ({
+        ...prev,
+        charges: updatedValue,
+        totalAmount: total.toFixed(2),
+      }));
+      return;
+    }
+
+    // Branch load
     if (name === "bank_id") {
       try {
         const res = await fetch(
@@ -214,87 +228,353 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         );
         const data = await res.json();
         setBranchData(data.data || []);
-      } catch (err) {
-        console.error("Branch loading failed:", err);
+      } catch (error) {
+        console.error("Branch loading failed:", error);
       }
     }
 
-    // 4️⃣ Bank fee & total calculation (async)
-    if (
-      formData.paymentMethod === "bank" &&
-      ["sendingMoney", "bankRate", "receiving_money"].includes(name)
-    ) {
-      try {
-        const receiving =
-          name === "receiving_money"
-            ? Number(updatedValue)
-            : Number(formData.sendingMoney || 0) *
-              Number(formData.bankRate || 1);
+    // Normalize numeric values
+    const sendingMoney =
+      name === "sendingMoney"
+        ? Number(updatedValue)
+        : Number(formData.sendingMoney || 0);
+    const receivingMoneyInput =
+      name === "receiving_money"
+        ? Number(updatedValue)
+        : Number(formData.receiving_money || 0);
+    const bankRate = Number(formData.bankRate || 0);
+    const walletRate = Number(formData.walletrate || 0);
 
-        const { success, data, messages } = await apiPost(
-          "/transaction/walletcalculate",
-          { paymentMethod: "bank", receiving_money: receiving },
-          token,
-          "POST"
-        );
+    // ======================
+    // BANK CALCULATION
+    // ======================
+    if (formData.paymentMethod === "bank") {
+      if (name === "sendingMoney" || name === "bankRate") {
+        const receiving = sendingMoney * bankRate;
+        setFormData((prev) => ({
+          ...prev,
+          receiving_money: parseFloat(receiving.toFixed(2)),
+        }));
 
-        if (success) {
-          setFormData((prev) => ({
-            ...prev,
-            fee: Number(data.fee || 0),
-            totalAmount: Number(
-              Number(prev.sendingMoney || 0) + Number(data.fee || 0)
-            ).toFixed(2),
-          }));
-        } else {
-          messages.forEach((msg) => toast.error(msg));
+        // Fee API call
+        try {
+          const { success, data, messages } = await apiPost(
+            "/transaction/walletcalculate",
+            { paymentMethod: "bank", receiving_money: receiving },
+            token,
+            "POST"
+          );
+          if (success) {
+            setFormData((prev) => ({
+              ...prev,
+              fee: Number(data.fee) || 0,
+              totalAmount: (sendingMoney + Number(data.fee || 0)).toFixed(2),
+            }));
+          } else {
+            messages.forEach((msg) => toast.error(msg));
+          }
+        } catch (err) {
+          console.error("Fee calc failed:", err);
+          toast.error("Failed to calculate fee");
         }
-      } catch (err) {
-        console.error("Bank fee calculation failed:", err);
-        toast.error("Failed to calculate bank fee");
+        return;
+      }
+
+      if (name === "receiving_money") {
+        const sending = bankRate ? receivingMoneyInput / bankRate : 0;
+        setFormData((prev) => ({
+          ...prev,
+          sendingMoney: parseFloat(sending.toFixed(2)),
+        }));
+
+        // Fee API call
+        try {
+          const { success, data, messages } = await apiPost(
+            "/transaction/walletcalculate",
+            { paymentMethod: "bank", receiving_money: receivingMoneyInput },
+            token,
+            "POST"
+          );
+          if (success) {
+            setFormData((prev) => ({
+              ...prev,
+              fee: Number(data.fee) || 0,
+              totalAmount: (sending + Number(data.fee || 0)).toFixed(2),
+            }));
+          } else {
+            messages.forEach((msg) => toast.error(msg));
+          }
+        } catch (err) {
+          console.error("Fee calc failed:", err);
+          toast.error("Failed to calculate fee");
+        }
+        return;
       }
     }
 
-    // 5️⃣ Wallet fee & total calculation (async)
-    if (
-      formData.paymentMethod === "wallet" &&
-      ["sendingMoney", "walletrate", "receiving_money"].includes(name)
-    ) {
-      try {
-        const sendingMoney = Number(formData.sendingMoney || 0);
-        const walletRate = Number(formData.walletrate || 1);
-        const receiving =
-          name === "receiving_money"
-            ? Number(updatedValue)
-            : sendingMoney * walletRate;
+    // ======================
+    // WALLET CALCULATION
+    // ======================
+    if (formData.paymentMethod === "wallet") {
+      // Two-way calculation
+      let newSending = sendingMoney;
+      let newReceiving = receivingMoneyInput;
 
+      if (name === "sendingMoney") {
+        newReceiving = sendingMoney * walletRate;
+      }
+      if (name === "receiving_money") {
+        newSending = receivingMoneyInput / walletRate;
+      }
+
+      // Update state with 2-digit decimal
+      setFormData((prev) => ({
+        ...prev,
+        sendingMoney: parseFloat(newSending.toFixed(2)),
+        receiving_money: parseFloat(newReceiving.toFixed(2)),
+      }));
+
+      // Fee API call
+      try {
         const { success, data, messages } = await apiPost(
           "/transaction/walletcalculate",
-          { paymentMethod: "wallet", receiving_money: receiving },
+          { paymentMethod: "wallet", receiving_money: newReceiving },
           token,
           "POST"
         );
-
         if (success) {
-          const newSending =
-            name === "receiving_money" ? receiving / walletRate : sendingMoney;
           setFormData((prev) => ({
             ...prev,
-            sendingMoney: parseFloat(newSending.toFixed(2)),
-            receiving_money: parseFloat(receiving.toFixed(2)),
-            fee: Number(data.fee || 0),
+            fee: Number(data.fee) || 0,
             totalAmount: (newSending + Number(data.fee || 0)).toFixed(2),
           }));
         } else {
           messages.forEach((msg) => toast.error(msg));
         }
       } catch (err) {
-        console.error("Wallet fee calculation failed:", err);
+        console.error("Wallet fee calc failed:", err);
         toast.error("Failed to calculate wallet fee");
       }
     }
   };
 
+  const handleChange1 = async (e) => {
+    const { name, value } = e.target;
+
+    if (name == "walletrate") {
+      console.log("==walletrate==" + value);
+      setConditionalWalletRate(value); // update state
+    }
+
+    const numericFields = [
+      "sendingMoney",
+      "walletrate",
+      "receiving_money",
+      "bankRate",
+      "charges",
+      "beneficiaryPhone",
+    ];
+    if (name === "beneficiaryPhone") {
+      //set beneficiaryPhone autocomplete search
+      setMobileNumber(value);
+      if (value.length >= 1) {
+        const filtered = autcompleteData.filter(
+          (item) =>
+            item.beneficiaryPhone.includes(value) ||
+            item.beneficiaryName.toLowerCase().includes(value.toLowerCase())
+        );
+        setSuggestions(filtered.slice(0, 10)); // max 10 suggestions
+        setShowSuggestions(true);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }
+    // allow only numbers
+    const updatedValue = numericFields.includes(name)
+      ? allowOnlyNumbers(value)
+      : value;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: updatedValue,
+    }));
+    // ===== Charges Calculation =====
+    if (name === "charges") {
+      const charges = parseFloat(updatedValue || 0);
+      const sendingMoney = parseFloat(formData.sendingMoney || 0);
+      const fee = parseFloat(formData.fee || 0);
+      const total = sendingMoney + fee + charges;
+      setFormData((prev) => ({
+        ...prev,
+        charges: updatedValue,
+        totalAmount: total.toString(),
+      }));
+      return;
+    }
+    // ===== Branch Load  =====
+    if (name === "bank_id") {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE}/setting/bankUnderBranch`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ bank_id: updatedValue }),
+          }
+        );
+        const data = await res.json();
+        setBranchData(data.data || []);
+      } catch (error) {
+        console.error("Branch loading failed:", error);
+      }
+    }
+
+    // Normalize numeric values
+    const sendingMoney =
+      name === "sendingMoney"
+        ? Number(updatedValue)
+        : Number(formData.sendingMoney || 0);
+    const receivingMoneyInput =
+      name === "receiving_money"
+        ? Number(updatedValue)
+        : Number(formData.receiving_money || 0);
+    const bankRate = Number(formData.bankRate || 0);
+    const walletRate = Number(formData.walletrate || 0);
+
+    // ======================
+    //  BANK CALCULATION
+    // ======================
+    if (
+      formData.paymentMethod === "bank" &&
+      (name === "sendingMoney" || name === "bankRate")
+    ) {
+      const receiving = (sendingMoney * bankRate).toString();
+      setFormData((prev) => ({
+        ...prev,
+        receiving_money: receiving,
+      }));
+      // fee API call
+      try {
+        const { success, data, messages } = await apiPost(
+          "/transaction/walletcalculate",
+          { paymentMethod: "bank", receiving_money: receiving },
+          token,
+          "POST"
+        );
+        if (success) {
+          console.log("Response Fee:", data.fee);
+          setFormData((prev) => ({
+            ...prev,
+            fee: Number(data.fee) || 0,
+            totalAmount: parseFloat(
+              ((Number(sendingMoney) || 0) + (Number(data.fee) || 0)).toFixed(2)
+            ),
+          }));
+        } else {
+          messages.forEach((msg) => toast.error(msg));
+        }
+      } catch (err) {
+        console.error("Fee calc failed:", err);
+        toast.error("Failed to calculate fee");
+      }
+      return;
+    }
+    if (formData.paymentMethod === "bank" && name === "receiving_money") {
+      const newReceiving = parseFloat(value) || 0;
+      const sending = bankRate ? (newReceiving / bankRate).toString() : "0";
+      // update sendingMoney
+      setFormData((prev) => ({
+        ...prev,
+        sendingMoney: parseFloat((Number(sending) || 0).toFixed(2)),
+      }));
+
+      // fee API call
+      try {
+        const { success, data, messages } = await apiPost(
+          "/transaction/walletcalculate",
+          {
+            paymentMethod: "bank", // "bank" or "wallet"
+            receiving_money: newReceiving,
+          },
+          token, // your auth token
+          "POST"
+        );
+        if (success) {
+          console.log("ResponseFee:", data.fee);
+          setFormData((prev) => ({
+            ...prev,
+            fee: Number(data.fee) || 0,
+            totalAmount: parseFloat(
+              ((Number(sending) || 0) + (Number(data.fee) || 0)).toFixed(2)
+            ),
+          }));
+        } else {
+          // Show any backend validation or custom errors
+          messages.forEach((msg) => toast.error(msg));
+        }
+      } catch (err) {
+        console.error("Fee calc failed:", err);
+        toast.error("Failed to calculate fee");
+      }
+      return;
+    }
+    if (formData.paymentMethod == "wallet") {
+      const walletrates = formData.walletrate;
+
+      console.log("checked wallets:====" + walletrates);
+      let newSending = sendingMoney;
+      let newReceiving = receivingMoneyInput;
+
+      if (name == "sendingMoney") {
+        newReceiving = sendingMoney ? sendingMoney * walletRate : "";
+      }
+      if (name == "receiving_money") {
+        newSending = receivingMoneyInput
+          ? receivingMoneyInput / walletRate
+          : "";
+      }
+      // update two-way result
+      setFormData((prev) => ({
+        ...prev,
+        sendingMoney:
+          newSending !== "" ? Math.floor(newSending * 100) / 100 : "",
+        receiving_money:
+          newReceiving !== "" ? Math.floor(newReceiving * 100) / 100 : "",
+      }));
+
+      try {
+        const { success, data, messages } = await apiPost(
+          "/transaction/walletcalculate",
+          {
+            paymentMethod: "wallet",
+            receiving_money: newReceiving,
+          },
+          token, // your auth token
+          "POST"
+        );
+        if (success) {
+          setFormData((prev) => ({
+            ...prev,
+            fee: data.fee || 0,
+            totalAmount: (
+              Math.floor((Number(newSending) + Number(data.fee || 0)) * 100) /
+              100
+            ).toFixed(2),
+          }));
+        } else {
+          // Show backend validation or custom errors
+          messages.forEach((msg) => toast.error(msg));
+        }
+      } catch (err) {
+        console.error("Wallet fee calc failed:", err);
+        toast.error("Failed to calculate wallet fee");
+      }
+    }
+  };
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -307,10 +587,11 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       if (success) {
         toast.success("Transaction added successfully");
         refetch();
-        resetForm();
+        setFormData(initialFormData);
         onClose();
         onSuccess();
       } else {
+        // Show all errors
         messages.forEach((msg) => toast.error(msg));
       }
     } catch (err) {
@@ -320,29 +601,33 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       setLoading(false);
     }
   };
-
   const selectedWallet = walletData.find(
     (wallet) => wallet.id.toString() === formData.wallet_id
   );
-
+  // Watch for wallet change
   useEffect(() => {
     const calculateWalletRate = async () => {
       if (!selectedWallet) return;
+
       try {
         const res = await apiPost(
           "/wallet/walletcalculateCheck",
           { wallet_id: formData.wallet_id },
           token
         );
+
         const walletrate = Number(res?.data?.walletrate ?? 0);
-        setFormData((prev) => ({ ...prev, walletrate }));
+        console.log("response: walletrate amount: " + walletrate);
+        setFormData((prev) => ({
+          ...prev,
+          walletrate,
+        }));
       } catch (err) {
         console.error("Error fetching wallet rate:", err);
       }
     };
     calculateWalletRate();
-  }, [selectedWallet]);
-
+  }, [selectedWallet, receiving, token]); // run when selectedWallet changes
   return (
     <div
       className={`modal fade ${show ? "show d-block" : ""}`}
@@ -619,7 +904,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                 )}
                 <div className="col-md-3 mb-2">
                   <label className="mb-0 custom-label">
-                    Receiving Money (BDT)
+                    Receiving Money (BDT)---
                   </label>
                   <input
                     type="text"
