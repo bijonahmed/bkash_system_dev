@@ -33,7 +33,7 @@ export default function AdminAgentReportPage() {
 
   const pathname = usePathname();
 
-  const title = "Agent Statement";
+  const title = "Agent Statement Report";
 
   useEffect(() => {
     document.title = title;
@@ -67,8 +67,13 @@ export default function AdminAgentReportPage() {
   };
 
   const handleFilter = async () => {
+    if (!formData.agent_id) {
+      toast.error("Please select agent!");
+      return;
+    }
+
     const result = await apiGet({
-      endpoint: "/report/agentStatement",
+      endpoint: "/report/agentReport",
       params: formData,
       token: token,
     });
@@ -126,10 +131,10 @@ export default function AdminAgentReportPage() {
     (item) => Number(item.credit) !== 0
   ).length;
 
-  // if (!permissions.includes("view report")) {
-  //   router.replace("/dashboard");
-  //   return null;
-  // }
+  if (!permissions.includes("view report")) {
+    router.replace("/dashboard");
+    return null;
+  }
 
   return (
     <main className="app-main" id="main" tabIndex={-1}>
@@ -169,7 +174,24 @@ export default function AdminAgentReportPage() {
             {/* Filter Form */}
             <div className="card-header">
               <form className="row g-3 align-items-end">
-                <div className="col-md-4">
+                <div className="col-md-3">
+                  <label>Agent</label>
+                  <select
+                    name="agent_id"
+                    className="form-select"
+                    value={formData.agent_id}
+                    onChange={handleChange}
+                  >
+                    <option value="">All Agent</option>
+                    {agentData.map((ag) => (
+                      <option key={ag.id} value={ag.id}>
+                        {ag.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-md-3">
                   <label>From Date</label>
                   <input
                     type="date"
@@ -180,7 +202,7 @@ export default function AdminAgentReportPage() {
                   />
                 </div>
 
-                <div className="col-md-4">
+                <div className="col-md-3">
                   <label>To Date</label>
                   <input
                     type="date"
@@ -190,6 +212,25 @@ export default function AdminAgentReportPage() {
                     onChange={handleChange}
                   />
                 </div>
+
+                {showBank && (
+                  <div className="col-md-2">
+                    <label>Bank</label>
+                    <select
+                      name="bank_id"
+                      className="form-select"
+                      value={formData.bank_id}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select Bank</option>
+                      {bankData.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.bank_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Filter Button */}
                 <div className="col-md-1">
@@ -204,7 +245,7 @@ export default function AdminAgentReportPage() {
 
                 {/* Export Button INLINE */}
                 {report.length > 0 && (
-                  <div className="col-md-2 d-none">
+                  <div className="col-md-2">
                     <button
                       type="button"
                       onClick={downloadStatement}
@@ -222,8 +263,43 @@ export default function AdminAgentReportPage() {
               <div className="container-fluid">
                 <div className="row">
                   {/* LEFT SIDE — Agent Details */}
+                  <div className="col-md-6 col-lg-5">
+                    <div className="card shadow-sm">
+                      <div className="card-header fw-bold bg-light">
+                        Agent Details
+                      </div>
+                      <div className="card-body">
+                        {selectedAgent ? (
+                          <>
+                            <span>
+                              <strong>Name:</strong> {selectedAgent.name}
+                              <br />
+                            </span>
+                            <span>
+                              <strong>Agent Code:</strong>{" "}
+                              {selectedAgent.agentCode}
+                              <br />
+                            </span>
+                            <span>
+                              <strong>Phone:</strong>{" "}
+                              {selectedAgent.phone_number || "N/A"}
+                              <br />
+                            </span>
+                            <span>
+                              <strong>Email:</strong>{" "}
+                              {selectedAgent.email || "N/A"}
+                              <br />
+                            </span>
+                          </>
+                        ) : (
+                          <p className="text-muted mb-0">All Agents Selected</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* RIGHT SIDE — Summary */}
-                  <div className="col-md-12 col-lg-12">
+                  <div className="col-md-6 col-lg-5 offset-lg-2">
                     <div className="summary-wrapper_side">
                       <div className="card shadow-sm">
                         <div className="card-header fw-bold bg-light">
@@ -265,10 +341,7 @@ export default function AdminAgentReportPage() {
                           </div>
 
                           <div className="statement-row d-flex justify-content-between">
-                            <span>
-                              Total Credit&nbsp;
-                              <b>({creditTransactionCount})</b>
-                            </span>
+                            <span>Total Credit&nbsp;<b>({creditTransactionCount})</b></span>
                             <span className="amount">{totalCredit} £</span>
                           </div>
 

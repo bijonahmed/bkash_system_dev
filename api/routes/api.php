@@ -53,6 +53,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/getTransactionReport', [ReportController::class, 'getTransactionReport']);
         Route::get('/getGlobalReport', [ReportController::class, 'getGlobalReport']);
         Route::get('/agentReport', [ReportController::class, 'agentReport']);
+        Route::get('/agentStatement', [ReportController::class, 'agentStatement']);
         Route::get('/allAgentReport', [ReportController::class, 'allAgentReport']);
     });
     Route::prefix('wallet')->group(function () {

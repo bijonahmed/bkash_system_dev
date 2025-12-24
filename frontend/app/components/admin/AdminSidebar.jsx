@@ -61,9 +61,14 @@ export default function AdminSidebar() {
             href: "/depositrequiest",
             icon: "bi-arrow-left-right",
           },
-             { label: "Fee", href: "/transaction/fee", icon: "bi-circle" },
-              { label: "Limit", href: "/transaction/limit", icon: "bi-circle" },
-              { label: "Rate", href: "/setting/wallet", icon: "bi-circle" }, //Wallet
+          { label: "Fee", href: "/transaction/fee", icon: "bi-circle" },
+          { label: "Limit", href: "/transaction/limit", icon: "bi-circle" },
+          { label: "Rate", href: "/setting/wallet", icon: "bi-circle" }, //Wallet
+          {
+            label: "Statement",
+            href: "/report/agentStatement",
+            icon: "bi-circle",
+          },
         ]
       : []),
 
@@ -114,7 +119,7 @@ export default function AdminSidebar() {
               { label: "Branch", href: "/setting/branch", icon: "bi-circle" },
               {
                 label: "Admin Fund Deposit",
-                href: "/setting//adminFundDeposit",
+                href: "/setting/adminFundDeposit",
                 icon: "bi-circle",
               },
               { label: "Company Setting", href: "/setting", icon: "bi-circle" },
@@ -127,7 +132,7 @@ export default function AdminSidebar() {
             children: [
               {
                 label: "Agent Statement",
-                href: "/report/agentStatement/",
+                href: "/report/adminAgentStatement/",
                 icon: "bi-circle",
               },
               {

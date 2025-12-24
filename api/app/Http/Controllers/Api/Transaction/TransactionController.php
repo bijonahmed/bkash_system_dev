@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Transaction;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdminFundDeposit;
+use App\Models\AssignWallet;
 use App\Models\Banks;
 use App\Models\Branch;
 use App\Models\Deposit;
@@ -148,11 +149,12 @@ class TransactionController extends Controller
                 'branchCode'         => $branch->branch_code ?? '',
                 'accountNo'          => $item->accountNo,
                 'description'        => $item->description,
-                'agentsettlement'    => $sending + $fee,
+                'agentsettlement'    => $item->agent_settlement,//$sending + $fee,
                 'status'             => ucfirst($item->status),
                 'paymentMethod'      => $item->paymentMethod,
                 'senderName'         => ucfirst($item->senderName),
                 'transection_status' => $item->transection_status,
+                'pr_rate'            => $item->pr_rate ?? "",
                 'createdBy'          => $creator->name ?? 'N/A',
                 'created_at'         => $item->created_at
                     ->timezone('Asia/Dhaka')
@@ -180,7 +182,7 @@ class TransactionController extends Controller
             : ($agentSettlement - $sumDepositApproved);
 
 
-       
+
 
         return response()->json([
             'data' => $modifiedCollection,
@@ -199,9 +201,6 @@ class TransactionController extends Controller
             ->get()
             ->unique('beneficiaryPhone') // removes duplicates in collection
             ->values();
-
-
-
 
         $response = [
             'data' => $data,
@@ -283,12 +282,40 @@ class TransactionController extends Controller
         $data['admin_buying_rate']     = !empty($chkAdminFund) ? $chkAdminFund->buying_rate : "";
 
 
+
+
+
         // Determine payment method id
         $chkPayMethod    = $request->paymentMethod;
         $receiving_money = $request->receiving_money;
+        $adminfee        = $request->fee;
 
+
+        $prRate = null;
+
+        $assignWallet = AssignWallet::where('agent_id', $user->id)
+            ->where('wallet_id', $request->wallet_id)
+            ->first();
+
+        if ($assignWallet && isset($assignWallet->amount)) {
+            $prRate = $assignWallet->amount;
+        } else {
+            $wallet = Wallet::where('id', $request->wallet_id)->first();
+
+            if ($wallet && isset($wallet->amount)) {
+                $prRate = $wallet->amount;
+            } else {
+
+                $prRate = 0;
+            }
+        }
+
+        $data['pr_rate']           = $prRate;
+        $agent_settlement          = ($prRate > 0) ? (($receiving_money ?? 0) / $prRate) + ($adminfee ?? 0) : 0;
+        $data['agent_settlement']  = number_format($agent_settlement, 2);
 
         if ($chkPayMethod == 'wallet') {
+
             $limitCheck = Limit::where('id', '1')->first();
             if ($receiving_money > $limitCheck->maxLimit) {
                 return response()->json([

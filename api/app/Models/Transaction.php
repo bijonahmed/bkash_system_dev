@@ -32,10 +32,12 @@ class Transaction extends Model
         'totalAmount',
         'senderName',
         'receiving_money',
+        'pr_rate',
         'description',
         'created_at',
         'updated_at',
         'transection_status',
+        'agent_settlement',
         'entry_by'
     ];
 

@@ -429,7 +429,7 @@ export default function listPage() {
                             <option value="cancel">Cancel</option>
                           </select>
                         </div>
-                       
+
                         <div className="col-md-2 mb-1">
                           <label className="mb-0 fw-semibold">
                             Filter by Days
@@ -479,7 +479,10 @@ export default function listPage() {
                   </div>
                   <center className="mt-2">
                     {" "}
-                    <span className="bg-danger text-white px-2 rounded" style={{ fontSize: "17px" }}>
+                    <span
+                      className="bg-danger text-white px-2 rounded"
+                      style={{ fontSize: "17px" }}
+                    >
                       Balance: {depositApproved || 0}
                     </span>
                   </center>
@@ -537,7 +540,7 @@ export default function listPage() {
                         <th style={{ width: "4%" }} colSpan={2}></th>
                       </tr>
                     </thead>
-                    <tbody  style={{ fontSize: "13px" }}>
+                    <tbody style={{ fontSize: "13px" }}>
                       {/* Example row */}
                       {transactionData && transactionData.length > 0 ? (
                         transactionData.map((item, index) => (
@@ -607,9 +610,7 @@ export default function listPage() {
                               <br />
                               {item.paymentMethod == "wallet" ? (
                                 <>
-                                  <small>
-                                    GBP 1 = BDT {item.walletrate} (PR)
-                                  </small>
+                                  <small>GBP 1 = BDT {item.pr_rate} (PR)</small>
                                   <br />
                                   <small>
                                     {" "}
@@ -621,7 +622,7 @@ export default function listPage() {
                                 <>
                                   <small>
                                     {" "}
-                                    GBP 1 = BDT {item.bankRate} (PR)
+                                    GBP 1 = BDT {item.pr_rate} (PR)
                                   </small>
                                   <br />
                                   <small>
@@ -654,7 +655,7 @@ export default function listPage() {
                             <td className="text-center">
                               <small>
                                 {" "}
-                                {Number(item.agentsettlement || 0).toFixed(2)}
+                               {Number(item.agentsettlement || 0).toFixed(2)}
                               </small>
                             </td>
                             <td>
