@@ -61,7 +61,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (formData.paymentMethod === "wallet") {
-      
+
       setFormData((prev) => ({
         ...prev,
         walletrate: settingData?.exchange_rate_wallet || "",
@@ -164,7 +164,9 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         if (name === "sendingMoney" || name === "walletrate")
           newState.receiving_money = (sendingMoney * walletRate).toFixed(2);
         if (name === "receiving_money")
+          // console.log("--receiving_money-------" + name + "value" + value);
           newState.sendingMoney = (receivingMoney / walletRate).toFixed(2);
+        handlewalletCalculate();
       }
 
       // Bank calculation
@@ -229,7 +231,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
           name === "receiving_money"
             ? Number(updatedValue)
             : Number(formData.sendingMoney || 0) *
-              Number(formData.bankRate || 1);
+            Number(formData.bankRate || 1);
 
         const { success, data, messages } = await apiPost(
           "/transaction/walletcalculate",
@@ -255,14 +257,12 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
       }
     }
 
-    // 5️⃣ Wallet fee & total calculation (async)
-    if (
-      formData.paymentMethod === "wallet" &&
-      ["sendingMoney", "walletrate", "receiving_money"].includes(name)
-    ) {
+
+    const handlewalletCalculate = async () => {
       try {
         const sendingMoney = Number(formData.sendingMoney || 0);
         const walletRate = Number(formData.walletrate || 1);
+
         const receiving =
           name === "receiving_money"
             ? Number(updatedValue)
@@ -274,25 +274,67 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
           token,
           "POST"
         );
-
+        // console.log("API Data:", data); // ✅ এখানে ঠিক আছে
         if (success) {
           const newSending =
             name === "receiving_money" ? receiving / walletRate : sendingMoney;
+
           setFormData((prev) => ({
             ...prev,
             sendingMoney: parseFloat(newSending.toFixed(2)),
-            receiving_money: parseFloat(receiving.toFixed(2)),
-            fee: Number(data.fee || 0),
-            totalAmount: (newSending + Number(data.fee || 0)).toFixed(2),
+            //    receiving_money: parseFloat(receiving.toFixed(2)),
+            fee: Number(data?.fee || 0),
+            totalAmount: (
+              newSending + Number(data?.fee || 0)
+            ).toFixed(2),
           }));
         } else {
-          messages.forEach((msg) => toast.error(msg));
+          messages?.forEach((msg) => toast.error(msg));
         }
       } catch (err) {
         console.error("Wallet fee calculation failed:", err);
         toast.error("Failed to calculate wallet fee");
       }
-    }
+    };
+    /*
+     if (
+       formData.paymentMethod === "wallet" &&
+       ["sendingMoney", "walletrate", "receiving_money"].includes(name)
+     ) {
+       try {
+         const sendingMoney = Number(formData.sendingMoney || 0);
+         const walletRate = Number(formData.walletrate || 1);
+         const receiving =
+           name === "receiving_money"
+             ? Number(updatedValue)
+             : sendingMoney * walletRate;
+ 
+         const { success, data, messages } = await apiPost(
+           "/transaction/walletcalculate",
+           { paymentMethod: "wallet", receiving_money: receiving },
+           token,
+           "POST"
+         );
+ 
+         if (success) {
+           const newSending =
+             name === "receiving_money" ? receiving / walletRate : sendingMoney;
+           setFormData((prev) => ({
+             ...prev,
+             sendingMoney: parseFloat(newSending.toFixed(2)),
+             receiving_money: parseFloat(receiving.toFixed(2)),
+             fee: Number(data.fee || 0),
+             totalAmount: (newSending + Number(data.fee || 0)).toFixed(2),
+           }));
+         } else {
+           messages.forEach((msg) => toast.error(msg));
+         }
+       } catch (err) {
+         console.error("Wallet fee calculation failed:", err);
+         toast.error("Failed to calculate wallet fee");
+       }
+     }
+       */
   };
 
   const handleSubmit = async (e) => {
