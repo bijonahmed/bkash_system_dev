@@ -157,7 +157,7 @@ class TransactionController extends Controller
                 'pr_rate'            => $item->pr_rate ?? "",
                 'createdBy'          => $creator->name ?? 'N/A',
                 'created_at'         => $item->created_at
-                    ->timezone('Asia/Dhaka')
+                    ->timezone('Europe/London')
                     ->format('M d, Y h:i A'),
             ];
         });
@@ -167,21 +167,30 @@ class TransactionController extends Controller
 
         if ($user->hasRole('admin')) {
 
-            $agentSettlement = Transaction::where('status', '!=', 'cancel')
-                ///  ->whereDate('created_at', Carbon::today())
-                ->sum(DB::raw('sendingMoney + fee'));
-            $sumDepositApproved = Deposit::where('approval_status', 1)->whereDate('created_at', Carbon::today())->sum('amount_gbp');
+            $debitValue = Transaction::where('status', '!=', 'cancel')->sum(DB::raw('sendingMoney + fee'));
+            $creditValue = Deposit::where('approval_status', 1)->whereDate('created_at', Carbon::today())->sum('amount_gbp');
 
-            $getbalance = $agentSettlement - $sumDepositApproved;
+            $value = $debitValue - $creditValue;
+
+            $getbalance = ($creditValue > $debitValue)
+                ? '-' . number_format(abs($value), 2)
+                : number_format(abs($value), 2);
 
             $data['depositApproved_status'] = 'Pending';
             $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->count();
         } else if ($user->hasRole('agent')) {
 
-            $agentSettlement = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
-            $sumDepositApproved = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
+            $debitValue = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
+            $creditValue = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
 
-            $getbalance = $sumDepositApproved - $agentSettlement;
+            //$getbalance = $creditValue - $debitValue;
+            $value = $debitValue - $creditValue;
+
+            // Apply ternary-like formatting
+            $getbalance = ($creditValue > $debitValue)
+                ? '-' . number_format(abs($value), 2)
+                : number_format(abs($value), 2);
+
 
             $data['depositApproved_status'] = 'Pending';
             $data['depositApproved'] = Deposit::where('approval_status', 0)->where('agent_id', $user->id)->count();
@@ -191,11 +200,9 @@ class TransactionController extends Controller
         $balance = $getbalance;
 
 
-
-
         return response()->json([
             'data' => $modifiedCollection,
-            'sumDepositApproved' => number_format(abs($balance), 2),
+            'sumDepositApproved' => $balance,
             'total' => $total,
         ]);
     }
