@@ -52,8 +52,6 @@ export default function GlobalReportPage() {
     }
   }, [formData.paymentMethod]);
 
-
-  
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -134,8 +132,6 @@ export default function GlobalReportPage() {
     saveAs(new Blob([buffer]), "Global-Report.xlsx");
   };
 
-
-  
   if (!permissions.includes("view report")) {
     router.replace("/dashboard");
     return null;
@@ -336,7 +332,9 @@ export default function GlobalReportPage() {
                             <td>{item.walletrate}</td>
                             <td>{item.receiving_money}</td>
                             <td>{item.fee}</td>
-                            <td>{Number(item.agentsettlement || 0).toFixed(2)}</td>
+                            <td>
+                              {Number(item.agentsettlement || 0).toFixed(2)}
+                            </td>
                             <td>{item.ourProfit}</td>
                             <td>{item.deposit_balance}</td>
                           </tr>
@@ -371,9 +369,13 @@ export default function GlobalReportPage() {
                             )}
                           </td>
                           <td>
-                      {report
-    .reduce((sum, i) => sum + Number(i.agentsettlement || 0), 0)
-    .toFixed(2)}
+                            {report
+                              .reduce(
+                                (sum, i) =>
+                                  sum + Number(i.agentsettlement || 0),
+                                0
+                              )
+                              .toFixed(2)}
                           </td>
                           <td>
                             {report.reduce(
