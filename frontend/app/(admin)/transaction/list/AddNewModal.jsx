@@ -627,7 +627,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                         value={formData.bankRate}
                         onChange={handleChange}
                         className="form-control"
-                        disabled={checkedRate.changeRate !== "yes"}
+                        disabled={!checkedRate || checkedRate.changeRate !== "yes"}
                       />
                     </div>
                   </>

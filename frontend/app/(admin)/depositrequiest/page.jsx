@@ -263,70 +263,67 @@ export default function DepositRequestPage() {
             {/* Header */}
             <div className="card-header">
               <div className="card-title w-100">
-                <div className="row g-2 align-items-center">
-                  {/* Column 1: Search input */}
-                  {/* Status Filter */}
-                  {roles.includes("admin") && (
-                    <div className="col-md-4">
-                      <select
-                        name="agent_id"
-                        className="form-select"
-                        value={formData.agent_id}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="">All Agent</option>
-                        {agentData.map((ag) => (
-                          <option key={ag.id} value={ag.id}>
-                            {ag.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                  <div className="col-4 col-md-4 col-lg-4">
-                    <select
-                      className="form-control"
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                      <option value="">All Status</option>
-                      <option value="0">Pending</option>
-                      <option value="1">Approved</option>
-                      <option value="2">Rejected</option>
-                    </select>
-                  </div>
-                  {/* Column 2: Fetch button */}
-                  <div className="col-6 col-md-3 col-lg-2">
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary w-100"
-                      onClick={() => fetchData()}
-                    >
-                      Search
-                    </button>
-                  </div>
-                  {/* Column 3: Add User button */}
-                  <div className="col-6 col-md-3 col-lg-1 ms-auto">
-                    {perms.includes("create deposit") ? (
-                      <Link
-                        className="btn btn-primary w-100"
-                        href="/depositrequiest/add"
-                      >
-                        Add New
-                      </Link>
-                    ) : null}
-                    {roles.includes("admin") && (
-                      <button
-                        className="btn btn-danger"
-                        onClick={() => handleLogClick()}
-                      >
-                        Log
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
+  <div className="d-flex flex-wrap align-items-center gap-2">
+
+    {/* Admin Agent Filter */}
+    {roles.includes("admin") && (
+      <select
+        name="agent_id"
+        className="form-select"
+        style={{ width: "200px" }}
+        value={formData.agent_id}
+        onChange={handleChange}
+        required
+      >
+        <option value="">All Agent</option>
+        {agentData.map((ag) => (
+          <option key={ag.id} value={ag.id}>
+            {ag.name}
+          </option>
+        ))}
+      </select>
+    )}
+
+    {/* Status Filter */}
+    <select
+      className="form-select"
+      style={{ width: "180px" }}
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value)}
+    >
+      <option value="">All Status</option>
+      <option value="0">Pending</option>
+      <option value="1">Approved</option>
+      <option value="2">Rejected</option>
+    </select>
+
+    {/* Search Button */}
+    <button
+      type="button"
+      className="btn btn-outline-secondary"
+      onClick={fetchData}
+    >
+      Search
+    </button>
+
+    {/* Right Side Actions */}
+    <div className="ms-auto d-flex gap-2">
+      {perms.includes("create deposit") && (
+        <Link className="btn btn-primary" href="/depositrequiest/add">
+          Add New
+        </Link>
+      )}
+
+      {roles.includes("admin") && (
+        <button className="btn btn-danger" onClick={handleLogClick}>
+          Log
+        </button>
+      )}
+    </div>
+
+  </div>
+</div>
+
             </div>
 
             {/* Body */}

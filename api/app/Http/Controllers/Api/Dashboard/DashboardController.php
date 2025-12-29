@@ -37,7 +37,9 @@ class DashboardController extends Controller
             $data['agentList']           = User::where('role_type', 2)->where('status', 1)->count();
             if ($user->hasRole('admin')) {
 
-                $agentSettlement = Transaction::where('status', '!=', 'cancel')->whereDate('created_at', Carbon::today())->sum(DB::raw('sendingMoney + fee'));
+                $agentSettlement = Transaction::where('status', '!=', 'cancel')
+                   // ->whereDate('created_at', Carbon::today())
+                    ->sum(DB::raw('sendingMoney + fee'));
                 $sumDepositApproved = Deposit::where('approval_status', 1)->whereDate('created_at', Carbon::today())->sum('amount_gbp');
 
                 $getbalance = $agentSettlement - $sumDepositApproved;
@@ -55,6 +57,7 @@ class DashboardController extends Controller
                 $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->where('agent_id', $user->id)->count();
                 //->sum('amount_gbp');
             }
+
             $balance = $getbalance;
 
             if ($user->hasRole('admin')) {

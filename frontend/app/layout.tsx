@@ -1,11 +1,11 @@
 "use client";
 
-import { useIdleLogout } from "../lib/idleLogout";
+// import { useIdleLogout } from "../lib/idleLogout";
 
-function IdleLogoutWrapper({ children }) {
-  useIdleLogout(); // automatically handles idle logout & browser close
-  return children;
-}
+// function IdleLogoutWrapper({ children }) {
+//   useIdleLogout(); // automatically handles idle logout & browser close
+//   return children;
+// }
 
 export default function RootLayout({ children }) {
   return (

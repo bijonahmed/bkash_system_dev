@@ -274,7 +274,7 @@ class ReportController extends Controller
                 'agentCode'       => $agent->agentCode,
                 'settlement'      => number_format($agentSettlement, 2),
                 'depositApproved' => number_format($sumDepositApproved, 2),
-                'balance'         => number_format($getBalance, 2),
+                'balance'         => number_format(abs($getBalance), 2),
             ];
         }
 

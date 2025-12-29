@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import React, { useRef, useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
@@ -18,28 +18,15 @@ export default function AdminAgentReportPage() {
   const { token, permissions } = useAuth();
 
   const [loading, setLoading] = useState(false);
-  const [showWallet, setShowWallet] = useState(false);
-  const [showBank, setShowBank] = useState(false);
-  const [selectedAgentName, setSelectedAgentName] = useState(false);
+  const [report, setReport] = useState([]);
+  const [selectedAgentName, setSelectedAgentName] = useState("");
 
-  const { settingData } = useSetting();
   const { walletData } = useWallets();
   const { bankData } = useBank();
   const { agentData } = useAgents();
+  useSetting();
 
-  const perms = Array.isArray(permissions)
-    ? permissions
-    : permissions?.split(",") || [];
-
-  const pathname = usePathname();
-
-  const title = "Agent Statement";
-
-  useEffect(() => {
-    document.title = title;
-  }, [title]);
-
-  const [report, setReportData] = useState([]);
+  const tableRef = useRef();
 
   const [formData, setFormData] = useState({
     fromDate: "",
@@ -51,93 +38,139 @@ export default function AdminAgentReportPage() {
     agent_id: "",
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "agent_id") {
-      const selectedName = e.target.options[e.target.selectedIndex].text;
-      console.log("Selected Agent Name:", selectedName);
-      setSelectedAgentName(selectedName); // If you want to show on UI
-    }
-
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  const handleFilter = async () => {
-    const result = await apiGet({
-      endpoint: "/report/agentStatement",
-      params: formData,
-      token: token,
-    });
-
-    if (result.success) {
-      toast.success("Loading...");
-      setReportData(result.data.data);
-    } else {
-      toast.error(result.error);
-    }
-  };
-
-  // Calculate totals outside JSX
-  const totalWalletrate = report
-    .reduce((sum, item) => sum + parseFloat(item.walletrate || 0), 0)
-    .toFixed(2);
-
-  const totalFee = report
-    .reduce((sum, item) => sum + parseFloat(item.fee || 0), 0)
-    .toFixed(2);
-
-  const totalReceiving = report
-    .reduce((sum, item) => sum + parseFloat(item.receiving_money || 0), 0)
-    .toFixed(2);
-
-  const totalDebit = report
-    .reduce((sum, item) => sum + parseFloat(item.debit || 0), 0)
-    .toFixed(2);
-
-  const totalCredit = report
-    .reduce((sum, item) => sum + parseFloat(item.credit || 0), 0)
-    .toFixed(2);
-  let runningBalance = 0;
-
-  const tableRef = useRef();
-  // 🎯 EXCEL EXPORT WITH BORDER, AUTO WIDTH, CLEAN FORMAT
-  const downloadStatement = async () => {
-    try {
-      await exportAgentStatement(report);
-      toast.success("Excel exported!");
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
-  const selectedAgent = agentData.find(
-    (ag) => ag.id === Number(formData.agent_id)
-  );
-
-  const transactionCount = report.filter(
-    (item) => Number(item.debit) !== 0
-  ).length;
-
-  const creditTransactionCount = report.filter(
-    (item) => Number(item.credit) !== 0
-  ).length;
+  useEffect(() => {
+    document.title = "Agent Statement Report";
+  }, []);
 
   // if (!permissions.includes("view report")) {
   //   router.replace("/dashboard");
   //   return null;
   // }
 
+  /* =========================
+      HANDLERS
+     ========================= */
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "agent_id") {
+      const selectedName =
+        e.target.options[e.target.selectedIndex].text;
+      setSelectedAgentName(selectedName);
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFilter = async () => {
+  
+    setLoading(true);
+    const result = await apiGet({
+      endpoint: "/report/agentReport",
+      params: formData,
+      token,
+    });
+    setLoading(false);
+
+    if (result.success) {
+      setReport(result.data.data);
+    } else {
+      toast.error(result.error);
+    }
+  };
+
+  const downloadStatement = async () => {
+    try {
+      await exportAgentStatement(report);
+      toast.success("Excel exported!");
+    } catch (e) {
+      toast.error(e.message);
+    }
+  };
+
+  /* =========================
+      SUMMARY (optimized)
+     ========================= */
+  const summary = useMemo(() => {
+    let totalFee = 0;
+    let totalDebit = 0;
+    let totalCredit = 0;
+    let totalReceiving = 0;
+    let debitCount = 0;
+    let creditCount = 0;
+
+    report.forEach((item) => {
+      const debit = Number(item.debit || 0);
+      const fee = Number(item.fee || 0);
+      const credit = Number(item.credit || 0);
+      const receiving = Number(item.receiving_money || 0);
+
+      totalFee += fee;
+      totalDebit += debit + fee;
+      totalCredit += credit;
+      totalReceiving += receiving;
+
+      if (debit + fee > 0) debitCount++;
+      if (credit > 0) creditCount++;
+    });
+
+    return {
+      totalFee,
+      totalDebit,
+      totalCredit,
+      totalReceiving,
+      debitCount,
+      creditCount,
+    };
+  }, [report]);
+
+  /* =========================
+      FINAL BALANCE
+     ========================= */
+  const getFinalBalance = (debit, credit) => {
+    const value = debit - credit;
+    return credit > debit
+      ? `-${Math.abs(value).toFixed(2)}`
+      : Math.abs(value).toFixed(2);
+  };
+
+  /* =========================
+      RUNNING BALANCE
+     ========================= */
+  const reportWithBalance = useMemo(() => {
+    let running = 0;
+
+    return report.map((item) => {
+      const debitTotal =
+        Number(item.debit || 0) + Number(item.fee || 0);
+      const creditTotal = Number(item.credit || 0);
+
+      running += creditTotal - debitTotal;
+
+      return {
+        ...item,
+        runningBalance: running,
+        sign: creditTotal > debitTotal ? "-" : "",
+      };
+    });
+  }, [report]);
+
+  const selectedAgent = agentData.find(
+    (ag) => ag.id === Number(formData.agent_id)
+  );
+
+  /* =========================
+      RENDER
+     ========================= */
   return (
     <main className="app-main" id="main" tabIndex={-1}>
+      <Toaster position="top-right" />
+
       <div className="app-content-header">
         <div className="container-fluid">
           <div className="row">
             <div className="col-sm-6">
-              <h3 className="mb-0">{title}</h3>
+              <h3 className="mb-0">Agent Statement Report</h3>
             </div>
             <div className="col-sm-6">
               <ol className="breadcrumb float-sm-end">
@@ -161,15 +194,15 @@ export default function AdminAgentReportPage() {
         </div>
       </div>
 
-      <Toaster position="top-right" />
-
       <div className="app-content">
         <div className="container-fluid">
           <div className="card card-primary card-outline mb-4">
-            {/* Filter Form */}
+            {/* FILTER FORM */}
             <div className="card-header">
               <form className="row g-3 align-items-end">
-                <div className="col-md-4">
+              
+
+                <div className="col-md-3">
                   <label>From Date</label>
                   <input
                     type="date"
@@ -180,7 +213,7 @@ export default function AdminAgentReportPage() {
                   />
                 </div>
 
-                <div className="col-md-4">
+                <div className="col-md-3">
                   <label>To Date</label>
                   <input
                     type="date"
@@ -191,7 +224,6 @@ export default function AdminAgentReportPage() {
                   />
                 </div>
 
-                {/* Filter Button */}
                 <div className="col-md-1">
                   <button
                     type="button"
@@ -202,9 +234,8 @@ export default function AdminAgentReportPage() {
                   </button>
                 </div>
 
-                {/* Export Button INLINE */}
                 {report.length > 0 && (
-                  <div className="col-md-2 d-none">
+                  <div className="col-md-2">
                     <button
                       type="button"
                       onClick={downloadStatement}
@@ -217,12 +248,11 @@ export default function AdminAgentReportPage() {
               </form>
             </div>
 
-            {/* Report Table */}
+            {/* AGENT DETAILS + SUMMARY */}
             <div className="card-body">
               <div className="container-fluid">
                 <div className="row">
-                  {/* LEFT SIDE — Agent Details */}
-                  {/* RIGHT SIDE — Summary */}
+
                   <div className="col-md-12 col-lg-12">
                     <div className="summary-wrapper_side">
                       <div className="card shadow-sm">
@@ -233,59 +263,37 @@ export default function AdminAgentReportPage() {
                         <div className="card-body">
                           <div className="statement-row d-flex justify-content-between">
                             <span>Number of Transactions</span>
-                            <span className="amount">{transactionCount}</span>
+                            <span className="amount">{summary.debitCount}</span>
                           </div>
 
                           <div className="statement-row d-flex justify-content-between">
                             <span>Total Fee</span>
-                            <span className="amount">GBP {totalFee} £</span>
+                            <span className="amount">GBP {summary.totalFee.toFixed(2)} £</span>
                           </div>
 
                           <div className="statement-row d-flex justify-content-between">
                             <span>Total Receiving Amount</span>
-                            <span className="amount">{totalReceiving} BDT</span>
+                            <span className="amount">{summary.totalReceiving.toFixed(2)} BDT</span>
                           </div>
 
                           <div className="statement-row d-flex justify-content-between">
                             <span>
-                              Total Debit&nbsp;<b>({transactionCount})</b>
+                              Total Debit&nbsp;<b>({summary.debitCount})</b>
                             </span>
-                            <span className="amount">
-                              {report
-                                .reduce(
-                                  (sum, item) =>
-                                    sum +
-                                    (Number(item.debit || 0) +
-                                      Number(item.fee || 0)),
-                                  0
-                                )
-                                .toFixed(2)}{" "}
-                              £
-                            </span>
+                            <span className="amount">{summary.totalDebit.toFixed(2)} £</span>
                           </div>
 
                           <div className="statement-row d-flex justify-content-between">
                             <span>
-                              Total Credit&nbsp;
-                              <b>({creditTransactionCount})</b>
+                              Total Credit&nbsp;<b>({summary.creditCount})</b>
                             </span>
-                            <span className="amount">{totalCredit} £</span>
+                            <span className="amount">{summary.totalCredit.toFixed(2)} £</span>
                           </div>
 
                           <div className="statement-row d-flex justify-content-between fw-bold border-top pt-2">
                             <span>Final Balance</span>
                             <span className="amount text-success">
-                              {(
-                                Number(totalCredit) -
-                                report.reduce(
-                                  (sum, item) =>
-                                    sum +
-                                    (Number(item.debit || 0) +
-                                      Number(item.fee || 0)),
-                                  0
-                                )
-                              ).toFixed(2)}{" "}
-                              £
+                              {getFinalBalance(summary.totalDebit, summary.totalCredit)} £
                             </span>
                           </div>
                         </div>
@@ -295,21 +303,16 @@ export default function AdminAgentReportPage() {
                 </div>
               </div>
 
+              {/* TABLE */}
               <div className="table-responsive">
                 {loading ? (
-                  <div
-                    className="d-flex justify-content-center align-items-center"
-                    style={{ minHeight: "200px" }}
-                  >
+                  <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "200px" }}>
                     <div className="spinner-border text-primary"></div>
                   </div>
                 ) : (
                   <div className="bg-light rounded shadow-sm mt-2">
                     <div className="overflow-auto">
-                      <table
-                        className="table table-sm table-hover table-bordered table-colorful"
-                        ref={tableRef}
-                      >
+                      <table className="table table-sm table-hover table-bordered table-colorful" ref={tableRef}>
                         <thead>
                           <tr>
                             <th className="text-center">#</th>
@@ -328,22 +331,17 @@ export default function AdminAgentReportPage() {
                         </thead>
 
                         <tbody>
-                          {report.length > 0 ? (
+                          {reportWithBalance.length ? (
                             <>
-                              {report.map((item, index) => (
-                                <tr key={index + 1}>
+                              {reportWithBalance.map((item, index) => (
+                                <tr key={index}>
                                   <td className="text-center">{index + 1}</td>
                                   <td>{item.created_at}</td>
 
                                   {item.debit === 0 ? (
-                                    <>
-                                      <td
-                                        colSpan="7"
-                                        className="text-center text-primary fw-bold bg-solid"
-                                      >
-                                        BANKING
-                                      </td>
-                                    </>
+                                    <td colSpan="7" className="text-center text-primary fw-bold bg-solid">
+                                      BANKING
+                                    </td>
                                   ) : (
                                     <>
                                       <td>{item.senderName}</td>
@@ -351,117 +349,36 @@ export default function AdminAgentReportPage() {
                                       <td className="text-center">
                                         <small>{item.walletrate_name}</small>
                                       </td>
-                                      <td className="text-center">
-                                        {item.beneficiaryPhone}
-                                      </td>
-                                      <td className="text-end">
-                                        {item.pr_rate}
-                                        {/* {item.walletrate} */}
-                                      </td>
+                                      <td className="text-center">{item.beneficiaryPhone}</td>
+                                      <td className="text-end">{item.pr_rate}</td>
                                       <td className="text-end">{item.fee}</td>
-                                      <td className="text-end">
-                                        {item.receiving_money}
-                                      </td>
+                                      <td className="text-end">{item.receiving_money}</td>
                                     </>
                                   )}
 
-                                  {/* Debit */}
+                                  <td className="text-end">{item.debit}</td>
+                                  <td className="text-end">{item.credit}</td>
                                   <td className="text-end">
-                                    {(
-                                      Number(item.debit || 0) +
-                                      Number(item.fee || 0)
-                                    ).toFixed(2)}
-                                  </td>
-
-                                  {/* Credit */}
-                                  <td className="text-end">
-                                    {Number(item.credit || 0)}
-                                  </td>
-
-                                  {/* RUNNING BALANCE */}
-                                  <td className="text-end">
-                                    {(() => {
-                                      const debitTotal =
-                                        Number(item.debit || 0) +
-                                        Number(item.fee || 0);
-                                      const creditTotal = Number(
-                                        item.credit || 0
-                                      );
-
-                                      runningBalance =
-                                        runningBalance +
-                                        creditTotal -
-                                        debitTotal;
-
-                                      return runningBalance.toFixed(2);
-                                    })()}
+                                    {item.sign}
+                                    {Math.abs(item.runningBalance).toFixed(2)}
                                   </td>
                                 </tr>
                               ))}
 
-                              {/* ==== TOTAL ROW ==== */}
+                              {/* TOTAL ROW */}
                               <tr className="fw-bold bg-light">
-                                <td colSpan="7" className="text-end">
-                                  Total →
-                                </td>
+                                <td colSpan="7" className="text-end">Total →</td>
 
-                                {/* Admin Fee Total */}
-
-                                <td className="text-end">
-                                  GBP{" "}
-                                  {report.reduce(
-                                    (sum, item) => sum + Number(item.fee || 0),
-                                    0
-                                  )}
-                                  £
-                                </td>
-
-                                {/* Receiving Amount Total */}
-                                <td className="text-end">
-                                  {report.reduce(
-                                    (sum, item) =>
-                                      sum + Number(item.receiving_money || 0),
-                                    0
-                                  )}{" "}
-                                  BDT.
-                                </td>
-
-                                {/* Total Debit */}
-                                <td className="text-end">
-                                  {report
-                                    .reduce(
-                                      (sum, item) =>
-                                        sum +
-                                        (Number(item.debit || 0) +
-                                          Number(item.fee || 0)),
-                                      0
-                                    )
-                                    .toFixed(2)}{" "}
-                                  £
-                                </td>
-
-                                {/* Total Credit */}
-                                <td className="text-end">
-                                  {report.reduce(
-                                    (sum, item) =>
-                                      sum + Number(item.credit || 0),
-                                    0
-                                  )}
-                                  £
-                                </td>
-
-                                {/* FINAL BALANCE */}
-                                <td className="text-end">
-                                  {runningBalance.toFixed(2)} £
-                                </td>
+                                <td className="text-end">GBP {summary.totalFee.toFixed(2)} £</td>
+                                <td className="text-end">{summary.totalReceiving.toFixed(2)} BDT</td>
+                                <td className="text-end">{summary.totalDebit.toFixed(2)} £</td>
+                                <td className="text-end">{summary.totalCredit.toFixed(2)} £</td>
+                                <td className="text-end">{getFinalBalance(summary.totalDebit, summary.totalCredit)} £</td>
                               </tr>
                             </>
                           ) : (
                             <tr>
-                              <td
-                                colSpan="11"
-                                className="text-center text-muted"
-                              >
+                              <td colSpan="12" className="text-center text-muted">
                                 No transactions found
                               </td>
                             </tr>

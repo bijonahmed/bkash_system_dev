@@ -149,7 +149,7 @@ class TransactionController extends Controller
                 'branchCode'         => $branch->branch_code ?? '',
                 'accountNo'          => $item->accountNo,
                 'description'        => $item->description,
-                'agentsettlement'    => $item->agent_settlement,//$sending + $fee,
+                'agentsettlement'    => $item->agent_settlement, //$sending + $fee,
                 'status'             => ucfirst($item->status),
                 'paymentMethod'      => $item->paymentMethod,
                 'senderName'         => ucfirst($item->senderName),
@@ -162,31 +162,40 @@ class TransactionController extends Controller
             ];
         });
         // Aggregate sums (single query each)
-        $agentSettlement = Transaction::selectRaw('SUM(sendingMoney + fee) as total')
-            ->where('status', '!=', 'cancel')
-            ->when(
-                $user->hasRole('agent'),
-                fn($q) =>
-                $q->where('agent_id', $user->id)
-            )
-            ->value('total') ?? 0;
-        $sumDepositApproved = Deposit::where('approval_status', 1)
-            ->when(
-                $user->hasRole('agent'),
-                fn($q) =>
-                $q->where('agent_id', $user->id)
-            )
-            ->sum('amount_gbp');
-        $getBalance = $user->hasRole('agent')
-            ? ($sumDepositApproved - $agentSettlement)
-            : ($agentSettlement - $sumDepositApproved);
+
+
+
+        if ($user->hasRole('admin')) {
+
+            $agentSettlement = Transaction::where('status', '!=', 'cancel')
+                ///  ->whereDate('created_at', Carbon::today())
+                ->sum(DB::raw('sendingMoney + fee'));
+            $sumDepositApproved = Deposit::where('approval_status', 1)->whereDate('created_at', Carbon::today())->sum('amount_gbp');
+
+            $getbalance = $agentSettlement - $sumDepositApproved;
+
+            $data['depositApproved_status'] = 'Pending';
+            $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->count();
+        } else if ($user->hasRole('agent')) {
+
+            $agentSettlement = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
+            $sumDepositApproved = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
+
+            $getbalance = $sumDepositApproved - $agentSettlement;
+
+            $data['depositApproved_status'] = 'Pending';
+            $data['depositApproved'] = Deposit::where('approval_status', 0)->where('agent_id', $user->id)->count();
+            //->sum('amount_gbp');
+        }
+
+        $balance = $getbalance;
 
 
 
 
         return response()->json([
             'data' => $modifiedCollection,
-            'sumDepositApproved' => number_format($getBalance, 2),
+            'sumDepositApproved' => number_format(abs($balance), 2),
             'total' => $total,
         ]);
     }
@@ -228,6 +237,7 @@ class TransactionController extends Controller
     }
     public function store(Request $request)
     {
+        //    dd($request->all());
         $user = Auth::user();
         if (! $user->can('create transaction')) {
             return response()->json([
@@ -293,22 +303,48 @@ class TransactionController extends Controller
 
         $prRate = null;
 
-        $assignWallet = AssignWallet::where('agent_id', $user->id)
-            ->where('wallet_id', $request->wallet_id)
-            ->first();
 
-        if ($assignWallet && isset($assignWallet->amount)) {
-            $prRate = $assignWallet->amount;
-        } else {
-            $wallet = Wallet::where('id', $request->wallet_id)->first();
 
-            if ($wallet && isset($wallet->amount)) {
-                $prRate = $wallet->amount;
+        if ($chkPayMethod == "wallet") {
+
+            $assignWallet = AssignWallet::where('agent_id', $user->id)
+                ->where('wallet_id', $request->wallet_id)
+                ->first();
+
+            if ($assignWallet && isset($assignWallet->amount)) {
+                $prRate = $assignWallet->amount;
             } else {
+                $wallet = Wallet::where('id', $request->wallet_id)->first();
 
-                $prRate = 0;
+                if ($wallet && isset($wallet->amount)) {
+                    $prRate = $wallet->amount;
+                } else {
+
+                    $prRate = 0;
+                }
             }
         }
+
+        if ($chkPayMethod == "bank") {
+            $assignWallet = AssignWallet::where('agent_id', $user->id)
+                ->where('wallet_id', 4)
+                ->first();
+
+            if ($assignWallet && isset($assignWallet->amount)) {
+                $prRate = $assignWallet->amount;
+            } else {
+                $wallet = Wallet::where('id', 4)->first();
+
+                if ($wallet && isset($wallet->amount)) {
+                    $prRate = $wallet->amount;
+                } else {
+
+                    $prRate = 0;
+                }
+            }
+        }
+
+
 
         $data['pr_rate']           = $prRate;
         $agent_settlement          = ($prRate > 0) ? (($receiving_money ?? 0) / $prRate) + ($adminfee ?? 0) : 0;
