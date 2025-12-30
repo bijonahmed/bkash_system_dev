@@ -54,8 +54,7 @@ export default function AdminAgentReportPage() {
     const { name, value } = e.target;
 
     if (name === "agent_id") {
-      const selectedName =
-        e.target.options[e.target.selectedIndex].text;
+      const selectedName = e.target.options[e.target.selectedIndex].text;
       setSelectedAgentName(selectedName);
     }
 
@@ -104,17 +103,21 @@ export default function AdminAgentReportPage() {
     let creditCount = 0;
 
     report.forEach((item) => {
-      const debit = Number(item.debit || 0);
+      const debit =
+        Number(item?.pr_rate ?? 0) > 0
+          ? Number(item?.receiving_money ?? 0) / Number(item?.pr_rate ?? 0) +
+            Number(item?.fee ?? 0)
+          : 0; //Number(item.debit || 0);
       const fee = Number(item.fee || 0);
       const credit = Number(item.credit || 0);
       const receiving = Number(item.receiving_money || 0);
 
       totalFee += fee;
-      totalDebit += debit + fee;
+      totalDebit += debit;
       totalCredit += credit;
       totalReceiving += receiving;
 
-      if (debit + fee > 0) debitCount++;
+      if (item.agent_settlement > 0) debitCount++;
       if (credit > 0) creditCount++;
     });
 
@@ -146,7 +149,12 @@ export default function AdminAgentReportPage() {
 
     return report.map((item) => {
       const debitTotal =
-        Number(item.debit || 0) + Number(item.fee || 0);
+        Number(item?.pr_rate ?? 0) > 0
+          ? Number(item?.receiving_money ?? 0) / Number(item?.pr_rate ?? 0) +
+            Number(item?.fee ?? 0)
+          : 0;
+
+      // Number(item.debit || 0);
       const creditTotal = Number(item.credit || 0);
 
       running += creditTotal - debitTotal;
@@ -254,7 +262,7 @@ export default function AdminAgentReportPage() {
                 </div>
 
                 {report.length > 0 && (
-                  <div className="col-md-2">
+                  <div className="col-md-2 d-none">
                     <button
                       type="button"
                       onClick={downloadStatement}
@@ -321,32 +329,44 @@ export default function AdminAgentReportPage() {
 
                           <div className="statement-row d-flex justify-content-between">
                             <span>Total Fee</span>
-                            <span className="amount">GBP {summary.totalFee.toFixed(2)} £</span>
+                            <span className="amount">
+                              GBP {summary.totalFee.toFixed(2)} £
+                            </span>
                           </div>
 
                           <div className="statement-row d-flex justify-content-between">
                             <span>Total Receiving Amount</span>
-                            <span className="amount">{summary.totalReceiving.toFixed(2)} BDT</span>
+                            <span className="amount">
+                              {summary.totalReceiving.toFixed(2)} BDT
+                            </span>
                           </div>
 
                           <div className="statement-row d-flex justify-content-between">
                             <span>
                               Total Debit&nbsp;<b>({summary.debitCount})</b>
                             </span>
-                            <span className="amount">{summary.totalDebit.toFixed(2)} £</span>
+                            <span className="amount">
+                              {summary.totalDebit.toFixed(2)} £
+                            </span>
                           </div>
 
                           <div className="statement-row d-flex justify-content-between">
                             <span>
                               Total Credit&nbsp;<b>({summary.creditCount})</b>
                             </span>
-                            <span className="amount">{summary.totalCredit.toFixed(2)} £</span>
+                            <span className="amount">
+                              {summary.totalCredit.toFixed(2)} £
+                            </span>
                           </div>
 
                           <div className="statement-row d-flex justify-content-between fw-bold border-top pt-2">
                             <span>Final Balance</span>
                             <span className="amount text-success">
-                              {getFinalBalance(summary.totalDebit, summary.totalCredit)} £
+                              {getFinalBalance(
+                                summary.totalDebit,
+                                summary.totalCredit
+                              )}{" "}
+                              £
                             </span>
                           </div>
                         </div>
@@ -359,13 +379,19 @@ export default function AdminAgentReportPage() {
               {/* TABLE */}
               <div className="table-responsive">
                 {loading ? (
-                  <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "200px" }}>
+                  <div
+                    className="d-flex justify-content-center align-items-center"
+                    style={{ minHeight: "200px" }}
+                  >
                     <div className="spinner-border text-primary"></div>
                   </div>
                 ) : (
                   <div className="bg-light rounded shadow-sm mt-2">
                     <div className="overflow-auto">
-                      <table className="table table-sm table-hover table-bordered table-colorful" ref={tableRef}>
+                      <table
+                        className="table table-sm table-hover table-bordered table-colorful"
+                        ref={tableRef}
+                      >
                         <thead>
                           <tr>
                             <th className="text-center">#</th>
@@ -392,7 +418,10 @@ export default function AdminAgentReportPage() {
                                   <td>{item.created_at}</td>
 
                                   {item.debit === 0 ? (
-                                    <td colSpan="7" className="text-center text-primary fw-bold bg-solid">
+                                    <td
+                                      colSpan="7"
+                                      className="text-center text-primary fw-bold bg-solid"
+                                    >
                                       BANKING
                                     </td>
                                   ) : (
@@ -402,14 +431,39 @@ export default function AdminAgentReportPage() {
                                       <td className="text-center">
                                         <small>{item.walletrate_name}</small>
                                       </td>
-                                      <td className="text-center">{item.beneficiaryPhone}</td>
-                                      <td className="text-end">{item.pr_rate}</td>
+                                      <td className="text-center">
+                                        {item.beneficiaryPhone}
+                                      </td>
+                                      <td className="text-end">
+                                        {item.pr_rate}
+                                      </td>
                                       <td className="text-end">{item.fee}</td>
-                                      <td className="text-end">{item.receiving_money}</td>
+                                      <td className="text-end">
+                                        {item.receiving_money}
+                                      </td>
                                     </>
                                   )}
 
-                                  <td className="text-end">{item.debit}</td>
+                                  <td className="text-end">
+                                      
+                                {(Number(item?.pr_rate ?? 0) > 0
+                                    ? Number(item?.receiving_money ?? 0) / Number(item?.pr_rate ?? 0) +
+                                      Number(item?.fee ?? 0)
+                                    : 0
+                                  ).toFixed(2)}
+                                    {/* {`${Number(
+                                      item?.receiving_money ?? 0
+                                    ).toFixed(2)} ÷ 
+                                  ${Number(item?.pr_rate ?? 0).toFixed(2)} + 
+                                  ${Number(item?.fee ?? 0).toFixed(2)} = 
+                                  ${(Number(item?.pr_rate ?? 0) > 0
+                                    ? Number(item?.receiving_money ?? 0) / Number(item?.pr_rate ?? 0) +
+                                      Number(item?.fee ?? 0)
+                                    : 0
+                                  ).toFixed(2)}`} */}
+
+                                   
+                                  </td>
                                   <td className="text-end">{item.credit}</td>
                                   <td className="text-end">
                                     {item.sign}
@@ -420,18 +474,37 @@ export default function AdminAgentReportPage() {
 
                               {/* TOTAL ROW */}
                               <tr className="fw-bold bg-light">
-                                <td colSpan="7" className="text-end">Total →</td>
+                                <td colSpan="7" className="text-end">
+                                  Total →
+                                </td>
 
-                                <td className="text-end">GBP {summary.totalFee.toFixed(2)} £</td>
-                                <td className="text-end">{summary.totalReceiving.toFixed(2)} BDT</td>
-                                <td className="text-end">{summary.totalDebit.toFixed(2)} £</td>
-                                <td className="text-end">{summary.totalCredit.toFixed(2)} £</td>
-                                <td className="text-end">{getFinalBalance(summary.totalDebit, summary.totalCredit)} £</td>
+                                <td className="text-end">
+                                  GBP {summary.totalFee.toFixed(2)} £
+                                </td>
+                                <td className="text-end">
+                                  {summary.totalReceiving.toFixed(2)} BDT
+                                </td>
+                                <td className="text-end">
+                                  {summary.totalDebit.toFixed(2)} £
+                                </td>
+                                <td className="text-end">
+                                  {summary.totalCredit.toFixed(2)} £
+                                </td>
+                                <td className="text-end">
+                                  {getFinalBalance(
+                                    summary.totalDebit,
+                                    summary.totalCredit
+                                  )}{" "}
+                                  £
+                                </td>
                               </tr>
                             </>
                           ) : (
                             <tr>
-                              <td colSpan="12" className="text-center text-muted">
+                              <td
+                                colSpan="12"
+                                className="text-center text-muted"
+                              >
                                 No transactions found
                               </td>
                             </tr>

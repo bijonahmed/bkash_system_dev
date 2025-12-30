@@ -157,7 +157,7 @@ class TransactionController extends Controller
                 'pr_rate'            => $item->pr_rate ?? "",
                 'createdBy'          => $creator->name ?? 'N/A',
                 'created_at'         => $item->created_at
-                    ->timezone('Europe/London')
+                    ->timezone('Asia/Dhaka')
                     ->format('M d, Y h:i A'),
             ];
         });
@@ -167,7 +167,7 @@ class TransactionController extends Controller
 
         if ($user->hasRole('admin')) {
 
-            $debitValue = Transaction::where('status', '!=', 'cancel')->sum(DB::raw('sendingMoney + fee'));
+            $debitValue = Transaction::where('status', '!=', 'cancel')->sum(DB::raw('agent_settlement'));
             $creditValue = Deposit::where('approval_status', 1)->whereDate('created_at', Carbon::today())->sum('amount_gbp');
 
             $value = $debitValue - $creditValue;
@@ -180,7 +180,7 @@ class TransactionController extends Controller
             $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->count();
         } else if ($user->hasRole('agent')) {
 
-            $debitValue = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
+            $debitValue = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('agent_settlement'));
             $creditValue = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
 
             //$getbalance = $creditValue - $debitValue;

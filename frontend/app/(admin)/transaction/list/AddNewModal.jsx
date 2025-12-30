@@ -61,7 +61,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (formData.paymentMethod === "wallet") {
-
       setFormData((prev) => ({
         ...prev,
         walletrate: settingData?.exchange_rate_wallet || "",
@@ -231,7 +230,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
           name === "receiving_money"
             ? Number(updatedValue)
             : Number(formData.sendingMoney || 0) *
-            Number(formData.bankRate || 1);
+              Number(formData.bankRate || 1);
 
         const { success, data, messages } = await apiPost(
           "/transaction/walletcalculate",
@@ -256,7 +255,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         toast.error("Failed to calculate bank fee");
       }
     }
-
 
     const handlewalletCalculate = async () => {
       try {
@@ -284,9 +282,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
             sendingMoney: parseFloat(newSending.toFixed(2)),
             //    receiving_money: parseFloat(receiving.toFixed(2)),
             fee: Number(data?.fee || 0),
-            totalAmount: (
-              newSending + Number(data?.fee || 0)
-            ).toFixed(2),
+            totalAmount: (newSending + Number(data?.fee || 0)).toFixed(2),
           }));
         } else {
           messages?.forEach((msg) => toast.error(msg));
@@ -296,6 +292,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
         toast.error("Failed to calculate wallet fee");
       }
     };
+
     /*
      if (
        formData.paymentMethod === "wallet" &&
@@ -384,6 +381,10 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     };
     calculateWalletRate();
   }, [selectedWallet]);
+  const walletRate = () => {
+    // Disable if checkedRate is missing or changeRate is not "yes"
+    return !(checkedRate && checkedRate.changeRate === "yes");
+  };
 
   return (
     <div
@@ -627,7 +628,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                         value={formData.bankRate}
                         onChange={handleChange}
                         className="form-control"
-                        disabled={!checkedRate || checkedRate.changeRate !== "yes"}
+                        disabled={walletRate()}
                       />
                     </div>
                   </>
@@ -653,9 +654,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                       value={formData.walletrate}
                       onChange={handleChange}
                       className="form-control"
-                      disabled={
-                        (checkedRate && checkedRate.changeRate) !== "yes"
-                      }
+                      disabled={walletRate()}
                     />
                   </div>
                 )}

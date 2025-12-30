@@ -39,7 +39,7 @@ class DashboardController extends Controller
 
                 $agentSettlement = Transaction::where('status', '!=', 'cancel')
                    // ->whereDate('created_at', Carbon::today())
-                    ->sum(DB::raw('sendingMoney + fee'));
+                    ->sum(DB::raw('agent_settlement'));
                 $sumDepositApproved = Deposit::where('approval_status', 1)->whereDate('created_at', Carbon::today())->sum('amount_gbp');
 
                 $getbalance = $agentSettlement - $sumDepositApproved;
@@ -48,7 +48,7 @@ class DashboardController extends Controller
                 $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->count();
             } else if ($user->hasRole('agent')) {
 
-                $agentSettlement = Transaction::where('status', '!=', 'cancel')->whereDate('created_at', Carbon::today())->where('agent_id', $user->id)->sum(DB::raw('sendingMoney + fee'));
+                $agentSettlement = Transaction::where('status', '!=', 'cancel')->whereDate('created_at', Carbon::today())->where('agent_id', $user->id)->sum(DB::raw('agent_settlement'));
                 $sumDepositApproved = Deposit::where('agent_id', $user->id)->whereDate('created_at', Carbon::today())->where('approval_status', 1)->sum('amount_gbp');
 
                 $getbalance = $sumDepositApproved - $agentSettlement;

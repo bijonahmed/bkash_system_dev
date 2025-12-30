@@ -42,7 +42,7 @@ export default function useDashboard() {
   useEffect(() => {
     if (!token) return;
     fetchDashboard();
-    intervalRef.current = setInterval(fetchDashboard, 15000);
+    intervalRef.current = setInterval(fetchDashboard, 40000);
 
     return () => {
       if (intervalRef.current) {
