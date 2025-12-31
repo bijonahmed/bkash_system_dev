@@ -82,36 +82,7 @@ export default function GlobalReportPage() {
       setLoading(false);
     }
   };
-  /*
-  const handleFilter = async () => {
-    const query = new URLSearchParams(formData).toString();
-    const url = `${process.env.NEXT_PUBLIC_API_BASE}/report/allAgentReport?${query}`;
 
-    try {
-      setLoading(true);
-
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success("Loading...");
-        setReportData(data.data);
-      } else {
-        toast.error(data.message || "Something went wrong!");
-      }
-    } catch (error) {
-      toast.error("Network or server error!");
-    } finally {
-      setLoading(false);
-    }
-  };
-*/
   useEffect(() => {
     handleFilter();
   }, [token]);
@@ -247,7 +218,6 @@ export default function GlobalReportPage() {
                                   <td className="text-center">{index + 1}</td>
                                   <td>{item.agent_name}</td>
                                   <td>{item.agentCode}</td>
-                                  {/* Debit */}
                                   <td className="text-center">
                                     {item.balance}
                                   </td>

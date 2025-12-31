@@ -144,6 +144,7 @@ export default function AdminAgentReportPage() {
   /* =========================
       RUNNING BALANCE
      ========================= */
+  /*
   const reportWithBalance = useMemo(() => {
     let running = 0;
 
@@ -166,6 +167,33 @@ export default function AdminAgentReportPage() {
       };
     });
   }, [report]);
+  */
+const reportWithBalance = useMemo(() => {
+  let running = 0;
+
+  return report.map((item) => {
+    const debitTotal =
+      Number(item?.pr_rate ?? 0) > 0
+        ? Number(item?.receiving_money ?? 0) / Number(item?.pr_rate ?? 0) +
+          Number(item?.fee ?? 0)
+        : 0;
+
+    const creditTotal = Number(item?.credit ?? 0);
+
+    // debit - credit (important)
+    const net = debitTotal - creditTotal;
+
+    running += net;
+
+    return {
+      ...item,
+      runningBalance: Math.abs(running).toFixed(2),
+      sign: running < 0 ? "-" : "",
+    };
+  });
+}, [report]);
+
+
 
   const selectedAgent = agentData.find(
     (ag) => ag.id === Number(formData.agent_id)
@@ -445,12 +473,12 @@ export default function AdminAgentReportPage() {
                                   )}
 
                                   <td className="text-end">
-                                      
-                                {(Number(item?.pr_rate ?? 0) > 0
-                                    ? Number(item?.receiving_money ?? 0) / Number(item?.pr_rate ?? 0) +
-                                      Number(item?.fee ?? 0)
-                                    : 0
-                                  ).toFixed(2)}
+                                    {(Number(item?.pr_rate ?? 0) > 0
+                                      ? Number(item?.receiving_money ?? 0) /
+                                          Number(item?.pr_rate ?? 0) +
+                                        Number(item?.fee ?? 0)
+                                      : 0
+                                    ).toFixed(2)}
                                     {/* {`${Number(
                                       item?.receiving_money ?? 0
                                     ).toFixed(2)} ÷ 
@@ -461,8 +489,6 @@ export default function AdminAgentReportPage() {
                                       Number(item?.fee ?? 0)
                                     : 0
                                   ).toFixed(2)}`} */}
-
-                                   
                                   </td>
                                   <td className="text-end">{item.credit}</td>
                                   <td className="text-end">

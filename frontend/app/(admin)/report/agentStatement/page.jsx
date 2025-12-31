@@ -149,15 +149,17 @@ export default function AdminAgentReportPage() {
             Number(item?.fee ?? 0)
           : 0;
 
-      // Number(item.debit || 0);
-      const creditTotal = Number(item.credit || 0);
+      const creditTotal = Number(item?.credit ?? 0);
 
-      running += creditTotal - debitTotal;
+      // debit - credit (important)
+      const net = debitTotal - creditTotal;
+
+      running += net;
 
       return {
         ...item,
-        runningBalance: running,
-        sign: creditTotal > debitTotal ? "-" : "",
+        runningBalance: Math.abs(running).toFixed(2),
+        sign: running < 0 ? "-" : "",
       };
     });
   }, [report]);
