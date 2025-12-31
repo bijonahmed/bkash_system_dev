@@ -168,7 +168,7 @@ class TransactionController extends Controller
         if ($user->hasRole('admin')) {
 
             $debitValue = Transaction::where('status', '!=', 'cancel')->sum(DB::raw('agent_settlement'));
-            $creditValue = Deposit::where('approval_status', 1)->whereDate('created_at', Carbon::today())->sum('amount_gbp');
+            $creditValue = Deposit::where('approval_status', 1)->sum('amount_gbp');
 
             $value = $debitValue - $creditValue;
 
@@ -177,7 +177,7 @@ class TransactionController extends Controller
                 : number_format(abs($value), 2);
 
             $data['depositApproved_status'] = 'Pending';
-            $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->count();
+            $data['depositApproved'] = Deposit::where('approval_status', 0)->count();
         } else if ($user->hasRole('agent')) {
 
             $debitValue = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('agent_settlement'));

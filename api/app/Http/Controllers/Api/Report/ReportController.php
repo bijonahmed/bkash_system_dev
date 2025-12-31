@@ -144,7 +144,7 @@ class ReportController extends Controller
         $agentBalances = $allAgents->map(function ($agent) {
 
             $debitValue = Transaction::where('status', '!=', 'cancel')->where('agent_id', $agent->id)->sum(DB::raw('agent_settlement'));
-            $creditValue = Deposit::where('approval_status', 1)->where('agent_id', $agent->id)->whereDate('created_at', Carbon::today())->sum('amount_gbp');
+            $creditValue = Deposit::where('approval_status', 1)->where('agent_id', $agent->id)->sum('amount_gbp');
 
             $value = $debitValue - $creditValue;
 
