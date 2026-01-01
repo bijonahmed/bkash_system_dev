@@ -157,7 +157,7 @@ class TransactionController extends Controller
                 'pr_rate'            => $item->pr_rate ?? "",
                 'createdBy'          => $creator->name ?? 'N/A',
                 'created_at'         => $item->created_at
-                    ->timezone('Asia/Dhaka')
+                    ->timezone('Europe/London')
                     ->format('M d, Y h:i A'),
             ];
         });
@@ -294,13 +294,12 @@ class TransactionController extends Controller
         $data['entry_by'] = $user->id;
         $data['agent_id'] = $user->id;
         $data['status'] = "unpaid";
+        
+        $data['created_at'] =  date("Y-m-d h:i A");
+        //dd($data);
         $chkAdminFund = AdminFundDeposit::where('status', 1)->orderBy('id', 'desc')->first();
         $data['admin_fund_deposit_id'] = !empty($chkAdminFund) ? $chkAdminFund->id : "";
         $data['admin_buying_rate']     = !empty($chkAdminFund) ? $chkAdminFund->buying_rate : "";
-
-
-
-
 
         // Determine payment method id
         $chkPayMethod    = $request->paymentMethod;
@@ -309,7 +308,6 @@ class TransactionController extends Controller
 
 
         $prRate = null;
-
 
 
         if ($chkPayMethod == "wallet") {

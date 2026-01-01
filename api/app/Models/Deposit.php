@@ -23,6 +23,7 @@ class Deposit extends Authenticatable
         'approval_status',
         'amount_gbp',
         'attachment',
+        'created_at',
         'entry_by',
     ];
 }

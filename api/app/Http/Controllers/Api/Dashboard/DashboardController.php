@@ -46,11 +46,6 @@ class DashboardController extends Controller
                 $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->count();
             } else if ($user->hasRole('agent')) {
 
-                // $agentSettlement = Transaction::where('status', '!=', 'cancel')->whereDate('created_at', Carbon::today())->where('agent_id', $user->id)->sum(DB::raw('agent_settlement'));
-                // $sumDepositApproved = Deposit::where('agent_id', $user->id)->whereDate('created_at', Carbon::today())->where('approval_status', 1)->sum('amount_gbp');
-
-                // $getbalance = $sumDepositApproved - $agentSettlement;
-
                 $debitValue = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('agent_settlement'));
                 $creditValue = Deposit::where('approval_status', 1)->where('agent_id', $user->id)->sum('amount_gbp');
 
@@ -73,11 +68,12 @@ class DashboardController extends Controller
 
             if ($user->hasRole('agent')) {
                 if ($balance < 0) {
+                    // Positive balance → Credit (Cr)
+
+                    $data['balance'] = number_format(abs($balance), 2) . ' Cr';
+                } else {
                     // Negative balance → Debit (Dr)
                     $data['balance'] = number_format(abs($balance), 2) . ' Dr';
-                } else {
-                    // Positive balance → Credit (Cr)
-                    $data['balance'] = number_format(abs($balance), 2) . ' Cr';
                 }
             }
 

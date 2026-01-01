@@ -152,6 +152,7 @@ class AgentRequestSendController extends Controller
             'approval_status' => 0, //$request->approval_status,
             'amount_gbp'      => $request->amount_gbp,
             'attachment'      => $attachmentPath,
+            'created_at'      => date("Y-m-d h:i A"),   
         ]);
 
         DepositLog::create([
