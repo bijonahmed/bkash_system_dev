@@ -230,7 +230,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
           name === "receiving_money"
             ? Number(updatedValue)
             : Number(formData.sendingMoney || 0) *
-              Number(formData.bankRate || 1);
+            Number(formData.bankRate || 1);
 
         const { success, data, messages } = await apiPost(
           "/transaction/walletcalculate",
@@ -381,11 +381,10 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
     };
     calculateWalletRate();
   }, [selectedWallet]);
-  const walletRate = () => {
-    // Disable if checkedRate is missing or changeRate is not "yes"
-    return !(checkedRate && checkedRate.changeRate === "yes");
-  };
 
+  //console.log("CHECEKD WALLET RATE:" + checkedRate.changeRate);
+  const isRateReadonly =
+    String(checkedRate?.changeRate).toLowerCase() === 'yes';
   return (
     <div
       className={`modal fade ${show ? "show d-block" : ""}`}
@@ -622,14 +621,27 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                     </div>
                     <div className="col-md-3 mb-2">
                       <label className="mb-0 custom-label">Bank Rate</label>
-                      <input
-                        type="text"
-                        name="bankRate"
-                        value={formData.bankRate}
-                        onChange={handleChange}
-                        className="form-control"
-                        disabled={walletRate()}
-                      />
+                      {isRateReadonly ? (
+                        <input
+                          type="text"
+                          name="bankRate"
+                          value={formData.bankRate}
+                          onChange={handleChange}
+                          className="form-control"
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          name="bankRate"
+                          value={formData.bankRate}
+                          onChange={handleChange}
+                          readOnly
+                          className="form-control"
+
+                        />
+
+                      )}
+
                     </div>
                   </>
                 )}
@@ -648,14 +660,27 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                 {showWallet && (
                   <div className="col-md-3 mb-2">
                     <label className="mb-0 custom-label">Wallet Rate</label>
-                    <input
-                      type="text"
-                      name="walletrate"
-                      value={formData.walletrate}
-                      onChange={handleChange}
-                      className="form-control"
-                      disabled={walletRate()}
-                    />
+                    {isRateReadonly ? (
+                      <input
+                        type="text"
+                        name="walletrate"
+                        value={formData.walletrate}
+                        onChange={handleChange}
+                        className="form-control"
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        name="walletrate"
+                        value={formData.walletrate}
+                        onChange={handleChange}
+                        readOnly
+                        className="form-control"
+                      />
+                    )}
+
+
+
                   </div>
                 )}
                 <div className="col-md-3 mb-2">
