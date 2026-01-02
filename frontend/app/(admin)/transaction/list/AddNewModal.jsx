@@ -230,7 +230,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
           name === "receiving_money"
             ? Number(updatedValue)
             : Number(formData.sendingMoney || 0) *
-            Number(formData.bankRate || 1);
+              Number(formData.bankRate || 1);
 
         const { success, data, messages } = await apiPost(
           "/transaction/walletcalculate",
@@ -279,7 +279,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
 
           setFormData((prev) => ({
             ...prev,
-            sendingMoney: parseFloat(newSending.toFixed(2)),
+            //sendingMoney: parseFloat(newSending.toFixed(2)),
             //    receiving_money: parseFloat(receiving.toFixed(2)),
             fee: Number(data?.fee || 0),
             totalAmount: (newSending + Number(data?.fee || 0)).toFixed(2),
@@ -384,7 +384,7 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
 
   //console.log("CHECEKD WALLET RATE:" + checkedRate.changeRate);
   const isRateReadonly =
-    String(checkedRate?.changeRate).toLowerCase() === 'yes';
+    String(checkedRate?.changeRate).toLowerCase() === "yes";
   return (
     <div
       className={`modal fade ${show ? "show d-block" : ""}`}
@@ -637,11 +637,8 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                           onChange={handleChange}
                           readOnly
                           className="form-control"
-
                         />
-
                       )}
-
                     </div>
                   </>
                 )}
@@ -678,9 +675,6 @@ const AddNewModal = ({ show, onClose, onSuccess }) => {
                         className="form-control"
                       />
                     )}
-
-
-
                   </div>
                 )}
                 <div className="col-md-3 mb-2">

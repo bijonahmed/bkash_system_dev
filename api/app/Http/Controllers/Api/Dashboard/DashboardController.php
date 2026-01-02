@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers\Api\Dashboard;
-
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Deposit;
@@ -22,7 +20,6 @@ use Illuminate\Support\Str;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-
 class DashboardController extends Controller
 {
     public function getDashboardData()
@@ -36,48 +33,40 @@ class DashboardController extends Controller
             }
             $data['agentList']           = User::where('role_type', 2)->where('status', 1)->count();
             if ($user->hasRole('admin')) {
-
+                
                 $agentSettlement = Transaction::where('status', '!=', 'cancel')->sum(DB::raw('agent_settlement'));
                 $sumDepositApproved = Deposit::where('approval_status', 1)->sum('amount_gbp');
-
                 $getbalance = $agentSettlement - $sumDepositApproved;
-
                 $data['depositApproved_status'] = 'Pending';
+
                 $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->count();
             } else if ($user->hasRole('agent')) {
-
+          
                 $debitValue = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('agent_settlement'));
                 $creditValue = Deposit::where('approval_status', 1)->where('agent_id', $user->id)->sum('amount_gbp');
-
                 $value = $debitValue - $creditValue;
-
                 $getbalance = ($creditValue > $debitValue)
                     ? '-' . number_format(abs($value), 2)
                     : number_format(abs($value), 2);
-
                 $data['depositApproved_status'] = 'Pending';
                 $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->where('agent_id', $user->id)->count();
                 //->sum('amount_gbp');
             }
-
             $balance = $getbalance;
-
+            // always work with numeric value
+            $cleanBalance = (float) str_replace(',', '', $balance);
             if ($user->hasRole('admin')) {
-                $data['balance'] = number_format($balance, 2); // admin sees exact balance
+                $data['balance'] = number_format($cleanBalance, 2);
             }
-
             if ($user->hasRole('agent')) {
-                if ($balance < 0) {
-                    // Positive balance → Credit (Cr)
-
-                    $data['balance'] = number_format(abs($balance), 2) . ' Cr';
+                if ($cleanBalance < 0) {
+                    // Negative → Credit (Cr)
+                    $data['balance'] = number_format(abs($cleanBalance), 2) . ' Cr';
                 } else {
-                    // Negative balance → Debit (Dr)
-                    $data['balance'] = number_format(abs($balance), 2) . ' Dr';
+                    // Positive or zero → Debit (Dr)
+                    $data['balance'] = number_format($cleanBalance, 2) . ' Dr';
                 }
             }
-
-
             return response()->json([
                 'success' => true,
                 'data' => $data

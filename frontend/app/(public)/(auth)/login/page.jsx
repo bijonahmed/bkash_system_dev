@@ -7,8 +7,8 @@ import "./login.css"; // 👈 create this CSS file next to your component
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setemail] = useState("mdbijon@gmail.com");
-  const [password, setPassword] = useState("mdbijon@gmail.com");
+  const [email, setemail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -32,7 +32,8 @@ export default function LoginPage() {
       if (res.ok) {
         if (data.token) localStorage.setItem("token", data.token);
         if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
-        if (data.roles) localStorage.setItem("roles", JSON.stringify(data.roles));
+        if (data.roles)
+          localStorage.setItem("roles", JSON.stringify(data.roles));
         if (data.permissions)
           localStorage.setItem("permissions", JSON.stringify(data.permissions));
 
@@ -94,8 +95,12 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              {error && <p className="text-danger mt-3  text-center">{error}</p>}
-              {success && <p className="text-success mt-3  text-center">{success}</p>}
+              {error && (
+                <p className="text-danger mt-3  text-center">{error}</p>
+              )}
+              {success && (
+                <p className="text-success mt-3  text-center">{success}</p>
+              )}
             </form>
           </div>
         </div>

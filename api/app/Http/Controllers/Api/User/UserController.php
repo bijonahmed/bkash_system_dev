@@ -57,6 +57,9 @@ class UserController extends Controller
         $paginator = $query->paginate($pageSize, ['*'], 'page', $page);
         $modifiedCollection = $paginator->getCollection()->map(function ($item) {
             $status    = $item->status == 1 ? 'Active' : 'Inactive';
+            $rolesName  = $item->role_type == "" ||  $item->role_type == 1 ? "Admin" : "Agent";
+
+
             $createdBy = User::where('id', $item->entry_by)->select('name')->first();
 
             $modelType = ModelHasRole::where('model_id', $item->id)->first();
@@ -70,7 +73,7 @@ class UserController extends Controller
                 'id'            => $item->id,
                 'name'          => $item->name,
                 'agentCode'     => $item->agentCode,
-                'rulename'      => $roleName,
+                'rulename'      => $rolesName, //$roleName,
                 'email'         => $item->email,
                 'phone_number'  => $item->phone_number,
                 'show_password' => $item->show_password,

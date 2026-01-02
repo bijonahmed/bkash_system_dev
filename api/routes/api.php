@@ -27,7 +27,7 @@ Route::middleware(['auth:api'])->group(function () {
     // User
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/updateProfile', [AuthController::class, 'updateProfile']);
-    Route::post('/changePassword', [AuthController::class, 'changePassword']);
+
     Route::prefix('setting')->group(function () {
         Route::get('/settingrow', [SettingsController::class, 'settingrow']);
         Route::get('/checkedRate', [SettingsController::class, 'checkedRate']);
@@ -129,6 +129,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::DELETE('/delete/{id}', [UserController::class, 'destroy']);
         Route::get('/checkUserrow/{id}', [UserController::class, 'checkUserrow']);
         Route::get('/getOnlyAgentList', [UserController::class, 'getOnlyAgentList']);
+        Route::post('/changePassword', [AuthController::class, 'changePassword']);
     });
     Route::prefix('posts-category')->group(function () {
         Route::get('/index', [PostCategoryController::class, 'index']);

@@ -64,7 +64,7 @@ export default function AdminAgentReportPage() {
   const handleFilter = async () => {
     setLoading(true);
     const result = await apiGet({
-      endpoint: "/report/agentReport",
+      endpoint: "/report/agentStatement",
       params: formData,
       token,
     });

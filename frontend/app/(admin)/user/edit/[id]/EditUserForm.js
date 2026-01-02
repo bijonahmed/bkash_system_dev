@@ -8,6 +8,7 @@ import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import useRoles from "../../../../hooks/useRoles"; // adjust import path
+import { Modal } from "bootstrap";
 
 export default function EditUserForm({ id }) {
   const { token, permissions } = useAuth();
@@ -29,10 +30,74 @@ export default function EditUserForm({ id }) {
     change_rate: user?.change_rate || "",
     rules_type: user?.role_type || 1,
   });
-
+  const [passwordData, setPasswordData] = useState({
+    new_password: "",
+    confirm_password: "",
+  });
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({ ...prev, [name]: value }));
+  };
+  const closeChangePasswordModal = () => {
+    const modalEl = document.getElementById("changePasswordModal");
+
+    if (modalEl) {
+      modalEl.classList.remove("show");
+      modalEl.style.display = "none";
+      modalEl.setAttribute("aria-hidden", "true");
+    }
+
+    // remove backdrop
+    document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+
+    // restore body scroll
+    document.body.classList.remove("modal-open");
+    document.body.style.overflow = "";
+    document.body.style.paddingRight = "";
+  };
+  /* ================= CHANGE PASSWORD ================= */
+  const handlePasswordSubmit = async () => {
+    if (passwordData.new_password.length < 3) {
+      toast.error("Password must be at least 3 characters");
+      return;
+    }
+
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/users/changePassword`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            user_id: formData.id,
+            password: passwordData.new_password,
+          }),
+        }
+      );
+
+      if (res.ok) {
+        closeChangePasswordModal();
+        toast.success("Password updated successfully");
+        setPasswordData({ new_password: "", confirm_password: "" });
+        router.push("/user");
+      } else {
+        toast.error("Failed to update password");
+      }
+    } catch {
+      toast.error("Server error");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -53,7 +118,7 @@ export default function EditUserForm({ id }) {
       const data = await res.json();
       if (res.ok) {
         setUser(data);
-        toast.success("User updated successfully "); 
+        toast.success("User updated successfully ");
         router.push("/user");
       } else if (data.errors) {
         toast.error(Object.values(data.errors).flat().join(" ")); // show backend validation errors
@@ -77,12 +142,12 @@ export default function EditUserForm({ id }) {
       .then((data) => {
         const user = data?.data || {};
         setFormData({
-          id: user.id, 
+          id: user.id,
           name: user.name ?? "",
           email: user.email ?? "", // ensure string, not undefined
           phone: user.phone_number ?? "",
           address: user.address ?? "",
-           change_rate: user?.change_rate || "",
+          change_rate: user?.change_rate || "",
           agentCode: user.agentCode ?? "",
           status: user.status ?? "",
           rules_type: user.role_type ?? 1,
@@ -134,6 +199,17 @@ export default function EditUserForm({ id }) {
                     ← Back
                   </a>
                 </li>
+
+                <li className="breadcrumb-item" aria-current="page">
+                  <a
+                    href="#"
+                    className="btn btn-warning"
+                    data-bs-toggle="modal"
+                    data-bs-target="#changePasswordModal"
+                  >
+                    🔐 Change Password
+                  </a>
+                </li>
               </ol>
             </div>
           </div>
@@ -141,7 +217,6 @@ export default function EditUserForm({ id }) {
         </div>
         {/*end::Container*/}
       </div>
-
       {/*begin::App Content*/}
       <div className="app-content">
         {/*begin::Container*/}
@@ -317,6 +392,53 @@ export default function EditUserForm({ id }) {
         {/*end::Container*/}
       </div>
       {/*end::App Content*/}
+
+      <div className="modal fade" id="changePasswordModal" tabIndex="-1">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Change Password</h5>
+              <button className="btn-close" data-bs-dismiss="modal" />
+            </div>
+
+            <div className="modal-body">
+              <div className="mb-3">
+                <label>New Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  name="new_password"
+                  value={passwordData.new_password}
+                  onChange={handlePasswordChange}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label>Confirm Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  name="confirm_password"
+                  value={passwordData.confirm_password}
+                  onChange={handlePasswordChange}
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-secondary" data-bs-dismiss="modal">
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handlePasswordSubmit}
+              >
+                Update Password
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }

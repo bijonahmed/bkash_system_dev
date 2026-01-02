@@ -110,4 +110,37 @@ class AuthController extends Controller
 
         return response()->json($response);
     }
+
+
+    public function changePassword(Request $request)
+    {
+        try {
+            $request->validate([
+                'user_id'  => 'required|exists:users,id',
+                'password' => 'required|string|min:3',
+            ]);
+
+            $user = User::find($request->user_id);
+
+            if (!$user) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'User not found'
+                ], 404);
+            }
+
+            $user->password = Hash::make($request->password);
+            $user->save();
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Password updated successfully',
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'error'  => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
