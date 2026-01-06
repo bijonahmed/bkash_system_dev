@@ -9,6 +9,7 @@ import "../list/transactionFilter.css";
 import AddNewModal from "./AddNewModal.jsx";
 import useTransactions from "../../../hooks/getTransactions";
 import useWallets from "../../../hooks/getWallet";
+import useAgents from "../../../hooks/getAgents.js";
 
 import SpinnerLoader from "../../../components/admin/SpinnerLoader.jsx";
 // import "../../../../app/style/loader.css";
@@ -18,6 +19,7 @@ export default function listPage() {
   const { token, permissions, roles } = useAuth();
   const searchBtnRef = useRef(null);
   const router = useRouter();
+  const { agentData } = useAgents();
   const [currentPage, setCurrentPage] = useState(1);
   const { transactionData, depositApproved, loading, totalPages, refetch } =
     useTransactions();
@@ -447,10 +449,8 @@ export default function listPage() {
                             ))}
                           </select>
                         </div>
-                        <div className="col-md-2 mb-1">
-                          <label className="mb-0 fw-semibold">
-                            Transation Status
-                          </label>
+                        <div className="col-md-1 mb-1">
+                          <label className="mb-0 fw-semibold">Status</label>
                           <select
                             className="form-control"
                             value={filters.transection_status}
@@ -466,6 +466,31 @@ export default function listPage() {
                             <option value="0">Delete</option>
                           </select>
                         </div>
+
+                        {roles.includes("admin") && (
+                          <div className="col-md-2">
+                            <label>Agent</label>
+                            <select
+                              name="agent_id"
+                              className="form-select"
+                              value={filters.agent_id}
+                              onChange={(e) =>
+                                setFilters({
+                                  ...filters,
+                                  agent_id: e.target.value,
+                                })
+                              }
+                            >
+                              <option value="">All Agent</option>
+                              {agentData.map((ag) => (
+                                <option key={ag.id} value={ag.id}>
+                                  {ag.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
                         <div className="col-md-1 mb-1 d-flex align-items-end">
                           <button
                             className="btn btn-sm btn-primary btn-lg"
@@ -655,7 +680,7 @@ export default function listPage() {
                             <td className="text-center">
                               <small>
                                 {" "}
-                               {Number(item.agentsettlement || 0).toFixed(2)}
+                                {Number(item.agentsettlement || 0).toFixed(2)}
                               </small>
                             </td>
                             <td>
