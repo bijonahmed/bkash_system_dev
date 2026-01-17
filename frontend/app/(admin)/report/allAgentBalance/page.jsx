@@ -203,7 +203,7 @@ export default function GlobalReportPage() {
                       >
                         <thead>
                           <tr>
-                            <th className="text-center">#</th>
+                            <th className="text-center">#---</th>
                             <th>Agent Name</th>
                             <th>Agent Code</th>
                             <th>Balance</th>

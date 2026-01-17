@@ -469,7 +469,7 @@ export default function listPage() {
 
                         {roles.includes("admin") && (
                           <div className="col-md-2">
-                            <label>Agent</label>
+                            <label className="mb-0 fw-semibold">Agent</label>
                             <select
                               name="agent_id"
                               className="form-select"

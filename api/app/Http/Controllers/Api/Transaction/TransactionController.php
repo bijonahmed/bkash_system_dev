@@ -180,7 +180,17 @@ class TransactionController extends Controller
             $data['depositApproved'] = Deposit::where('approval_status', 0)->count();
         } else if ($user->hasRole('agent')) {
 
-            $debitValue = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('agent_settlement'));
+            $debitValue = Transaction::where('status', '!=', 'cancel')
+                ->where('agent_id', $user->id)
+                ->sum(DB::raw('
+        CASE 
+            WHEN pr_rate > 0 
+            THEN (receiving_money / pr_rate) + fee 
+            ELSE 0 
+        END
+    '));
+
+            //Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('agent_settlement'));
             $creditValue = Deposit::where('agent_id', $user->id)->where('approval_status', 1)->sum('amount_gbp');
 
             //$getbalance = $creditValue - $debitValue;
@@ -294,7 +304,7 @@ class TransactionController extends Controller
         $data['entry_by'] = $user->id;
         $data['agent_id'] = $user->id;
         $data['status'] = "unpaid";
-        
+
         $data['created_at'] =  date("Y-m-d h:i A");
         //dd($data);
         $chkAdminFund = AdminFundDeposit::where('status', 1)->orderBy('id', 'desc')->first();

@@ -1,59 +1,48 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => {
-    if (typeof window !== "undefined") return sessionStorage.getItem("token");
-    return null;
-  });
-  const [username, setUsername] = useState(() => {
-    if (typeof window !== "undefined") return sessionStorage.getItem("username");
-    return null;
-  });
-  const [roles, setRoles] = useState(() => {
-    if (typeof window !== "undefined") {
-      const saved = sessionStorage.getItem("roles");
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
-  const [permissions, setPermissions] = useState(() => {
-    if (typeof window !== "undefined") {
-      const saved = sessionStorage.getItem("permissions");
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
-  const [isLoggedIn, setIsLoggedIn] = useState(!!token);
+  const router = useRouter();
+
+  const [token, setToken] = useState(null);
+  const [username, setUsername] = useState(null);
+  const [roles, setRoles] = useState([]);
+  const [permissions, setPermissions] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Initialize auth state
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedToken = sessionStorage.getItem("token");
-      if (savedToken) {
-        setToken(savedToken);
-        setUsername(sessionStorage.getItem("username") || null);
-        const savedRoles = sessionStorage.getItem("roles");
-        const savedPermissions = sessionStorage.getItem("permissions");
-        setRoles(savedRoles ? JSON.parse(savedRoles) : []);
-        setPermissions(savedPermissions ? JSON.parse(savedPermissions) : []);
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
-      }
-    }
-    setLoading(false);
-  }, []);
 
-  // Login
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const savedToken = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("username");
+    const savedRoles = localStorage.getItem("roles");
+    const savedPermissions = localStorage.getItem("permissions");
+
+    if (savedToken) {
+      setToken(savedToken);
+      setUsername(savedUser);
+      setRoles(savedRoles ? JSON.parse(savedRoles) : []);
+      setPermissions(savedPermissions ? JSON.parse(savedPermissions) : []);
+      setIsLoggedIn(true);
+    } else {
+     
+      router.replace("/login");
+    }
+
+    setLoading(false);
+  }, []); 
+
+ 
   const login = (newToken, user, userRoles = [], userPermissions = []) => {
-    sessionStorage.setItem("token", newToken);
-    sessionStorage.setItem("username", user);
-    sessionStorage.setItem("roles", JSON.stringify(userRoles));
-    sessionStorage.setItem("permissions", JSON.stringify(userPermissions));
+    localStorage.setItem("token", newToken.trim());
+    localStorage.setItem("username", user);
+    localStorage.setItem("roles", JSON.stringify(userRoles));
+    localStorage.setItem("permissions", JSON.stringify(userPermissions));
 
     setToken(newToken);
     setUsername(user);
@@ -62,31 +51,43 @@ export function AuthProvider({ children }) {
     setIsLoggedIn(true);
   };
 
-  // Logout with alert
+
   const logout = () => {
-    sessionStorage.clear(); // automatically cleared on tab close anyway
+    localStorage.clear();
+
     setToken(null);
     setUsername(null);
     setRoles([]);
     setPermissions([]);
     setIsLoggedIn(false);
-    //alert("Expire session, please login again.");
+
+    router.replace("/login");
   };
+
+  const hasRole = (roleName) => roles.includes(roleName);
+  const hasPermission = (permissionName) =>
+    permissions.includes(permissionName);
+
+  // ⏳ Prevent flicker
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <AuthContext.Provider
       value={{
         isLoggedIn,
-        token,
         username,
+        token,
         roles,
         permissions,
         login,
         logout,
-        loading,
+        hasRole,
+        hasPermission,
       }}
     >
-      {loading ? <div>Loading...</div> : children}
+      {children}
     </AuthContext.Provider>
   );
 }

@@ -165,7 +165,7 @@ export default function AdminAgentReportPage() {
   }, [report]);
 
   const selectedAgent = agentData.find(
-    (ag) => ag.id === Number(formData.agent_id)
+    (ag) => ag.id === Number(formData.agent_id),
   );
 
   /* =========================
@@ -309,7 +309,7 @@ export default function AdminAgentReportPage() {
                             <span className="amount text-success">
                               {getFinalBalance(
                                 summary.totalDebit,
-                                summary.totalCredit
+                                summary.totalCredit,
                               )}{" "}
                               £
                             </span>
@@ -359,7 +359,9 @@ export default function AdminAgentReportPage() {
                             <>
                               {reportWithBalance.map((item, index) => (
                                 <tr key={index}>
-                                  <td className="text-center">{index + 1}</td>
+                                  <td className="text-center">
+                                    {index + 1}
+                                  </td>
                                   <td>{item.created_at}</td>
 
                                   {item.debit === 0 ? (
@@ -390,19 +392,21 @@ export default function AdminAgentReportPage() {
                                   )}
 
                                   <td className="text-end">
-                                    {(Number(item?.pr_rate ?? 0) > 0
+                                   {(Number(item?.pr_rate ?? 0) > 0
                                       ? Number(item?.receiving_money ?? 0) /
                                           Number(item?.pr_rate ?? 0) +
                                         Number(item?.fee ?? 0)
                                       : 0
-                                    ).toFixed(2)}
+                                    ).toFixed(2)}  
+                                    
                                     {/* {`${Number(
-                                      item?.receiving_money ?? 0
+                                      item?.receiving_money ?? 0,
                                     ).toFixed(2)} ÷ 
                                   ${Number(item?.pr_rate ?? 0).toFixed(2)} + 
                                   ${Number(item?.fee ?? 0).toFixed(2)} = 
                                   ${(Number(item?.pr_rate ?? 0) > 0
-                                    ? Number(item?.receiving_money ?? 0) / Number(item?.pr_rate ?? 0) +
+                                    ? Number(item?.receiving_money ?? 0) /
+                                        Number(item?.pr_rate ?? 0) +
                                       Number(item?.fee ?? 0)
                                     : 0
                                   ).toFixed(2)}`} */}
@@ -436,7 +440,7 @@ export default function AdminAgentReportPage() {
                                 <td className="text-end">
                                   {getFinalBalance(
                                     summary.totalDebit,
-                                    summary.totalCredit
+                                    summary.totalCredit,
                                   )}{" "}
                                   £
                                 </td>
