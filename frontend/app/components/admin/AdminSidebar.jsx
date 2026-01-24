@@ -26,7 +26,7 @@ export default function AdminSidebar() {
 
     return () => {
       menuLinks.forEach((link) =>
-        link.removeEventListener("click", handleClick)
+        link.removeEventListener("click", handleClick),
       );
     };
   }, []);
@@ -170,11 +170,11 @@ export default function AdminSidebar() {
         <div className="sidebar-brand">
           <Link href="/dashboard" className="brand-link">
             <img
-              src="/src/assets/img/AdminLTELogo.png"
-              alt="FG Logo"
+              src="/src/assets/img/companyLogo.png"
+              alt="Logo"
               className="brand-image opacity-75 shadow"
             />
-            <span className="brand-text fw-light">FG</span>
+            {/* <span className="brand-text fw-light">FG</span> */}
           </Link>
         </div>
 
@@ -255,6 +255,21 @@ export default function AdminSidebar() {
           </nav>
         </div>
       </aside>
+      <style jsx global>{`
+        .bg-body-secondary {
+          --bs-bg-opacity: 1;
+          background-color: #0e5d4c !important;
+        }
+
+        .bg-body-secondary .nav-link {
+          color: #ffffff;
+        }
+
+        .bg-body-secondary .nav-link:hover,
+        .bg-body-secondary .nav-link.active {
+          background-color: #0b4a3c;
+        }
+      `}</style>
     </>
   );
 }

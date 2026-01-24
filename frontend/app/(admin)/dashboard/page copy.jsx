@@ -40,15 +40,7 @@ export default function DashboardPage() {
             {/* Transaction */}
             <div className="col-lg-2 col-6">
               <Link href="/transaction/list" className="text-decoration-none">
-                <div
-                  className="small-box cursor-pointer"
-                  style={{
-                    backgroundColor: "#0e5d4c",
-                    color: "#ffffff",
-                    boxShadow: "0 6px 15px rgba(0,0,0,0.25)",
-                    borderRadius: "8px",
-                  }}
-                >
+                <div className="small-box text-bg-success cursor-pointer">
                   <div className="inner">
                     <h3>{transactionAll}</h3>
                     <p>My Transaction</p>
@@ -62,16 +54,11 @@ export default function DashboardPage() {
 
             {/* Deposit */}
             <div className="col-lg-2 col-6">
-              <Link href="/depositrequiest" className="text-decoration-none">
-                <div
-                  className="small-box cursor-pointer"
-                  style={{
-                    backgroundColor: "#8b1e3f",
-                    color: "#ffffff",
-                    boxShadow: "0 6px 15px rgba(0,0,0,0.25)",
-                    borderRadius: "8px",
-                  }}
-                >
+              <Link
+                href="/depositrequiest"
+                className="col-md-3 mb-3 text-decoration-none"
+              >
+                <div className="small-box text-bg-danger cursor-pointer">
                   <div className="inner">
                     <h3>{depositApproved}</h3>
                     <p>Deposit {depositApproved_status}</p>
@@ -83,7 +70,6 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            {/* Balance */}
             <div className="col-lg-2 col-6">
               <Link
                 href={
@@ -91,17 +77,9 @@ export default function DashboardPage() {
                     ? "/report/allAgentBalance"
                     : "/transaction/list"
                 }
-                className="text-decoration-none"
+                className="col-md-3 text-decoration-none"
               >
-                <div
-                  className="small-box cursor-pointer position-relative"
-                  style={{
-                    backgroundColor: "#1e6f5c",
-                    color: "#ffffff",
-                    boxShadow: "0 6px 15px rgba(0,0,0,0.25)",
-                    borderRadius: "8px",
-                  }}
-                >
+                <div className="small-box text-bg-success cursor-pointer position-relative">
                   <div className="inner">
                     <h3>{formattedBalance}</h3>
                     <p>Balance</p>
@@ -112,13 +90,15 @@ export default function DashboardPage() {
                     className="small-box-icon position-absolute top-0 end-0 m-2"
                     fill="currentColor"
                     viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
                     width="40"
                     height="40"
                   >
                     <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z" />
                   </svg>
 
-                  <div className="small-box-footer text-white">
+                  <div className="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">
                     More info <i className="bi bi-link-45deg" />
                   </div>
                 </div>
@@ -127,17 +107,13 @@ export default function DashboardPage() {
 
             {/* Admin Only */}
             {roles == "admin" && (
-              <div className="col-lg-2 col-6">
-                <Link href="/user" className="text-decoration-none">
-                  <div
-                    className="small-box cursor-pointer"
-                    style={{
-                      backgroundColor: "#2c3e50",
-                      color: "#ffffff",
-                      boxShadow: "0 6px 15px rgba(0,0,0,0.25)",
-                      borderRadius: "8px",
-                    }}
-                  >
+              <>
+                {/* Agent List */}
+                <Link
+                  href="/user"
+                  className="col-lg-2 col-6 text-decoration-none"
+                >
+                  <div className="small-box text-bg-primary cursor-pointer">
                     <div className="inner">
                       <h3>{agentList}</h3>
                       <p>Agent List</p>
@@ -147,7 +123,9 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </Link>
-              </div>
+
+                {/* Additional admin boxes */}
+              </>
             )}
           </div>
         </div>
