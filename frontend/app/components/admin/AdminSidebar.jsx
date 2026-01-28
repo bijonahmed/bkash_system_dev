@@ -172,7 +172,7 @@ export default function AdminSidebar() {
             <img
               src="/src/assets/img/companyLogo.png"
               alt="Logo"
-              className="brand-image opacity-75 shadow"
+              style={{ height: "56px", width: "100%" }}
             />
             {/* <span className="brand-text fw-light">FG</span> */}
           </Link>
@@ -268,6 +268,20 @@ export default function AdminSidebar() {
         .bg-body-secondary .nav-link:hover,
         .bg-body-secondary .nav-link.active {
           background-color: #0b4a3c;
+        }
+
+        .sidebar-brand {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 3.5rem;
+          padding: 0.8125rem 0.5rem;
+          overflow: hidden;
+          font-size: 1.25rem;
+          white-space: nowrap;
+          border-bottom: 1px solid var(--bs-border-color);
+          transition: width 0.3s ease-in-out;
+          background-color: white;
         }
       `}</style>
     </>
