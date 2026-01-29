@@ -418,6 +418,31 @@ class TransactionController extends Controller
             'data' => $transaction
         ]);
     }
+
+    public function bulkupdatestatus(Request $request)
+    {
+        //dd($request->all());
+        // Validate that `ids` is an array of integers and status is required
+        $validated = $request->validate([
+            'ids'    => 'required|array',
+            'ids.*'  => 'integer|exists:transactions,id',
+            'status' => 'required',
+        ]);
+
+
+        // Update all matching transactions in one query
+        $updatedCount = Transaction::whereIn('id', $validated['ids'])
+            ->update(['status' => $validated['status']]);
+
+
+        return response()->json([
+            'success' => true,
+            'message' => "$updatedCount transaction(s) updated successfully",
+        ]);
+    }
+
+
+
     public function walletcalculate(Request $request)
     {
         $receiving_money = $request->receiving_money ? $request->receiving_money : 0;

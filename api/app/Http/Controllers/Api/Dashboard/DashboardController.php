@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers\Api\Dashboard;
+
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Deposit;
@@ -20,10 +22,12 @@ use Illuminate\Support\Str;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+
 class DashboardController extends Controller
 {
     public function getDashboardData()
     {
+
         $user = Auth::user();
         try {
             if ($user->getRoleNames()->contains('admin')) {
@@ -33,7 +37,7 @@ class DashboardController extends Controller
             }
             $data['agentList']           = User::where('role_type', 2)->where('status', 1)->count();
             if ($user->hasRole('admin')) {
-                
+
                 $agentSettlement = Transaction::where('status', '!=', 'cancel')->sum(DB::raw('agent_settlement'));
                 $sumDepositApproved = Deposit::where('approval_status', 1)->sum('amount_gbp');
                 $getbalance = $agentSettlement - $sumDepositApproved;
@@ -41,7 +45,7 @@ class DashboardController extends Controller
 
                 $data['depositApproved'] = Deposit::where('approval_status', 0)->whereDate('created_at', Carbon::today())->count();
             } else if ($user->hasRole('agent')) {
-          
+
                 $debitValue = Transaction::where('status', '!=', 'cancel')->where('agent_id', $user->id)->sum(DB::raw('agent_settlement'));
                 $creditValue = Deposit::where('approval_status', 1)->where('agent_id', $user->id)->sum('amount_gbp');
                 $value = $debitValue - $creditValue;
@@ -68,8 +72,9 @@ class DashboardController extends Controller
                 }
             }
             return response()->json([
-                'success' => true,
-                'data' => $data
+                'success'  => true,
+                'data'     => $data,
+                'userData' => $user
             ]);
         } catch (\Exception $e) {
             return response()->json([

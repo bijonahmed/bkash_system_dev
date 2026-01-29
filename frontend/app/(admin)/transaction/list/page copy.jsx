@@ -28,51 +28,10 @@ export default function listPage() {
   const title = "Transaction List";
   const contentRef = useRef(null);
   const { walletData, bankrate } = useWallets();
+
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [filtersByDay, setFiltersByDay] = useState({ days: "" });
-  const [selectedIds, setSelectedIds] = useState([]);
-  const [showStatusModal, setShowStatusModal] = useState(false);
-
-  const isAllSelected =
-    transactionData &&
-    transactionData.length > 0 &&
-    selectedIds.length === transactionData.length;
-
-  const toggleSelectAll = () => {
-    if (isAllSelected) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(transactionData.map((item) => item.id));
-    }
-  };
-
-  const toggleSingle = (id) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  };
-
-  const bulkUpdateStatus = async (ids, selectedStatus) => {
-    if (!ids.length || !selectedStatus) return;
-
-    apiUpdate({
-      endpoint: "/transaction/bulk-update-status",
-      data: { ids, status: selectedStatus },
-      token: token, // pass your auth token if needed
-      onSuccess: () => {
-        toast.success(
-          `${selectedIds.length} transaction(s) updated successfully`,
-        );
-        // Refresh table
-        loadTransactions();
-      },
-      onError: (err) => {
-        console.error(err);
-        toast.error("Error!", err.message || "Failed to update transactions");
-      },
-    });
-  };
 
   const handleLogClick = () => {
     try {
@@ -588,32 +547,14 @@ export default function listPage() {
                       </div>
                     </div>
                   </div>
-
                   <center className="mt-2">
-                    <div className="d-flex justify-content-center align-items-center gap-2">
-                      <span
-                        className="bg-danger text-white px-2 rounded"
-                        style={{ fontSize: "17px" }}
-                      >
-                        Balance: {depositApproved || 0}
-                      </span>
-
-                      {roles.includes("admin") && (
-                        <button
-                          className="btn btn-sm btn-primary d-flex align-items-center gap-1"
-                          disabled={selectedIds.length === 0}
-                          onClick={() => setShowStatusModal(true)}
-                          style={{
-                            fontSize: "0.85rem",
-                            padding: "0.25rem 0.6rem",
-                            backgroundColor: "#0e5d4c !important",
-                          }}
-                        >
-                          <i className="fas fa-tasks"></i>
-                          Selected ({selectedIds.length})
-                        </button>
-                      )}
-                    </div>
+                    {" "}
+                    <span
+                      className="bg-danger text-white px-2 rounded"
+                      style={{ fontSize: "17px" }}
+                    >
+                      Balance: {depositApproved || 0}
+                    </span>
                   </center>
                 </div>
               )}
@@ -626,19 +567,6 @@ export default function listPage() {
                         className="table-gradient"
                         style={{ fontSize: "13px" }}
                       >
-                        {roles.includes("admin") && (
-                          <th
-                            className="text-center text-white"
-                            style={{ width: "3%" }}
-                          >
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              checked={isAllSelected}
-                              onChange={toggleSelectAll}
-                            />
-                          </th>
-                        )}
                         <th
                           className="text-center text-white"
                           style={{ width: "3%" }}
@@ -674,7 +602,7 @@ export default function listPage() {
                           Total Amount
                         </th>
                         <th className="text-white" style={{ width: "4%" }}>
-                          Agent Sett.
+                          Agent Settlement
                         </th>
                         <th className="text-white" style={{ width: "8%" }}>
                           Description
@@ -688,16 +616,6 @@ export default function listPage() {
                         transactionData.map((item, index) => (
                           <tr key={item.id} className="table-row bg-light">
                             {/* or bg-info, bg-warning, bg-success, etc. */}
-                            {roles.includes("admin") && (
-                              <td className="text-center">
-                                <input
-                                  type="checkbox"
-                                  className="form-check-input me-1"
-                                  checked={selectedIds.includes(item.id)}
-                                  onChange={() => toggleSingle(item.id)}
-                                />
-                              </td>
-                            )}
                             <td>
                               {index + 1 + (currentPage - 1) * filters.limit}
                               {/* {item.id} */}
@@ -949,58 +867,6 @@ export default function listPage() {
         </div>
       </div>
       {/* END Modal */}
-
-      {/* Bulk transaction ID Update */}
-      {showStatusModal && (
-        <div className="modal show d-block" tabIndex="-1">
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Update Status</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowStatusModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <select
-                  className="form-select"
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                >
-                  <option value="">Select Status</option>
-                  <option value="paid">Paid</option>
-                  <option value="hold">Hold</option>
-                  <option value="unpaid">Unpaid</option>
-                  <option value="cancel">Cancel</option>
-                  <option value="pending">Pending</option>
-                </select>
-              </div>
-              <div className="modal-footer">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setShowStatusModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn btn-primary"
-                  disabled={!selectedStatus}
-                  onClick={() => {
-                    bulkUpdateStatus(selectedIds, selectedStatus);
-                    setShowStatusModal(false);
-                    setSelectedStatus("");
-                  }}
-                >
-                  Update
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* End */}
     </main>
   );
 }

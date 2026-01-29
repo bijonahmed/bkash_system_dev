@@ -82,22 +82,14 @@ export default function ProfilePage() {
         const data = await res.json();
 
         if (res.ok) {
-          // Save main user info
+      
           setUser(data.user);
-
-          // Extract roles
           const roles = data.roles || [];
           setUserRoles(roles); // state: userRoles
 
-          // Extract permissions from API (flatten if nested in roles)
           const permissions = data.permissions || [];
           setUserPermissions(permissions); // state: userPermissions
 
-          // Optionally store in localStorage
-          //   localStorage.setItem("roles", JSON.stringify(roles));
-          // localStorage.setItem("permissions", JSON.stringify(permissions));
-
-          // Fill form data if needed
           setFormData({
             name: data.user?.name || "",
             phone_number: data.user?.phone_number || "",

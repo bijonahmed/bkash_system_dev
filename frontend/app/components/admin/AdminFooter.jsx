@@ -10,8 +10,8 @@ export default function AdminFooter() {
       <div className="float-end d-none d-sm-inline"></div>
       {/*end::To the end*/}
       {/*begin::Copyright*/}
-      <strong>
-        Copyright © {new Date().getFullYear()} &nbsp; Deshremit, All rights
+      
+       <small>Copyright © {new Date().getFullYear()} Deshremit, All rights
         reserved. Software developed by{" "}
         <a
           href="https://futuregenit.com/"
@@ -21,8 +21,8 @@ export default function AdminFooter() {
         >
           FutureGenIT
         </a>
-        .
-      </strong>
+        </small>
+    
       &nbsp;
       {/*end::Copyright*/}
     </footer>

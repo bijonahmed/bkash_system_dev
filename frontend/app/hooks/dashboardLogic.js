@@ -7,6 +7,7 @@ import { apiGet } from "../../lib/apiGet";
 export default function useDashboard() {
   const [dashboardData, setDashboardData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [userData, setUserDataData] = useState("");
 
   const { token } = useAuth();
 
@@ -30,7 +31,10 @@ export default function useDashboard() {
         throw new Error(res?.message || "Dashboard fetch failed");
       }
       const data = res.data?.data ?? res.data ?? {};
+     // console.log("UserData:" + res.data?.userData);
+
       setDashboardData(data);
+      setUserDataData(res.data?.userData);
     } catch (error) {
       console.error("Dashboard error:", error);
     } finally {
@@ -42,7 +46,7 @@ export default function useDashboard() {
   useEffect(() => {
     if (!token) return;
     fetchDashboard();
-    intervalRef.current = setInterval(fetchDashboard, 40000);
+    intervalRef.current = setInterval(fetchDashboard, 70000);
 
     return () => {
       if (intervalRef.current) {
@@ -58,6 +62,7 @@ export default function useDashboard() {
   return {
     dashboardData,
     loading,
+    userData,
     refetchDashboard,
   };
 }

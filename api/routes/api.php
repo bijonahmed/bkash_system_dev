@@ -98,6 +98,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/walletcalculate', [TransactionController::class, 'walletcalculate']);
         Route::get('/checkedBenPhone', [TransactionController::class, 'checkedBenPhone']);
         Route::post('/updateStatusForTransaction', [TransactionController::class, 'updateStatusForTransaction']);
+        Route::post('/bulk-update-status', [TransactionController::class, 'bulkupdatestatus']);
     });
     Route::prefix('dashbaord')->group(function () {
         Route::get('/getDashboardData', [DashboardController::class, 'getDashboardData']);
