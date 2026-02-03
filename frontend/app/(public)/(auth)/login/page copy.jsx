@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
 import { useState } from "react";
-import "./login.css";
+import "./login.css"; // 👈 create this CSS file next to your component
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,15 +30,14 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // 🔥 ONLY sessionStorage
-        sessionStorage.setItem("token", data.token);
-        sessionStorage.setItem("username", data.user.name);
-        sessionStorage.setItem("roles", JSON.stringify(data.roles || []));
-        sessionStorage.setItem(
-          "permissions",
-          JSON.stringify(data.permissions || []),
-        );
+        if (data.token) localStorage.setItem("token", data.token);
+        if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+        if (data.roles)
+          localStorage.setItem("roles", JSON.stringify(data.roles));
+        if (data.permissions)
+          localStorage.setItem("permissions", JSON.stringify(data.permissions));
 
+        setSuccess("Login successful!");
         login(data.token, data.user.name, data.roles, data.permissions);
         router.replace("/dashboard");
       } else {
@@ -56,56 +55,79 @@ export default function LoginPage() {
       <div className="col-md-6 col-lg-4">
         <div className="card shadow-lg border-0 rounded-4">
           <div className="card-body">
-            <div className="text-center">
-              <img
-                src="/src/assets/img/companyLogo.png"
-                alt="Logo"
-                className="img-fluid company-logo"
-                style={{
-                  width: "200px",
-                  height: "100px",
-                  objectFit: "contain",
-                }}
-              />
-              <h4 className="mt-2">Welcome to Deshremit</h4>
-            </div>
-
+            <img
+              src="/src/assets/img/companyLogo.png"
+              alt="Logo"
+              className="img-fluid company-logo desktop-device mobile-device centered"
+            />
+            <h4 className="text-center mb-4">Welcome to Deshremit</h4>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label className="form-label fw-bold">Email</label>
+                <label htmlFor="email" className="form-label fw-bold">
+                  Email
+                </label>
                 <input
-                  placeholder="Enter your email"
                   type="email"
                   className="form-control"
+                  id="email"
                   value={email}
                   onChange={(e) => setemail(e.target.value)}
+                  placeholder="Enter your email"
                 />
               </div>
 
               <div className="mb-3">
-                <label className="form-label fw-bold">Password</label>
+                <label htmlFor="password" className="form-label fw-bold">
+                  Password
+                </label>
                 <input
                   type="password"
-                  placeholder="Enter your password"
                   className="form-control"
+                  id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
                 />
               </div>
 
-              <button
-                type="submit"
-                className="btn btn-primary w-100"
-                disabled={loading}
-              >
-                {loading ? "Logging in..." : "Login"}
-              </button>
+              <div className="d-grid">
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={loading}
+                >
+                  {loading ? "Logging in..." : "Login"}
+                </button>
+              </div>
 
-              {error && <p className="text-danger mt-3 text-center">{error}</p>}
+              {error && (
+                <p className="text-danger mt-3  text-center">{error}</p>
+              )}
+              {success && (
+                <p className="text-success mt-3  text-center">{success}</p>
+              )}
             </form>
           </div>
         </div>
       </div>
+      <style jsx>{`
+        .company-logo {
+          height: 140px;
+          width: 50%;
+          object-fit: contain;
+        }
+
+        @media (max-width: 768px) {
+          .company-logo.mobile-device {
+            width: 70%;
+            height: auto;
+          }
+        }
+        .centered {
+          display: block;
+          margin: 0 auto;
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,90 +1,89 @@
 "use client";
-import { createContext, useContext, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+
+import { createContext, useContext, useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const [token, setToken] = useState(null);
   const [username, setUsername] = useState(null);
   const [roles, setRoles] = useState([]);
   const [permissions, setPermissions] = useState([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
-
+  /**
+   * 🔐 AUTH CHECK (RUNS ON EVERY PAGE LOAD)
+   */
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const savedToken = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("username");
-    const savedRoles = localStorage.getItem("roles");
-    const savedPermissions = localStorage.getItem("permissions");
+    const storedToken = sessionStorage.getItem("token");
 
-    if (savedToken) {
-      setToken(savedToken);
-      setUsername(savedUser);
-      setRoles(savedRoles ? JSON.parse(savedRoles) : []);
-      setPermissions(savedPermissions ? JSON.parse(savedPermissions) : []);
-      setIsLoggedIn(true);
-    } else {
-     
-      router.replace("/login");
+    // 🔒 Not logged in → block protected routes
+    if (!storedToken) {
+      // login page ছাড়া অন্য সব page block
+      if (pathname !== "/login") {
+        router.replace("/login");
+      }
+      setLoading(false);
+      return;
+    }
+
+    // ✅ Logged in
+    setToken(storedToken);
+    setUsername(sessionStorage.getItem("username"));
+    setRoles(JSON.parse(sessionStorage.getItem("roles") || "[]"));
+    setPermissions(
+      JSON.parse(sessionStorage.getItem("permissions") || "[]")
+    );
+
+    // 🔁 Login page এ থাকলে dashboard এ পাঠাও
+    if (pathname === "/login") {
+      router.replace("/dashboard");
     }
 
     setLoading(false);
-  }, []); 
+  }, [router, pathname]);
 
- 
-  const login = (newToken, user, userRoles = [], userPermissions = []) => {
-    localStorage.setItem("token", newToken.trim());
-    localStorage.setItem("username", user);
-    localStorage.setItem("roles", JSON.stringify(userRoles));
-    localStorage.setItem("permissions", JSON.stringify(userPermissions));
-
-    setToken(newToken);
+  /**
+   * ✅ LOGIN (STATE ONLY — storage login page এ set হবে)
+   */
+  const login = (token, user, roles = [], permissions = []) => {
+    setToken(token);
     setUsername(user);
-    setRoles(userRoles);
-    setPermissions(userPermissions);
-    setIsLoggedIn(true);
+    setRoles(roles);
+    setPermissions(permissions);
   };
 
-
+  /**
+   * 🚪 LOGOUT
+   */
   const logout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
 
     setToken(null);
     setUsername(null);
     setRoles([]);
     setPermissions([]);
-    setIsLoggedIn(false);
 
     router.replace("/login");
   };
 
-  const hasRole = (roleName) => roles.includes(roleName);
-  const hasPermission = (permissionName) =>
-    permissions.includes(permissionName);
-
-  // ⏳ Prevent flicker
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  if (loading) return <div>Loading...</div>;
 
   return (
     <AuthContext.Provider
       value={{
-        isLoggedIn,
-        username,
         token,
+        username,
         roles,
         permissions,
         login,
         logout,
-        hasRole,
-        hasPermission,
       }}
     >
       {children}
