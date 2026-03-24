@@ -209,7 +209,7 @@ export default function AdminAgentReportPage() {
             {/* FILTER FORM */}
             <div className="card-header">
               <form className="row g-3 align-items-end">
-                <div className="col-md-3">
+                <div className="col-md-3 d-none">
                   <label>From Date</label>
                   <input
                     type="date"
@@ -220,7 +220,7 @@ export default function AdminAgentReportPage() {
                   />
                 </div>
 
-                <div className="col-md-3">
+                <div className="col-md-3 d-none">
                   <label>To Date</label>
                   <input
                     type="date"
@@ -361,6 +361,7 @@ export default function AdminAgentReportPage() {
                                 <tr key={index}>
                                   <td className="text-center">
                                     {index + 1}
+                                    {/* -------{item.id} */}
                                   </td>
                                   <td>{item.created_at}</td>
 
@@ -392,13 +393,13 @@ export default function AdminAgentReportPage() {
                                   )}
 
                                   <td className="text-end">
-                                   {(Number(item?.pr_rate ?? 0) > 0
+                                    {" "}
+                                    {(Number(item?.pr_rate ?? 0) > 0
                                       ? Number(item?.receiving_money ?? 0) /
                                           Number(item?.pr_rate ?? 0) +
                                         Number(item?.fee ?? 0)
                                       : 0
-                                    ).toFixed(2)}  
-                                    
+                                    ).toFixed(2)}
                                     {/* {`${Number(
                                       item?.receiving_money ?? 0,
                                     ).toFixed(2)} ÷ 

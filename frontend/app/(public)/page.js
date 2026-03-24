@@ -23,7 +23,7 @@ export default function Home() {
   return (
     <>
       {/* You can add a loader or blank return */}
-      {loading && <p className="text-center mt-10">Redirecting to login...</p>}
+      {/* {loading && <p className="text-center mt-10">Redirecting to login...</p>} */}
     </>
   );
 }
