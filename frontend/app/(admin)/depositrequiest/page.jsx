@@ -7,6 +7,7 @@ import { customStyles } from "../../components/styles/customDataTable";
 import { useAuth } from "../../context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 import useAgents from "../../hooks/getAgents.js";
+
 export default function DepositRequestPage() {
   const router = useRouter();
   const { token, permissions, roles } = useAuth();
@@ -34,6 +35,7 @@ export default function DepositRequestPage() {
   const [showModal, setShowModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const { agentData } = useAgents();
+
   const [formData, setFormData] = useState({
     id: "",
     payment_method: "",
@@ -59,18 +61,19 @@ export default function DepositRequestPage() {
     searchQuery = "",
     selectedFilter = statusFilter !== "" ? statusFilter : "",
     agent_id = formData.agent_id,
-    status = formData.status
+    status = formData.status,
   ) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page,
-        pageSize,
-        searchQuery: searchQuery ?? "",
-        selectedFilter: selectedFilter ?? "",
-        agent_id: agent_id ?? "",
-        status: status ?? "",
-      });
+      const params = new URLSearchParams();
+
+      params.append("page", String(page ?? 1));
+      params.append("pageSize", String(pageSize ?? 10));
+
+      if (searchQuery) params.append("searchQuery", searchQuery);
+      if (selectedFilter) params.append("selectedFilter", selectedFilter);
+      if (agent_id) params.append("agent_id", String(agent_id));
+      if (status) params.append("status", String(status));
 
       const url = `${
         process.env.NEXT_PUBLIC_API_BASE
@@ -104,6 +107,7 @@ export default function DepositRequestPage() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchData(page, perPage, search);
   }, [page, perPage, search]);
@@ -128,8 +132,6 @@ export default function DepositRequestPage() {
   const handleFileChange = (e) => {
     setFormData((prev) => ({ ...prev, attachment: e.target.files[0] }));
   };
-
- 
 
   const columns = [
     {
@@ -263,67 +265,70 @@ export default function DepositRequestPage() {
             {/* Header */}
             <div className="card-header">
               <div className="card-title w-100">
-  <div className="d-flex flex-wrap align-items-center gap-2">
+                <div className="d-flex flex-wrap align-items-center gap-2">
+                  {/* Admin Agent Filter */}
+                  {roles.includes("admin") && (
+                    <select
+                      name="agent_id"
+                      className="form-select"
+                      style={{ width: "200px" }}
+                      value={formData.agent_id}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">All Agent</option>
+                      {agentData.map((ag) => (
+                        <option key={ag.id} value={ag.id}>
+                          {ag.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
 
-    {/* Admin Agent Filter */}
-    {roles.includes("admin") && (
-      <select
-        name="agent_id"
-        className="form-select"
-        style={{ width: "200px" }}
-        value={formData.agent_id}
-        onChange={handleChange}
-        required
-      >
-        <option value="">All Agent</option>
-        {agentData.map((ag) => (
-          <option key={ag.id} value={ag.id}>
-            {ag.name}
-          </option>
-        ))}
-      </select>
-    )}
+                  {/* Status Filter */}
+                  <select
+                    className="form-select"
+                    style={{ width: "180px" }}
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="">All Status</option>
+                    <option value="0">Pending</option>
+                    <option value="1">Approved</option>
+                    <option value="2">Rejected</option>
+                  </select>
 
-    {/* Status Filter */}
-    <select
-      className="form-select"
-      style={{ width: "180px" }}
-      value={statusFilter}
-      onChange={(e) => setStatusFilter(e.target.value)}
-    >
-      <option value="">All Status</option>
-      <option value="0">Pending</option>
-      <option value="1">Approved</option>
-      <option value="2">Rejected</option>
-    </select>
+                  {/* Search Button */}
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={fetchData}
+                  >
+                    Search
+                  </button>
 
-    {/* Search Button */}
-    <button
-      type="button"
-      className="btn btn-outline-secondary"
-      onClick={fetchData}
-    >
-      Search
-    </button>
+                  {/* Right Side Actions */}
+                  <div className="ms-auto d-flex gap-2">
+                    {perms.includes("create deposit") && (
+                      <Link
+                        className="btn btn-primary"
+                        href="/depositrequiest/add"
+                      >
+                        Add New
+                      </Link>
+                    )}
 
-    {/* Right Side Actions */}
-    <div className="ms-auto d-flex gap-2">
-      {perms.includes("create deposit") && (
-        <Link className="btn btn-primary" href="/depositrequiest/add">
-          Add New
-        </Link>
-      )}
-
-      {roles.includes("admin") && (
-        <button className="btn btn-danger" onClick={handleLogClick}>
-          Log
-        </button>
-      )}
-    </div>
-
-  </div>
-</div>
-
+                    {roles.includes("admin") && (
+                      <button
+                        className="btn btn-danger"
+                        onClick={handleLogClick}
+                      >
+                        Log
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Body */}
@@ -335,6 +340,10 @@ export default function DepositRequestPage() {
                 pagination
                 paginationServer
                 paginationTotalRows={totalRows}
+                paginationRowsPerPageOptions={[
+                  50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600,
+                  650, 700, 750, 800, 850, 900, 950, 1000, 1200, 1500, 2000,
+                ]}
                 onChangePage={handlePageChange}
                 onChangeRowsPerPage={handlePerRowsChange}
                 customStyles={customStyles}
@@ -346,7 +355,7 @@ export default function DepositRequestPage() {
         {/*end::Row*/}
       </div>
       {/*end::Container*/}
-      
+
       {/*end::App Content*/}
     </main>
   );

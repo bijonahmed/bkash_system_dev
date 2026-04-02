@@ -31,8 +31,8 @@ class AgentRequestSendController extends Controller
                 'message' => 'Unauthorized: You do not have permission to view deposit',
             ], 403);
         }
-        $page            = $request->input('page', 1);
-        $pageSize        = $request->input('pageSize', 10);
+        $page = is_numeric($request->page) ? (int) $request->page : 1;
+        $pageSize = is_numeric($request->pageSize) ? (int) $request->pageSize : 10;
         $selectedFilter  = $request->selectedFilter;
 
         $agent_id  = $request->agent_id;
@@ -51,6 +51,7 @@ class AgentRequestSendController extends Controller
 
             $query = Deposit::select('deposit.*', 'users.name as agent_name')
                 ->leftJoin('users', 'users.id', '=', 'deposit.agent_id')
+                // ->where('deposit.agent_id', $agent_id)
                 ->orderBy('deposit.id', 'desc');
         } else if ($user->hasRole('agent')) {
 
@@ -152,7 +153,7 @@ class AgentRequestSendController extends Controller
             'approval_status' => 0, //$request->approval_status,
             'amount_gbp'      => $request->amount_gbp,
             'attachment'      => $attachmentPath,
-            'created_at'      => date("Y-m-d h:i A"),   
+            'created_at'      => date("Y-m-d h:i A"),
         ]);
 
         DepositLog::create([
