@@ -93,7 +93,7 @@ class WalletController extends Controller
                 'agent_id'      => $item->agent_id ?? "",
                 'wallet_name'   => $item->wallet_name ?? "",
                 'agent_name'    => $item->agent_name ?? "",
-                'amount'        => $item->amount ?? "",
+                'amount'        => number_format($item->amount ?? 0, 2),
             ];
         });
 

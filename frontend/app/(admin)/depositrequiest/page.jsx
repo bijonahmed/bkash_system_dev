@@ -1,4 +1,4 @@
-"use client"; // Required in Next.js App Router for client-side component
+"use client";
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import DataTable from "react-data-table-component";
@@ -11,19 +11,18 @@ import useAgents from "../../hooks/getAgents.js";
 export default function DepositRequestPage() {
   const router = useRouter();
   const { token, permissions, roles } = useAuth();
-  //console.log("Permissions:", permissions);
   const perms = Array.isArray(permissions)
     ? permissions
     : permissions?.split(",") || [];
   const pathname = usePathname();
   const title = "Agent Deposit Request";
-  //const title = pathname ? pathname.replace("/", "").charAt(0).toUpperCase() + pathname.slice(2) : "";
-  // update document title
+
   useEffect(() => {
     if (title) {
       document.title = title;
     }
   }, [title]);
+
   const [statusFilter, setStatusFilter] = useState("");
   const [data, setData] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
@@ -55,6 +54,7 @@ export default function DepositRequestPage() {
       console.error(err);
     }
   };
+
   const fetchData = async (
     page = 1,
     pageSize = 10,
@@ -75,9 +75,8 @@ export default function DepositRequestPage() {
       if (agent_id) params.append("agent_id", String(agent_id));
       if (status) params.append("status", String(status));
 
-      const url = `${
-        process.env.NEXT_PUBLIC_API_BASE
-      }/deposit-request/index?${params.toString()}`;
+      const url = `${process.env.NEXT_PUBLIC_API_BASE}/deposit-request/index?${params.toString()}`;
+
       const res = await fetch(url, {
         method: "GET",
         headers: {
@@ -85,12 +84,14 @@ export default function DepositRequestPage() {
           Authorization: `Bearer ${token}`,
         },
       });
+
       let result;
       try {
         result = await res.json();
       } catch (e) {
         result = null;
       }
+
       if (!res.ok) {
         if (result && result.message) {
           throw new Error(result.message);
@@ -98,10 +99,19 @@ export default function DepositRequestPage() {
           throw new Error(`HTTP Error: ${res.status}`);
         }
       }
+
       setData(result.data || []);
+      // FIX: setTotalRows is correctly inside fetchData where result is defined
+      setTotalRows(
+        result.total ||
+          result.totalRows ||
+          result.total_count ||
+          result.count ||
+          result.meta?.total ||
+          0,
+      );
       setApprovalAmount(result.total_approved_amount || 0);
     } catch (err) {
-      //console.error("Fetch users failed:", err.message);
       toast.error(err.message || "Something went wrong!");
     } finally {
       setLoading(false);
@@ -111,6 +121,7 @@ export default function DepositRequestPage() {
   useEffect(() => {
     fetchData(page, perPage, search);
   }, [page, perPage, search]);
+
   useEffect(() => {
     if (selectedRow) {
       setFormData({
@@ -123,12 +134,12 @@ export default function DepositRequestPage() {
       });
     }
   }, [selectedRow]);
-  // Handle text / number / date / select change
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  // Handle file upload
+
   const handleFileChange = (e) => {
     setFormData((prev) => ({ ...prev, attachment: e.target.files[0] }));
   };
@@ -159,19 +170,19 @@ export default function DepositRequestPage() {
         switch (row.approval_status) {
           case 0:
             statusText = "Pending";
-            badgeClass = "badge bg-warning text-dark"; // yellow
+            badgeClass = "badge bg-warning text-dark";
             break;
           case 1:
             statusText = "Approved";
-            badgeClass = "badge bg-success"; // green
+            badgeClass = "badge bg-success";
             break;
           case 2:
             statusText = "Rejected";
-            badgeClass = "badge bg-danger"; // red
+            badgeClass = "badge bg-danger";
             break;
           default:
             statusText = "Unknown";
-            badgeClass = "badge bg-secondary"; // gray
+            badgeClass = "badge bg-secondary";
         }
         return <span className={badgeClass}>{statusText}</span>;
       },
@@ -198,7 +209,6 @@ export default function DepositRequestPage() {
           "No File"
         ),
     },
-    // Inside your columns array
     ...(roles.includes("admin")
       ? [
           {
@@ -220,15 +230,22 @@ export default function DepositRequestPage() {
         ]
       : []),
   ];
-  const handlePageChange = (newPage) => setPage(newPage);
-  const handlePerRowsChange = (newPerPage) => setPerPage(newPerPage);
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    fetchData(newPage, perPage, search);
+  };
+
+  const handlePerRowsChange = (newPerPage, currentPage) => {
+    setPerPage(newPerPage);
+    setPage(currentPage);
+    fetchData(currentPage, newPerPage, search);
+  };
+
   return (
     <main className="app-main" id="main" tabIndex={-1}>
-      {/*begin::App Content Header*/}
       <div className="app-content-header">
-        {/*begin::Container*/}
         <div className="container-fluid">
-          {/*begin::Row*/}
           <div className="row">
             <div className="col-sm-6">
               <h3 className="mb-0">
@@ -249,24 +266,17 @@ export default function DepositRequestPage() {
               </ol>
             </div>
           </div>
-          {/*end::Row*/}
         </div>
-        {/* Start */}
-        {/* END */}
-        {/*end::Container*/}
       </div>
-      {/*begin::App Content*/}
+
       <Toaster position="top-right" />
+
       <div className="app-content">
-        {/*begin::Container*/}
         <div className="container-fluid">
-          {/*begin::Row*/}
           <div className="card card-primary card-outline mb-4">
-            {/* Header */}
             <div className="card-header">
               <div className="card-title w-100">
                 <div className="d-flex flex-wrap align-items-center gap-2">
-                  {/* Admin Agent Filter */}
                   {roles.includes("admin") && (
                     <select
                       name="agent_id"
@@ -285,7 +295,6 @@ export default function DepositRequestPage() {
                     </select>
                   )}
 
-                  {/* Status Filter */}
                   <select
                     className="form-select"
                     style={{ width: "180px" }}
@@ -298,16 +307,17 @@ export default function DepositRequestPage() {
                     <option value="2">Rejected</option>
                   </select>
 
-                  {/* Search Button */}
                   <button
                     type="button"
                     className="btn btn-outline-secondary"
-                    onClick={fetchData}
+                    onClick={() => {
+                      setPage(1);
+                      fetchData(1, perPage, search);
+                    }}
                   >
                     Search
                   </button>
 
-                  {/* Right Side Actions */}
                   <div className="ms-auto d-flex gap-2">
                     {perms.includes("create deposit") && (
                       <Link
@@ -317,7 +327,6 @@ export default function DepositRequestPage() {
                         Add New
                       </Link>
                     )}
-
                     {roles.includes("admin") && (
                       <button
                         className="btn btn-danger"
@@ -331,7 +340,6 @@ export default function DepositRequestPage() {
               </div>
             </div>
 
-            {/* Body */}
             <div className="card-body p-0">
               <DataTable
                 columns={columns}
@@ -350,13 +358,8 @@ export default function DepositRequestPage() {
               />
             </div>
           </div>
-          {/*end::Body*/}
         </div>
-        {/*end::Row*/}
       </div>
-      {/*end::Container*/}
-
-      {/*end::App Content*/}
     </main>
   );
 }

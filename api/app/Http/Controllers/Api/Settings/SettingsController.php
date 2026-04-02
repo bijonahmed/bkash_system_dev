@@ -323,8 +323,8 @@ class SettingsController extends Controller
             $bankrate = $walletData->amount;
         }
         return response()->json([
-            'amount'    => $amount,
-            'bankrate'  => $bankrate,
+            'amount'    => number_format($amount ?? 0, 2),//$amount,
+            'bankrate'  => number_format($bankrate ?? 0, 2), //$bankrate,
             'message'   => 'success',
         ]);
     }
